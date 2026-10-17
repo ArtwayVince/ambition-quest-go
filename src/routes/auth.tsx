@@ -42,7 +42,7 @@ function Auth() {
       >
         <input required placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded-xl border border-input bg-card px-3 py-2" />
         <input required type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-xl border border-input bg-card px-3 py-2" />
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {(["explorer", "provider"] as const).map((r) => (
             <button type="button" key={r} onClick={() => setRole(r)} className={`rounded-xl border px-3 py-2 text-sm capitalize ${role === r ? "border-primary bg-primary/10" : "border-border"}`}>{r}</button>
           ))}
