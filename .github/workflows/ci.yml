@@ -1,0 +1,38 @@
+name: JET OFF CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, jetoff-dream-first-phase1]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build, lint and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies from lockfile
+        run: bun install --frozen-lockfile
+
+      - name: Build application
+        run: bun run build
+
+      - name: Run lint
+        run: bun run lint
+
+      - name: Run tests
+        run: bun run test
