@@ -1,12 +1,21 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import {
   Compass, Gamepad2, Home, Target, User, ShieldCheck, Menu, LayoutDashboard, ClipboardList,
-  Store, FilePlus2, Gavel, Map, FileText, Lock, LifeBuoy,
+  Store, FilePlus2, Gavel, Map, FileText, Lock, LifeBuoy, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useStore, levelOf, XP_PER_LEVEL, type Role } from "@/lib/store";
 import { naira } from "@/lib/data";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+const NavigationContext = createContext({ collapsed: false, toggle: () => {} });
+
+export function NavigationProvider({ children }: { children: ReactNode }) {
+  const [collapsed, setCollapsed] = useState(false);
+  return <NavigationContext.Provider value={{ collapsed, toggle: () => setCollapsed((value) => !value) }}>{children}</NavigationContext.Provider>;
+}
 
 const NAV = [
   { to: "/dashboard", label: "Home", icon: Home },
@@ -49,28 +58,32 @@ const isActive = (path: string, it: Item) => {
   return match(it.to) || (it.also ?? []).some(match);
 };
 
-function NavList({ path, onNavigate }: { path: string; onNavigate?: () => void }) {
+function NavList({ path, onNavigate, collapsed = false }: { path: string; onNavigate?: () => void; collapsed?: boolean }) {
   return (
     <nav aria-label="Main navigation" className="space-y-5">
       {GROUPS.map((g) => (
         <div key={g.title}>
-          <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{g.title}</p>
+          <p className={collapsed ? "sr-only" : "px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"}>{g.title}</p>
           <ul className="space-y-0.5">
             {g.items.map((it) => {
               const active = isActive(path, it);
               const Icon = it.icon;
               return (
                 <li key={it.to}>
-                  <Link
+                  <Tooltip>
+                  <TooltipTrigger asChild><Link
                     to={it.to}
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
-                    className={`flex items-center gap-3 rounded-xl border-l-4 px-3 py-2 text-sm transition-colors ${active ? "border-primary bg-primary/15 font-semibold text-primary" : "border-transparent text-foreground hover:bg-secondary"}`}
+                    aria-label={it.label}
+                    className={`flex h-10 items-center rounded-xl border-l-4 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${collapsed ? "justify-center px-0" : "gap-3 px-3"} ${active ? "border-primary bg-primary/15 font-semibold text-primary" : "border-transparent text-foreground hover:bg-secondary"}`}
                   >
                     <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                    <span className="flex-1">{it.label}</span>
-                    {it.hint && <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] text-muted-foreground">{it.hint}</span>}
-                  </Link>
+                    <span className={collapsed ? "sr-only" : "flex-1"}>{it.label}</span>
+                    {it.hint && !collapsed && <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] text-muted-foreground">{it.hint}</span>}
+                  </Link></TooltipTrigger>
+                  {collapsed && <TooltipContent side="right">{it.label}{it.hint ? ` · ${it.hint}` : ""}</TooltipContent>}
+                  </Tooltip>
                 </li>
               );
             })}
@@ -81,24 +94,18 @@ function NavList({ path, onNavigate }: { path: string; onNavigate?: () => void }
   );
 }
 
-export function Shell({ children }: { children: ReactNode }) {
-  const { s, set } = useStore();
+export function NavigationMenu({ className = "" }: { className?: string }) {
   const loc = useLocation();
   const [open, setOpen] = useState(false);
   useEffect(() => setOpen(false), [loc.pathname]);
-  const lvl = levelOf(s.xp);
-  const pct = ((s.xp % XP_PER_LEVEL) / XP_PER_LEVEL) * 100;
   return (
-    <div className="min-h-screen bg-background pb-24 text-foreground lg:pb-0 lg:pl-64">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border bg-card lg:flex">
-        <Link to="/" className="px-5 py-4 font-display text-lg font-extrabold tracking-tight">
-          JET<span className="text-primary">OFF</span>
-        </Link>
-        <div className="flex-1 overflow-y-auto px-2 pb-6">
-          <NavList path={loc.pathname} />
-        </div>
-      </aside>
+    <TooltipProvider>
       <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" aria-label="Open navigation menu" className={className}>
+            <Menu className="h-5 w-5" aria-hidden />
+          </Button>
+        </SheetTrigger>
         <SheetContent side="left" className="w-72 overflow-y-auto p-4">
           <SheetHeader className="text-left">
             <SheetTitle className="font-display">JET<span className="text-primary">OFF</span></SheetTitle>
@@ -107,17 +114,34 @@ export function Shell({ children }: { children: ReactNode }) {
           <div className="mt-4"><NavList path={loc.pathname} onNavigate={() => setOpen(false)} /></div>
         </SheetContent>
       </Sheet>
+    </TooltipProvider>
+  );
+}
+
+export function Shell({ children }: { children: ReactNode }) {
+  const { s, set } = useStore();
+  const loc = useLocation();
+  const { collapsed, toggle } = useContext(NavigationContext);
+  const lvl = levelOf(s.xp);
+  const pct = ((s.xp % XP_PER_LEVEL) / XP_PER_LEVEL) * 100;
+  return (
+    <div className={`min-h-screen bg-background pb-24 text-foreground lg:pb-0 ${collapsed ? "lg:pl-20" : "lg:pl-64"}`}>
+      <aside aria-label="Desktop sidebar" className={`fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border bg-card lg:flex ${collapsed ? "w-20" : "w-64"}`}>
+        <div className={`flex items-center py-4 ${collapsed ? "flex-col gap-3 px-2" : "justify-between px-5"}`}>
+          <Link to="/" aria-label="JET OFF Welcome" className="font-display text-lg font-extrabold tracking-tight">
+            {collapsed ? <>J<span className="text-primary">O</span></> : <>JET<span className="text-primary">OFF</span></>}
+          </Link>
+          <Button variant="ghost" size="icon" onClick={toggle} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} aria-expanded={!collapsed} aria-controls="desktop-navigation" title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
+            {collapsed ? <PanelLeftOpen aria-hidden /> : <PanelLeftClose aria-hidden />}
+          </Button>
+        </div>
+        <div id="desktop-navigation" className="flex-1 overflow-y-auto px-2 pb-6">
+          <TooltipProvider><NavList path={loc.pathname} collapsed={collapsed} /></TooltipProvider>
+        </div>
+      </aside>
       <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            aria-label="Open navigation menu"
-            aria-expanded={open}
-            className="-ml-1 rounded-lg p-1.5 hover:bg-secondary lg:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          <NavigationMenu className="-ml-1 rounded-lg hover:bg-secondary lg:hidden" />
           <Link to="/" className="font-display text-lg font-extrabold tracking-tight lg:hidden">
             JET<span className="text-primary">OFF</span>
           </Link>
