@@ -10,33 +10,231 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BookingsRouteImport } from './routes/bookings'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as GoalsRouteImport } from './routes/goals'
+import { Route as PlayRouteImport } from './routes/play'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ProviderRouteImport } from './routes/provider'
+import { Route as ReadinessRouteImport } from './routes/readiness'
+import { Route as SafetyRouteImport } from './routes/safety'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TourRouteImport } from './routes/tour'
+import { Route as ExperiencesIdRouteImport } from './routes/experiences.$id'
+import { Route as ProviderApplyRouteImport } from './routes/provider.apply'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingsRoute = BookingsRouteImport.update({
+  id: '/bookings',
+  path: '/bookings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GoalsRoute = GoalsRouteImport.update({
+  id: '/goals',
+  path: '/goals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayRoute = PlayRouteImport.update({
+  id: '/play',
+  path: '/play',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProviderRoute = ProviderRouteImport.update({
+  id: '/provider',
+  path: '/provider',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReadinessRoute = ReadinessRouteImport.update({
+  id: '/readiness',
+  path: '/readiness',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafetyRoute = SafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TourRoute = TourRouteImport.update({
+  id: '/tour',
+  path: '/tour',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExperiencesIdRoute = ExperiencesIdRouteImport.update({
+  id: '/experiences/$id',
+  path: '/experiences/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProviderApplyRoute = ProviderApplyRouteImport.update({
+  id: '/apply',
+  path: '/apply',
+  getParentRoute: () => ProviderRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/bookings': typeof BookingsRoute
+  '/dashboard': typeof DashboardRoute
+  '/explore': typeof ExploreRoute
+  '/goals': typeof GoalsRoute
+  '/play': typeof PlayRoute
+  '/privacy': typeof PrivacyRoute
+  '/provider': typeof ProviderRouteWithChildren
+  '/readiness': typeof ReadinessRoute
+  '/safety': typeof SafetyRoute
+  '/terms': typeof TermsRoute
+  '/tour': typeof TourRoute
+  '/experiences/$id': typeof ExperiencesIdRoute
+  '/provider/apply': typeof ProviderApplyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/bookings': typeof BookingsRoute
+  '/dashboard': typeof DashboardRoute
+  '/explore': typeof ExploreRoute
+  '/goals': typeof GoalsRoute
+  '/play': typeof PlayRoute
+  '/privacy': typeof PrivacyRoute
+  '/provider': typeof ProviderRouteWithChildren
+  '/readiness': typeof ReadinessRoute
+  '/safety': typeof SafetyRoute
+  '/terms': typeof TermsRoute
+  '/tour': typeof TourRoute
+  '/experiences/$id': typeof ExperiencesIdRoute
+  '/provider/apply': typeof ProviderApplyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/bookings': typeof BookingsRoute
+  '/dashboard': typeof DashboardRoute
+  '/explore': typeof ExploreRoute
+  '/goals': typeof GoalsRoute
+  '/play': typeof PlayRoute
+  '/privacy': typeof PrivacyRoute
+  '/provider': typeof ProviderRouteWithChildren
+  '/readiness': typeof ReadinessRoute
+  '/safety': typeof SafetyRoute
+  '/terms': typeof TermsRoute
+  '/tour': typeof TourRoute
+  '/experiences/$id': typeof ExperiencesIdRoute
+  '/provider/apply': typeof ProviderApplyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/bookings'
+    | '/dashboard'
+    | '/explore'
+    | '/goals'
+    | '/play'
+    | '/privacy'
+    | '/provider'
+    | '/readiness'
+    | '/safety'
+    | '/terms'
+    | '/tour'
+    | '/experiences/$id'
+    | '/provider/apply'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/bookings'
+    | '/dashboard'
+    | '/explore'
+    | '/goals'
+    | '/play'
+    | '/privacy'
+    | '/provider'
+    | '/readiness'
+    | '/safety'
+    | '/terms'
+    | '/tour'
+    | '/experiences/$id'
+    | '/provider/apply'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/bookings'
+    | '/dashboard'
+    | '/explore'
+    | '/goals'
+    | '/play'
+    | '/privacy'
+    | '/provider'
+    | '/readiness'
+    | '/safety'
+    | '/terms'
+    | '/tour'
+    | '/experiences/$id'
+    | '/provider/apply'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  AuthRoute: typeof AuthRoute
+  BookingsRoute: typeof BookingsRoute
+  DashboardRoute: typeof DashboardRoute
+  ExploreRoute: typeof ExploreRoute
+  GoalsRoute: typeof GoalsRoute
+  PlayRoute: typeof PlayRoute
+  PrivacyRoute: typeof PrivacyRoute
+  ProviderRoute: typeof ProviderRouteWithChildren
+  ReadinessRoute: typeof ReadinessRoute
+  SafetyRoute: typeof SafetyRoute
+  TermsRoute: typeof TermsRoute
+  TourRoute: typeof TourRoute
+  ExperiencesIdRoute: typeof ExperiencesIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +246,142 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bookings': {
+      id: '/bookings'
+      path: '/bookings'
+      fullPath: '/bookings'
+      preLoaderRoute: typeof BookingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/goals': {
+      id: '/goals'
+      path: '/goals'
+      fullPath: '/goals'
+      preLoaderRoute: typeof GoalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play': {
+      id: '/play'
+      path: '/play'
+      fullPath: '/play'
+      preLoaderRoute: typeof PlayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/provider': {
+      id: '/provider'
+      path: '/provider'
+      fullPath: '/provider'
+      preLoaderRoute: typeof ProviderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/readiness': {
+      id: '/readiness'
+      path: '/readiness'
+      fullPath: '/readiness'
+      preLoaderRoute: typeof ReadinessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safety': {
+      id: '/safety'
+      path: '/safety'
+      fullPath: '/safety'
+      preLoaderRoute: typeof SafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tour': {
+      id: '/tour'
+      path: '/tour'
+      fullPath: '/tour'
+      preLoaderRoute: typeof TourRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/experiences/$id': {
+      id: '/experiences/$id'
+      path: '/experiences/$id'
+      fullPath: '/experiences/$id'
+      preLoaderRoute: typeof ExperiencesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/provider/apply': {
+      id: '/provider/apply'
+      path: '/apply'
+      fullPath: '/provider/apply'
+      preLoaderRoute: typeof ProviderApplyRouteImport
+      parentRoute: typeof ProviderRoute
+    }
   }
 }
 
+interface ProviderRouteChildren {
+  ProviderApplyRoute: typeof ProviderApplyRoute
+}
+
+const ProviderRouteChildren: ProviderRouteChildren = {
+  ProviderApplyRoute: ProviderApplyRoute,
+}
+
+const ProviderRouteWithChildren = ProviderRoute._addFileChildren(
+  ProviderRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  AuthRoute: AuthRoute,
+  BookingsRoute: BookingsRoute,
+  DashboardRoute: DashboardRoute,
+  ExploreRoute: ExploreRoute,
+  GoalsRoute: GoalsRoute,
+  PlayRoute: PlayRoute,
+  PrivacyRoute: PrivacyRoute,
+  ProviderRoute: ProviderRouteWithChildren,
+  ReadinessRoute: ReadinessRoute,
+  SafetyRoute: SafetyRoute,
+  TermsRoute: TermsRoute,
+  TourRoute: TourRoute,
+  ExperiencesIdRoute: ExperiencesIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
