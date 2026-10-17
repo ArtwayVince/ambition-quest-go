@@ -5,7 +5,7 @@ import { useStore, levelOf, XP_PER_LEVEL, today, type Attr } from "@/lib/store";
 import { PATH_STAGES, DAILY_CHALLENGES } from "@/lib/data";
 
 export const Route = createFileRoute("/dashboard")({
-  head: () => meta("Dashboard", "Your character, path progress, missions and daily challenges."),
+  head: () => meta("Your journey", "Your ambition, current progress and the next meaningful step."),
   component: Dashboard,
 });
 
@@ -32,6 +32,38 @@ function Dashboard() {
     <Shell>
       <h1 className="text-3xl font-extrabold">{s.user ? `Welcome, ${s.user.name}` : "Your journey"}</h1>
       {!s.user && <p className="text-sm text-muted-foreground"><Link to="/auth" className="text-primary underline">Create a profile</Link> to personalise.</p>}
+
+      <Card className="mt-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">Your ambition</p>
+            <h2 className="mt-1 text-xl font-extrabold">{s.goals.length ? "The journey you are building" : "What do you want to make possible?"}</h2>
+          </div>
+          <Link to="/goals" className="shrink-0 text-sm font-semibold text-primary underline">{s.goals.length ? "View goals" : "Define a goal"}</Link>
+        </div>
+        {s.goals.length ? (
+          <div className="mt-3 space-y-3">
+            {s.goals.slice(0, 3).map((goal) => {
+              const pct = goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
+              return <div key={goal.id} className="rounded-xl border border-border p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="font-semibold">{goal.title}</p>
+                  <span className="text-xs text-muted-foreground">{pct}%</span>
+                </div>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} /></div>
+                <p className="mt-2 text-xs text-muted-foreground">₦{goal.saved.toLocaleString()} recorded of ₦{goal.target.toLocaleString()} target</p>
+              </div>;
+            })}
+            <p className="text-sm text-muted-foreground">Next step: review your goal, check what is within reach today, and choose one practical action. Your progress is more than a score.</p>
+            <Link to="/goals"><Btn>Work on my ambition</Btn></Link>
+          </div>
+        ) : (
+          <div className="mt-3">
+            <p className="text-sm text-muted-foreground">Start with what matters to you. Describe the ambition, set a realistic target if money is involved, and see your starting point before choosing the next step.</p>
+            <div className="mt-3"><Link to="/goals"><Btn>Define my ambition</Btn></Link></div>
+          </div>
+        )}
+      </Card>
 
       <Card className="mt-4">
         <div className="flex items-end justify-between">
