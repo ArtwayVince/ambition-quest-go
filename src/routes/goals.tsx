@@ -1,0 +1,78 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
+import { useStore, coach } from "@/lib/store";
+import { GOAL_TEMPLATES, naira } from "@/lib/data";
+
+export const Route = createFileRoute("/goals")({
+  head: () => meta("Goals", "Choose a long-term ambition and track self-reported savings with encouraging coaching."),
+  component: Goals,
+});
+
+function Goals() {
+  const { s, set, gain } = useStore();
+  const [amt, setAmt] = useState<Record<string, string>>({});
+  const [msg, setMsg] = useState<Record<string, string>>({});
+  const [custom, setCustom] = useState("");
+
+  const add = (id: string, title: string, target: number) => {
+    if (s.goals.some((g) => g.id === id)) return;
+    set((p) => ({ ...p, goals: [...p.goals, { id, title, target, saved: 0, log: [] }] }));
+    gain(10, { Mindset: 5 });
+  };
+  const log = (id: string) => {
+    const n = Math.floor(Number(amt[id]));
+    if (!n || n < 1) { toast.error("Enter an amount of at least ₦1"); return; }
+    const g = s.goals.find((x) => x.id === id)!;
+    const saved = g.saved + n;
+    set((p) => ({ ...p, goals: p.goals.map((x) => (x.id === id ? { ...x, saved, log: [...x.log, { amt: n, at: new Date().toISOString() }] } : x)) }));
+    gain(10, { Discipline: 5 });
+    setMsg((m) => ({ ...m, [id]: coach(saved, g.target, n) }));
+    setAmt((a) => ({ ...a, [id]: "" }));
+  };
+
+  return (
+    <Shell>
+      <h1 className="text-3xl font-extrabold">Pursue a goal</h1>
+      <Notice>Savings shown here are self-reported for your own tracking. JET OFF does not hold your money or guarantee outcomes.</Notice>
+
+      {s.goals.map((g) => {
+        const pct = Math.min(100, (g.saved / g.target) * 100);
+        const tpl = GOAL_TEMPLATES.find((t) => t.id === g.id);
+        return (
+          <Card key={g.id} className="mt-4">
+            <h2 className="font-bold">{g.title}</h2>
+            <p className="text-sm text-muted-foreground">{naira(g.saved)} of {naira(g.target)} · {pct.toFixed(pct < 1 ? 2 : 0)}%</p>
+            <div className="mt-2 h-2 rounded-full bg-muted"><div className="h-full rounded-full bg-sunset" style={{ width: `${Math.max(pct, g.saved ? 1 : 0)}%` }} /></div>
+            {tpl && <ul className="mt-3 space-y-1 text-xs text-muted-foreground">{tpl.milestones.map((m) => <li key={m}>◇ {m}</li>)}</ul>}
+            {tpl && <p className="mt-2 text-xs">Next: {tpl.actions[0]}</p>}
+            <div className="mt-3 flex gap-2">
+              <input inputMode="numeric" placeholder="e.g. 1000" value={amt[g.id] ?? ""} onChange={(e) => setAmt({ ...amt, [g.id]: e.target.value.replace(/\D/g, "") })} className="w-32 rounded-xl border border-input bg-background px-3 py-2" />
+              <Btn onClick={() => log(g.id)}>Log saving</Btn>
+            </div>
+            {msg[g.id] && <p className="mt-2 text-sm text-success">💬 {msg[g.id]}</p>}
+          </Card>
+        );
+      })}
+
+      <h2 className="mt-8 text-xl font-bold">Suggested goals</h2>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {GOAL_TEMPLATES.map((t) => (
+          <Card key={t.id}>
+            <p className="font-semibold">{t.title}</p>
+            <p className="text-xs text-muted-foreground">Estimated target {naira(t.target)} (illustrative)</p>
+            <div className="mt-2"><Btn variant="ghost" disabled={s.goals.some((g) => g.id === t.id)} onClick={() => add(t.id, t.title, t.target)}>{s.goals.some((g) => g.id === t.id) ? "Added" : "Choose"}</Btn></div>
+          </Card>
+        ))}
+      </div>
+      <Card className="mt-4">
+        <p className="font-semibold">Propose your own goal</p>
+        <div className="mt-2 flex gap-2">
+          <input value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="My ambition…" className="flex-1 rounded-xl border border-input bg-background px-3 py-2" />
+          <Btn onClick={() => { if (custom.trim()) { add(`custom-${Date.now()}`, custom.trim() + " (pending review)", 1_000_000); setCustom(""); } }}>Submit</Btn>
+        </div>
+      </Card>
+    </Shell>
+  );
+}
