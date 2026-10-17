@@ -159,7 +159,6 @@ export function Shell({ children }: { children: ReactNode }) {
               >
                 <option value="explorer">Explorer</option>
                 <option value="provider">Provider</option>
-                <option value="admin">Admin</option>
               </select>
             ) : (
               <Link to="/auth" className="flex items-center gap-1 rounded-full border border-border px-2 py-1">
