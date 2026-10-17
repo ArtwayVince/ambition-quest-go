@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import heroAsset from "@/assets/hero.jpg.asset.json";
 const hero = heroAsset.url;
-import { Btn, meta } from "@/components/Shell";
+import { Btn, meta, NavigationMenu } from "@/components/Shell";
 
 export const Route = createFileRoute("/")({
   head: () => meta("Your dream. Your journey.", "Discover real experiences, pursue long-term goals and grow through gamified missions — starting from ₦1,000."),
@@ -24,6 +24,7 @@ function Landing() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <section className="relative h-[88vh] overflow-hidden">
+        <div className="absolute left-4 top-4 z-20"><NavigationMenu className="h-11 w-11 border border-border bg-background/80 text-foreground backdrop-blur hover:bg-secondary" /></div>
         <img src={hero} alt="Resort pool at sunset with a jet overhead" width={1280} height={832} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
         <div className="relative mx-auto flex h-full max-w-3xl flex-col justify-end px-5 pb-12">
