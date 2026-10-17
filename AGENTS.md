@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- JET OFF app state lives in `src/lib/store.tsx` (browser localStorage) and listings/templates in `src/lib/data.ts`; why: imported prototype, kept as-is until a server-backed data layer replaces it.
+- Shared page chrome (header, nav, Card/Btn/Notice, `meta()`) lives in `src/components/Shell.tsx`; why: every route reuses it, so navigation changes happen in one place.
