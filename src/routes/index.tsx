@@ -5,14 +5,14 @@ const hero = heroAsset.url;
 import { Btn, meta, NavigationMenu } from "@/components/Shell";
 
 export const Route = createFileRoute("/")({
-  head: () => meta("Your dream. Your journey.", "Discover real experiences, pursue long-term goals and grow through gamified missions — starting from ₦1,000."),
+  head: () => meta("Your dream. Your journey.", "Turn an ambition into a journey with meaningful steps, practical learning, real experiences and progress you can see."),
   component: Landing,
 });
 
 const SLIDES = [
-  { tag: "Featured destination", title: "Yuby Resort — Pilot", body: "Tour the gate, reception and facilities before you ever arrive.", badge: "Proposed pilot" },
-  { tag: "Milestone", title: "₦1,000 is a real start", body: "Track self-reported savings toward big ambitions — no judgement.", badge: "Goal engine" },
-  { tag: "Pilot badge", title: "3 missions to Level Up", body: "Aspiration → Know Before You Go → The Real Visit.", badge: "Mission chain" },
+  { tag: "Your ambition", title: "Big dreams need a first step.", body: "Name what matters to you, see where you stand, and find a practical next move.", badge: "Start where you are" },
+  { tag: "Your journey", title: "Make progress you can see.", body: "Build skills, tackle hurdles, record milestones and learn from each attempt.", badge: "Progress with purpose" },
+  { tag: "The wider world", title: "Learn from journeys beyond yours.", body: "Explore real experiences and, as the community grows, learn from other people's paths.", badge: "Possibilities ahead" },
 ];
 
 function Landing() {
@@ -25,11 +25,11 @@ function Landing() {
     <div className="min-h-screen bg-background text-foreground">
       <section className="relative h-[88vh] overflow-hidden">
         <div className="absolute left-4 top-4 z-20"><NavigationMenu className="h-11 w-11 border border-border bg-background/80 text-foreground backdrop-blur hover:bg-secondary" /></div>
-        <img src={hero} alt="Resort pool at sunset with a jet overhead" width={1280} height={832} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={hero} alt="A visual invitation to imagine ambitions and the journeys that make them possible" width={1280} height={832} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
         <div className="relative mx-auto flex h-full max-w-3xl flex-col justify-end px-5 pb-12">
           <p className="font-display text-2xl font-extrabold">JET<span className="text-primary">OFF</span></p>
-          <p className="mt-2 inline-flex w-fit rounded-full border border-primary/40 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">Ambition, in motion · proposed pilot</p>
+          <p className="mt-2 inline-flex w-fit rounded-full border border-primary/40 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">Your dream. Your journey. Your world.</p>
           {(() => { const sl = SLIDES[i]!; return (<div key={i} className="mt-6 animate-in fade-in slide-in-from-right-6 duration-500">
             <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">{sl.badge}</span>
             <p className="mt-3 text-xs uppercase tracking-widest text-primary">{sl.tag}</p>
@@ -47,11 +47,15 @@ function Landing() {
           </div>
         </div>
       </section>
-      <section className="mx-auto grid max-w-3xl gap-4 px-5 py-10 sm:grid-cols-3">
+      <section className="mx-auto max-w-3xl px-5 py-8">
+        <h2 className="text-2xl font-extrabold">A journey built around you</h2>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">JET OFF is more than a savings target or a score. It is a place to shape an ambition, understand the gap between today and your goal, and work through meaningful steps at your own pace.</p>
+      </section>
+      <section className="mx-auto grid max-w-3xl gap-4 px-5 pb-10 sm:grid-cols-3">
         {([
-          ["Explore", "Real experiences from registered providers.", "/explore"],
-          ["Play", "₦100,000 practice currency. Real-life lessons.", "/play"],
-          ["Pursue a goal", "Milestones, coaching and next steps.", "/goals"],
+          ["Define your ambition", "Describe what you want and where you are starting from.", "/goals"],
+          ["Take a meaningful step", "Learn, practise and build confidence through missions.", "/play"],
+          ["Explore possibilities", "Discover experiences that may help turn plans into reality.", "/explore"],
         ] as const).map(([t, d, to]) => (
           <Link key={t} to={to} className="rounded-2xl border border-border bg-card p-5 transition hover:border-primary">
             <h2 className="text-xl font-bold">{t}</h2>
@@ -60,7 +64,7 @@ function Landing() {
         ))}
       </section>
       <p className="px-5 pb-10 text-center text-xs text-muted-foreground">
-        You don't need to be wealthy to begin. Savings are self-reported; practice currency is not real money. · <Link to="/terms">Terms</Link> · <Link to="/privacy">Privacy</Link> · <Link to="/safety">Safety</Link>
+        You don't need to be wealthy to begin. Progress starts with clarity and one achievable step. Savings are self-reported; practice currency is not real money. · <Link to="/terms">Terms</Link> · <Link to="/privacy">Privacy</Link> · <Link to="/safety">Safety</Link>
       </p>
     </div>
   );
