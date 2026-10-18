@@ -37,7 +37,7 @@ The experience should help someone who previously assumed an opportunity was bey
 - Give custom ambitions a user-defined target instead of silently assigning a fixed ₦1,000,000 target.
 - Show a visible preparation/readiness indicator and a route to the readiness coach.
 - Connect goal-specific milestones to concrete next actions and relevant routes.
-- Replace progress buttons that reward an unsubstantiated click with meaningful completion criteria or clearly labelled self-reported checkpoints.
+- Continue replacing generic stage progression with goal-specific completion criteria; the current reflection checkpoint is explicitly self-reported.
 - Explain what an action earns and why it matters; avoid duplicate rewards on repeated submissions.
 - Expand tests around savings records, goal targets, readiness state, mission progression and navigation.
 
@@ -80,7 +80,7 @@ The current repository is a useful interactive prototype, but many flows are sti
 - State is persisted in browser localStorage (key: jetoff-v1); there is no server-backed user record.
 - Profile creation is local demonstration behavior, not secure sign-in. Admin moderation is also a local prototype queue.
 - The custom-goal control currently labels a goal “pending review” and assigns a fixed ₦1,000,000 target instead of asking the user for a target.
-- The dashboard's Path to Jet Off lets a user advance a stage and receive XP with a single click, without checking whether the corresponding action happened.
+- The dashboard now requires a short self-reported reflection before advancing a journey stage and awards XP once per stage; the reflection is not independently verified, and goal-specific completion criteria remain future work.
 - The readiness quiz produces a useful practice score, but that score is not prominent on the dashboard and should never be framed as proof of real-world readiness.
 - Experience requests are stored locally and display an awaiting-provider status, but no provider notification or response workflow exists.
 - Provider applications do not yet collect sufficient evidence for actual business verification or safety review.
