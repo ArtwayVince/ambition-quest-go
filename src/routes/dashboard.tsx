@@ -35,6 +35,11 @@ function Dashboard() {
 
   return (
     <Shell>
+      <div className="mb-3">
+        <Link to="/" className="text-sm font-semibold text-primary underline">
+          ← Return to Welcome
+        </Link>
+      </div>
       <h1 className="text-3xl font-extrabold">
         {s.user ? `Welcome, ${s.user.name}` : "Your journey"}
       </h1>
@@ -91,6 +96,25 @@ function Dashboard() {
             <Link to="/goals">
               <Btn>Work on my ambition</Btn>
             </Link>
+            {s.goals.some((goal) => goal.saved > 0) && (
+              <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
+                <h3 className="font-bold">Your next meaningful step</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Saving is progress. Take one practical step toward your ambition.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link to="/play">
+                    <Btn>Take a mission</Btn>
+                  </Link>
+                  <Link to="/explore">
+                    <Btn variant="ghost">Explore experiences</Btn>
+                  </Link>
+                  <Link to="/goals">
+                    <Btn variant="ghost">Manage savings</Btn>
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="mt-3">
