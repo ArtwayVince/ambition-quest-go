@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
@@ -51,7 +51,22 @@ function Goals() {
               <input inputMode="numeric" placeholder="e.g. 1000" value={amt[g.id] ?? ""} onChange={(e) => setAmt({ ...amt, [g.id]: e.target.value.replace(/\D/g, "") })} className="w-32 rounded-xl border border-input bg-background px-3 py-2" />
               <Btn onClick={() => log(g.id)}>Log saving</Btn>
             </div>
-            {msg[g.id] && <p className="mt-2 text-sm text-success">💬 {msg[g.id]}</p>}
+            {msg[g.id] && (
+              <div className="mt-3 rounded-xl border border-primary/30 bg-primary/5 p-3">
+                <p className="text-sm text-success">💬 {msg[g.id]}</p>
+                <div className="mt-3">
+                  <p className="text-sm font-semibold">Your next steps</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Next practical milestone: {tpl?.actions[0] ?? "Choose one small action toward this ambition."}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link to="/dashboard"><Btn>View Dashboard &amp; XP</Btn></Link>
+                    <Link to="/play"><Btn variant="ghost">Take a mission</Btn></Link>
+                    <Link to="/explore"><Btn variant="ghost">Explore experiences</Btn></Link>
+                  </div>
+                </div>
+              </div>
+            )}
           </Card>
         );
       })}
