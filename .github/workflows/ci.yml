@@ -1,0 +1,41 @@
+name: JET OFF CI
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build, lint and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the pull request branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies from lockfile
+        run: bun install --frozen-lockfile
+
+      - name: Check formatting of Phase 1 files
+        run: bunx prettier --check src/routes/index.tsx src/routes/dashboard.tsx src/routes/auth.tsx src/components/Shell.tsx
+
+      - name: Build application
+        run: bun run build
+
+      - name: Lint Phase 1 files
+        run: bunx eslint src/routes/index.tsx src/routes/dashboard.tsx src/routes/auth.tsx src/components/Shell.tsx
+
+      - name: Run tests
+        run: bun run test
