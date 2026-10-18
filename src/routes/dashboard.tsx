@@ -36,10 +36,7 @@ function Dashboard() {
   return (
     <Shell>
       <div className="mb-3">
-        <Link
-          to="/"
-          className="text-sm font-semibold text-primary underline"
-        >
+        <Link to="/" className="text-sm font-semibold text-primary underline">
           ← Return to Welcome
         </Link>
       </div>
@@ -103,7 +100,8 @@ function Dashboard() {
               <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
                 <h3 className="font-bold">Your next meaningful step</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Your saving is progress. Keep the momentum going by completing a practical mission or exploring an experience that supports your ambition.
+                  Your saving is progress. Keep the momentum going by completing a practical mission or
+                  exploring an experience that supports your ambition.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Link to="/play"><Btn>Take a mission</Btn></Link>
