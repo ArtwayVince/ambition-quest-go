@@ -100,8 +100,7 @@ function Dashboard() {
               <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
                 <h3 className="font-bold">Your next meaningful step</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Saving is progress. Take a mission or explore an experience to move your ambition
-                  forward.
+                  Saving is progress. Take one practical step toward your ambition.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Link to="/play"><Btn>Take a mission</Btn></Link>
