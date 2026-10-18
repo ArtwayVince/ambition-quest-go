@@ -17,6 +17,7 @@ export type State = {
   apps: ProviderApp[];
   missions: { m1: boolean; m2: boolean; m3: boolean; m3Option?: "A" | "B"; aspiration?: string; reflection?: string; photo?: string };
   stage: number;
+  stageNotes: { stage: number; note: string; at: string }[];
   streak: number;
   lastDay?: string;
   dailyDone: string[];
@@ -30,10 +31,13 @@ const initial: State = {
   attrs: { Mindset: 0, Presence: 0, Discipline: 0, Network: 0 },
   wallet: 100000, goals: [], requests: [], apps: [],
   missions: { m1: false, m2: false, m3: false },
-  stage: 0, streak: 0, dailyDone: [], toured: [], readiness: 0, badges: [],
+  stage: 0, stageNotes: [], streak: 0, dailyDone: [], toured: [], readiness: 0, badges: [],
 };
 
 export const XP_PER_LEVEL = 100;
+export const STAGE_NOTE_MIN_LENGTH = 20;
+export const isMeaningfulReflection = (note: string) =>
+  note.trim().length >= STAGE_NOTE_MIN_LENGTH;
 export const levelOf = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1;
 
 type Ctx = {
