@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
-import { useStore, type Attr } from "@/lib/store";
+import { useStore, shouldAwardScenarioXp, type Attr } from "@/lib/store";
 import { BUDGET_SCENARIOS, naira } from "@/lib/data";
 
 export const Route = createFileRoute("/play")({
@@ -14,17 +14,45 @@ function Play() {
   const { s, set, gain, badge } = useStore();
   const [q, setQ] = useState(0);
   const [fb, setFb] = useState("");
+  const decisionLocked = useRef(false);
   const [asp, setAsp] = useState(s.missions.aspiration ?? "");
   const [refl, setRefl] = useState("");
   const [opt, setOpt] = useState<"A" | "B">("B");
   const [photo, setPhoto] = useState<string>();
-  const sc = BUDGET_SCENARIOS[q % BUDGET_SCENARIOS.length]!;
+  const scenarioIndex = q % BUDGET_SCENARIOS.length;
+  const sc = BUDGET_SCENARIOS[scenarioIndex]!;
 
-  const choose = (c: { label: string; cost: number; xp: Partial<Record<Attr, number>>; feedback: string }) => {
-    if (c.cost > s.wallet) { setFb("Not enough practice currency — in real life, this is when people borrow. Consider waiting."); return; }
-    set((p) => ({ ...p, wallet: p.wallet - c.cost }));
-    gain(10, c.xp as Partial<Record<Attr, number>>);
-    setFb(`${c.feedback}${c.cost ? ` (−${naira(c.cost)})` : ""}`);
+  useEffect(() => {
+    decisionLocked.current = false;
+  }, [fb, q]);
+
+  const choose = (c: {
+    label: string;
+    cost: number;
+    xp: Partial<Record<Attr, number>>;
+    feedback: string;
+  }) => {
+    if (decisionLocked.current || fb) return;
+    decisionLocked.current = true;
+    if (c.cost > s.wallet) {
+      setFb("Not enough practice currency — in real life, this is when people borrow. Consider waiting.");
+      return;
+    }
+
+    const awardXp = shouldAwardScenarioXp(s.budgetCompleted, scenarioIndex);
+    set((p) => ({
+      ...p,
+      wallet: p.wallet - c.cost,
+      budgetCompleted: shouldAwardScenarioXp(p.budgetCompleted, scenarioIndex)
+        ? [...p.budgetCompleted, scenarioIndex]
+        : p.budgetCompleted,
+    }));
+    if (awardXp) gain(10, c.xp);
+    const costText = c.cost ? ` (−${naira(c.cost)})` : "";
+    const rewardText = awardXp
+      ? " (+10 XP)"
+      : " This scenario was already rewarded; no extra XP this time.";
+    setFb(`${c.feedback}${costText}${rewardText}`);
   };
 
   const m = s.missions;
@@ -44,9 +72,20 @@ function Play() {
       <Card className="mt-4">
         <div className="flex justify-between"><h2 className="font-bold">Budget trade-off simulator</h2><span className="text-sm text-primary">{naira(s.wallet)}</span></div>
         <p className="mt-3">{sc.q}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          First completion rewards XP once per scenario. Repeating a scenario is still useful practice,
+          but does not award XP again.
+        </p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Scenarios rewarded: {s.budgetCompleted.length}/{BUDGET_SCENARIOS.length}
+        </p>
         <div className="mt-3 flex gap-2">
-          <Btn onClick={() => choose(sc.a)}>{sc.a.label}{sc.a.cost ? ` (${naira(sc.a.cost)})` : ""}</Btn>
-          <Btn variant="ghost" onClick={() => choose(sc.b)}>{sc.b.label}</Btn>
+          <Btn disabled={Boolean(fb)} onClick={() => choose(sc.a)}>
+            {sc.a.label}{sc.a.cost ? ` (${naira(sc.a.cost)})` : ""}
+          </Btn>
+          <Btn variant="ghost" disabled={Boolean(fb)} onClick={() => choose(sc.b)}>
+            {sc.b.label}
+          </Btn>
         </div>
         {fb && (
           <div className="mt-3 rounded-xl bg-secondary p-3 text-sm">
