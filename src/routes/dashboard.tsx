@@ -103,9 +103,15 @@ function Dashboard() {
                   Saving is progress. Take one practical step toward your ambition.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Link to="/play"><Btn>Take a mission</Btn></Link>
-                  <Link to="/explore"><Btn variant="ghost">Explore experiences</Btn></Link>
-                  <Link to="/goals"><Btn variant="ghost">Manage savings</Btn></Link>
+                  <Link to="/play">
+                    <Btn>Take a mission</Btn>
+                  </Link>
+                  <Link to="/explore">
+                    <Btn variant="ghost">Explore experiences</Btn>
+                  </Link>
+                  <Link to="/goals">
+                    <Btn variant="ghost">Manage savings</Btn>
+                  </Link>
                 </div>
               </div>
             )}
