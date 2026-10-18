@@ -1,7 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Shell, Card, Btn, meta } from "@/components/Shell";
-import { useStore, levelOf, XP_PER_LEVEL, today, type Attr } from "@/lib/store";
+import {
+  useStore,
+  levelOf,
+  XP_PER_LEVEL,
+  today,
+  isMeaningfulReflection,
+  STAGE_NOTE_MIN_LENGTH,
+  type Attr,
+} from "@/lib/store";
 import { PATH_STAGES, DAILY_CHALLENGES, READINESS } from "@/lib/data";
 
 export const Route = createFileRoute("/dashboard")({
@@ -13,11 +22,53 @@ const STREAK_BADGES = [3, 7, 30];
 
 function Dashboard() {
   const { s, set, gain, badge } = useStore();
+  const [stageNote, setStageNote] = useState("");
+  const stageActionInFlight = useRef(false);
   const lvl = levelOf(s.xp);
   const into = s.xp % XP_PER_LEVEL;
   const doneToday = s.dailyDone.filter((d) => d.startsWith(today()));
   const daily = DAILY_CHALLENGES[new Date().getDate() % DAILY_CHALLENGES.length];
   const claimed = doneToday.length > 0;
+  const journeyStages = PATH_STAGES.map((stage, index) =>
+    index === PATH_STAGES.length - 1 && s.goals[0]?.id !== "jet" ? "Achieve" : stage,
+  );
+
+  useEffect(() => {
+    stageActionInFlight.current = false;
+  }, [s.stage]);
+
+  const completeStage = () => {
+    if (stageActionInFlight.current) return;
+    if (!s.goals.length) {
+      toast.error("Choose an ambition before recording journey progress");
+      return;
+    }
+    if (!isMeaningfulReflection(stageNote)) {
+      toast.error(
+        `Write at least ${STAGE_NOTE_MIN_LENGTH} characters about what you did or learned`,
+      );
+      return;
+    }
+    if (s.stage >= PATH_STAGES.length - 1) return;
+    if (s.stageNotes.some((entry) => entry.stage === s.stage)) {
+      toast.error("This stage has already been recorded");
+      return;
+    }
+
+    stageActionInFlight.current = true;
+    const completedStage = s.stage;
+    set((p) => ({
+      ...p,
+      stage: p.stage + 1,
+      stageNotes: [
+        ...p.stageNotes,
+        { stage: completedStage, note: stageNote.trim(), at: new Date().toISOString() },
+      ],
+    }));
+    gain(15, { Mindset: 5 });
+    setStageNote("");
+    toast.success("Reflection recorded. +15 XP");
+  };
 
   const completeDaily = () => {
     const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
@@ -214,30 +265,51 @@ function Dashboard() {
       </Card>
 
       <Card className="mt-4">
-        <h2 className="font-bold">Path to Jet Off</h2>
+        <h2 className="font-bold">Your journey path</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Move forward by recording what you actually did or learned at each stage.
+        </p>
         <ol className="mt-3 grid grid-cols-5 gap-2 text-center text-[10px]">
-          {PATH_STAGES.map((st, k) => (
+          {journeyStages.map((stage, k) => (
             <li
-              key={st}
+              key={stage}
               className={`rounded-lg p-2 ${k <= s.stage ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
             >
               <div className="font-bold">{k + 1}</div>
-              {st}
+              {stage}
             </li>
           ))}
         </ol>
-        <div className="mt-3">
-          <Btn
-            variant="ghost"
-            disabled={s.stage >= 9}
-            onClick={() => {
-              set((p) => ({ ...p, stage: p.stage + 1 }));
-              gain(15, { Mindset: 5 });
-            }}
-          >
-            I've completed “{PATH_STAGES[s.stage]}”
-          </Btn>
-        </div>
+        {s.stage < PATH_STAGES.length - 1 ? (
+          <div className="mt-3 space-y-2">
+            <label htmlFor="stage-reflection" className="block text-sm font-semibold">
+              Reflection on “{journeyStages[s.stage]}”
+            </label>
+            <textarea
+              id="stage-reflection"
+              value={stageNote}
+              onChange={(event) => setStageNote(event.target.value)}
+              maxLength={500}
+              rows={3}
+              placeholder="Describe the practical step you took or what you learned (at least 20 characters)."
+              className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              Self-reported prototype checkpoint—not independent proof of a visit or outcome.
+            </p>
+            <Btn
+              disabled={!s.goals.length || !isMeaningfulReflection(stageNote)}
+              onClick={completeStage}
+            >
+              Record reflection &amp; continue (+15 XP)
+            </Btn>
+          </div>
+        ) : (
+          <p className="mt-3 text-sm text-muted-foreground">
+            You have reached the final stage shown for this journey. Your real-world outcome still
+            depends on your goal, circumstances and any provider requirements.
+          </p>
+        )}
       </Card>
 
       <Card className="mt-4">
