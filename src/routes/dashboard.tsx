@@ -44,7 +44,9 @@ function Dashboard() {
       return;
     }
     if (!isMeaningfulReflection(stageNote)) {
-      toast.error(`Write at least ${STAGE_NOTE_MIN_LENGTH} characters about what you did or learned`);
+      toast.error(
+        `Write at least ${STAGE_NOTE_MIN_LENGTH} characters about what you did or learned`,
+      );
       return;
     }
     if (s.stage >= PATH_STAGES.length - 1) return;
