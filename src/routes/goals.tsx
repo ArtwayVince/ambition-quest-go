@@ -15,6 +15,7 @@ function Goals() {
   const [amt, setAmt] = useState<Record<string, string>>({});
   const [msg, setMsg] = useState<Record<string, string>>({});
   const [custom, setCustom] = useState("");
+  const [customTarget, setCustomTarget] = useState("1000000");
 
   const add = (id: string, title: string, target: number) => {
     if (s.goals.some((g) => g.id === id)) return;
@@ -82,10 +83,56 @@ function Goals() {
         ))}
       </div>
       <Card className="mt-4">
-        <p className="font-semibold">Propose your own goal</p>
-        <div className="mt-2 flex gap-2">
-          <input value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="My ambition…" className="flex-1 rounded-xl border border-input bg-background px-3 py-2" />
-          <Btn onClick={() => { if (custom.trim()) { add(`custom-${Date.now()}`, custom.trim() + " (pending review)", 1_000_000); setCustom(""); } }}>Submit</Btn>
+        <p className="font-semibold">Add your own ambition</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Name what you want to make possible and choose an initial target in naira. This is your
+          planning figure, not a quote or guarantee.
+        </p>
+        <div className="mt-3 space-y-3">
+          <label className="block text-sm font-medium" htmlFor="custom-ambition">
+            Your ambition
+          </label>
+          <input
+            id="custom-ambition"
+            value={custom}
+            onChange={(e) => setCustom(e.target.value)}
+            maxLength={120}
+            placeholder="e.g. Complete a professional course"
+            className="w-full rounded-xl border border-input bg-background px-3 py-2"
+          />
+          <label className="block text-sm font-medium" htmlFor="custom-target">
+            Initial target (₦)
+          </label>
+          <input
+            id="custom-target"
+            type="number"
+            inputMode="numeric"
+            min="1"
+            step="1000"
+            value={customTarget}
+            onChange={(e) => setCustomTarget(e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2"
+          />
+          <Btn
+            onClick={() => {
+              const title = custom.trim();
+              const target = Number(customTarget);
+              if (!title) {
+                toast.error("Name the ambition you want to pursue");
+                return;
+              }
+              if (!Number.isSafeInteger(target) || target < 1) {
+                toast.error("Enter a whole-number target of at least ₦1");
+                return;
+              }
+              add(`custom-${Date.now()}`, title, target);
+              setCustom("");
+              setCustomTarget("1000000");
+              toast.success("Your ambition has been added");
+            }}
+          >
+            Add ambition
+          </Btn>
         </div>
       </Card>
     </Shell>

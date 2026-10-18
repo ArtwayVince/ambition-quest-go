@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Shell, Card, Btn, meta } from "@/components/Shell";
 import { useStore, levelOf, XP_PER_LEVEL, today, type Attr } from "@/lib/store";
-import { PATH_STAGES, DAILY_CHALLENGES } from "@/lib/data";
+import { PATH_STAGES, DAILY_CHALLENGES, READINESS } from "@/lib/data";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => meta("Your journey", "Your ambition, current progress and the next meaningful step."),
@@ -162,6 +162,41 @@ function Dashboard() {
               </div>
             </div>
           ))}
+        </div>
+      </Card>
+
+      <Card className="mt-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="font-bold">Preparation readiness</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Practice check: {s.readiness}/{READINESS.length} scenarios answered correctly.
+            </p>
+          </div>
+          <span className="shrink-0 text-sm font-semibold text-primary">
+            {Math.round((s.readiness / READINESS.length) * 100)}%
+          </span>
+        </div>
+        <div
+          className="mt-3 h-2 overflow-hidden rounded-full bg-muted"
+          role="progressbar"
+          aria-label="Preparation practice score"
+          aria-valuemin={0}
+          aria-valuemax={READINESS.length}
+          aria-valuenow={s.readiness}
+        >
+          <div
+            className="h-full rounded-full bg-primary"
+            style={{ width: `${(s.readiness / READINESS.length) * 100}%` }}
+          />
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          This is a practice score, not proof of real-world readiness or provider confirmation.
+        </p>
+        <div className="mt-3">
+          <Link to="/readiness">
+            <Btn variant="ghost">Continue readiness practice</Btn>
+          </Link>
         </div>
       </Card>
 
