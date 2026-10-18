@@ -170,7 +170,7 @@ function Dashboard() {
           <div>
             <h2 className="font-bold">Preparation readiness</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Practice check: ${s.readiness}/${READINESS.length} scenarios answered correctly.
+              Practice check: {s.readiness}/{READINESS.length} scenarios answered correctly.
             </p>
           </div>
           <span className="shrink-0 text-sm font-semibold text-primary">
