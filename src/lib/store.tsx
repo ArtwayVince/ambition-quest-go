@@ -12,6 +12,7 @@ export type State = {
   xp: number;
   attrs: Record<Attr, number>;
   wallet: number;
+  budgetCompleted: number[];
   goals: Goal[];
   requests: Request[];
   apps: ProviderApp[];
@@ -29,13 +30,15 @@ export type State = {
 const initial: State = {
   user: null, role: "explorer", xp: 0,
   attrs: { Mindset: 0, Presence: 0, Discipline: 0, Network: 0 },
-  wallet: 100000, goals: [], requests: [], apps: [],
+  wallet: 100000, budgetCompleted: [], goals: [], requests: [], apps: [],
   missions: { m1: false, m2: false, m3: false },
   stage: 0, stageNotes: [], streak: 0, dailyDone: [], toured: [], readiness: 0, badges: [],
 };
 
 export const XP_PER_LEVEL = 100;
 export const STAGE_NOTE_MIN_LENGTH = 20;
+export const shouldAwardScenarioXp = (completed: number[], scenarioIndex: number) =>
+  !completed.includes(scenarioIndex);
 export const isMeaningfulReflection = (note: string) =>
   note.trim().length >= STAGE_NOTE_MIN_LENGTH;
 export const levelOf = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1;
