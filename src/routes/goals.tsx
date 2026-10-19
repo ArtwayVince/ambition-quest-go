@@ -6,7 +6,7 @@ import { useStore, coach } from "@/lib/store";
 import { GOAL_TEMPLATES, naira } from "@/lib/data";
 
 export const Route = createFileRoute("/goals")({
-  head: () => meta("Goals", "Choose a long-term ambition and track self-reported savings with encouraging coaching."),
+  head: () => meta("Your ambitions & savings", "Review your ambitions, track self-reported savings and choose practical next steps."),
   component: Goals,
 });
 
@@ -35,7 +35,7 @@ function Goals() {
 
   return (
     <Shell>
-      <h1 className="text-3xl font-extrabold">Pursue a goal</h1>
+      <h1 className="text-3xl font-extrabold">Your ambitions &amp; savings</h1>
       <Notice>Savings shown here are self-reported for your own tracking. JET OFF does not hold your money or guarantee outcomes.</Notice>
 
       {s.goals.map((g) => {
@@ -46,7 +46,48 @@ function Goals() {
             <h2 className="font-bold">{g.title}</h2>
             <p className="text-sm text-muted-foreground">{naira(g.saved)} of {naira(g.target)} · {pct.toFixed(pct < 1 ? 2 : 0)}%</p>
             <div className="mt-2 h-2 rounded-full bg-muted"><div className="h-full rounded-full bg-sunset" style={{ width: `${Math.max(pct, g.saved ? 1 : 0)}%` }} /></div>
-            {tpl && <ul className="mt-3 space-y-1 text-xs text-muted-foreground">{tpl.milestones.map((m) => <li key={m}>◇ {m}</li>)}</ul>}
+            {tpl && (
+              <div className="mt-3">
+                <p className="text-xs font-semibold">Milestones</p>
+                <ul className="mt-1 space-y-2 text-sm">
+                  {tpl.milestones.map((m) => {
+                    const completed =
+                      (m === "First ₦1,000 saved" && g.saved >= 1000) ||
+                      (m === "Reach 25%" && g.saved >= g.target * 0.25) ||
+                      (m === "Reach 50%" && g.saved >= g.target * 0.5);
+                    const milestoneLink =
+                      m === "Complete a resort visit" ? (
+                        <Link to="/tour" className="underline decoration-dotted underline-offset-4 hover:text-primary">{m}</Link>
+                      ) : m === "Learn charter basics" ? (
+                        <Link to="/play" className="underline decoration-dotted underline-offset-4 hover:text-primary">{m}</Link>
+                      ) : m === "Book" ? (
+                        <Link to="/experiences/$id" params={{ id: "yuby-day-visit" }} className="underline decoration-dotted underline-offset-4 hover:text-primary">{m}</Link>
+                      ) : /farm visit|shadow day|attend a class|workshop|resort/i.test(m) ? (
+                        <Link to="/explore" className="underline decoration-dotted underline-offset-4 hover:text-primary">{m}</Link>
+                      ) : /learn|research|business plan|skill|practise|apply|pick a skill|first sale/i.test(m) ? (
+                        <Link to="/play" className="underline decoration-dotted underline-offset-4 hover:text-primary">{m}</Link>
+                      ) : null;
+                    return (
+                      <li key={m} className="flex items-start gap-2">
+                        <span aria-hidden="true" className={completed ? "font-bold text-success" : "text-muted-foreground"}>
+                          {completed ? "✓" : "○"}
+                        </span>
+                        {milestoneLink ? (
+                          milestoneLink
+                        ) : (
+                          <span className={completed ? "text-success" : "text-muted-foreground"}>{m}</span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+                {g.id === "jet" && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    The Yuby Resort Tour is preparation only. It does not count as completing an actual resort visit.
+                  </p>
+                )}
+              </div>
+            )}
             {tpl && <p className="mt-2 text-xs">Next: {tpl.actions[0]}</p>}
             <div className="mt-3 flex gap-2">
               <input inputMode="numeric" placeholder="e.g. 1000" value={amt[g.id] ?? ""} onChange={(e) => setAmt({ ...amt, [g.id]: e.target.value.replace(/\D/g, "") })} className="w-32 rounded-xl border border-input bg-background px-3 py-2" />
