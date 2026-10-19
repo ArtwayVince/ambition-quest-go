@@ -6,7 +6,7 @@ import { useStore, coach } from "@/lib/store";
 import { GOAL_TEMPLATES, naira } from "@/lib/data";
 
 export const Route = createFileRoute("/goals")({
-  head: () => meta("Goals", "Choose a long-term ambition and track self-reported savings with encouraging coaching."),
+  head: () => meta("Your ambitions & savings", "Review your ambitions, track self-reported savings and choose practical next steps."),
   component: Goals,
 });
 
@@ -35,7 +35,7 @@ function Goals() {
 
   return (
     <Shell>
-      <h1 className="text-3xl font-extrabold">Pursue a goal</h1>
+      <h1 className="text-3xl font-extrabold">Your ambitions &amp; savings</h1>
       <Notice>Savings shown here are self-reported for your own tracking. JET OFF does not hold your money or guarantee outcomes.</Notice>
 
       {s.goals.map((g) => {
