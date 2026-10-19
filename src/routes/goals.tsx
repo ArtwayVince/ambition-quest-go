@@ -46,7 +46,55 @@ function Goals() {
             <h2 className="font-bold">{g.title}</h2>
             <p className="text-sm text-muted-foreground">{naira(g.saved)} of {naira(g.target)} · {pct.toFixed(pct < 1 ? 2 : 0)}%</p>
             <div className="mt-2 h-2 rounded-full bg-muted"><div className="h-full rounded-full bg-sunset" style={{ width: `${Math.max(pct, g.saved ? 1 : 0)}%` }} /></div>
-            {tpl && <ul className="mt-3 space-y-1 text-xs text-muted-foreground">{tpl.milestones.map((m) => <li key={m}>◇ {m}</li>)}</ul>}
+            {tpl && (
+              <div className="mt-3">
+                <p className="text-xs font-semibold">Milestones</p>
+                <ul className="mt-1 space-y-2 text-sm">
+                  {tpl.milestones.map((m) => {
+                    const completed =
+                      (m === "First ₦1,000 saved" && g.saved >= 1000) ||
+                      (m === "Reach 25%" && g.saved >= g.target * 0.25) ||
+                      (m === "Reach 50%" && g.saved >= g.target * 0.5);
+                    const destination =
+                      m === "Complete a resort visit" ? "/tour" :
+                      m === "Learn charter basics" ? "/play" :
+                      m === "Book" ? "/experiences/$id" :
+                      /farm visit|shadow day|attend a class|workshop|resort/i.test(m) ? "/explore" :
+                      /learn|research|business plan|skill|practise|apply|pick a skill|first sale/i.test(m) ? "/play" :
+                      null;
+                    const linkProps = m === "Book"
+                      ? { to: "/experiences/$id" as const, params: { id: "yuby-day-visit" } }
+                      : destination === "/tour"
+                        ? { to: "/tour" as const }
+                        : destination === "/play"
+                          ? { to: "/play" as const }
+                          : destination === "/explore"
+                            ? { to: "/explore" as const }
+                            : null;
+                    return (
+                      <li key={m} className="flex items-start gap-2">
+                        <span aria-hidden="true" className={completed ? "font-bold text-success" : "text-muted-foreground"}>
+                          {completed ? "✓" : "○"}
+                        </span>
+                        {linkProps ? (
+                          <Link {...linkProps} className="underline decoration-dotted underline-offset-4 hover:text-primary">
+                            {m}
+                            <span className="sr-only"> — open related preparation</span>
+                          </Link>
+                        ) : (
+                          <span className={completed ? "text-success" : "text-muted-foreground"}>{m}</span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+                {g.id === "jet" && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    The Yuby Resort Tour is preparation only. It does not count as completing an actual resort visit.
+                  </p>
+                )}
+              </div>
+            )}
             {tpl && <p className="mt-2 text-xs">Next: {tpl.actions[0]}</p>}
             <div className="mt-3 flex gap-2">
               <input inputMode="numeric" placeholder="e.g. 1000" value={amt[g.id] ?? ""} onChange={(e) => setAmt({ ...amt, [g.id]: e.target.value.replace(/\D/g, "") })} className="w-32 rounded-xl border border-input bg-background px-3 py-2" />
