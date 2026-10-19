@@ -9,11 +9,21 @@ export const Route = createFileRoute("/auth")({
 });
 
 function Auth() {
-  const { s, set, reset } = useStore();
+  const { s, set, reset, hydrated } = useStore();
   const nav = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"explorer" | "provider">("explorer");
+  if (!hydrated)
+    return (
+      <Shell>
+        <Card>
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            Loading your saved profile…
+          </p>
+        </Card>
+      </Shell>
+    );
   if (s.user)
     return (
       <Shell>
