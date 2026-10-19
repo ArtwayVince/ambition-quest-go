@@ -45,6 +45,7 @@ export const levelOf = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1;
 
 type Ctx = {
   s: State;
+  hydrated: boolean;
   set: (fn: (s: State) => State) => void;
   gain: (xp: number, attrs?: Partial<Record<Attr, number>>) => void;
   badge: (b: string) => void;
@@ -74,7 +75,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return { ...p, xp: nx, attrs: a, badges };
     });
   const reset = () => setS(initial);
-  return <C.Provider value={{ s, set, gain, badge, reset }}>{children}</C.Provider>;
+  return <C.Provider value={{ s, set, gain, badge, reset, hydrated: ready }}>{children}</C.Provider>;
 }
 
 export function useStore() {
