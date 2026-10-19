@@ -125,7 +125,12 @@ function Dashboard() {
               const pct =
                 goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
               return (
-                <div key={goal.id} className="rounded-xl border border-border p-3">
+                <Link
+                  key={goal.id}
+                  to="/goals"
+                  aria-label={`Open ambition: ${goal.title} and its progress`}
+                  className="block rounded-xl border border-border p-3 transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <p className="font-semibold">{goal.title}</p>
                     <span className="text-xs text-muted-foreground">{pct}%</span>
@@ -137,7 +142,7 @@ function Dashboard() {
                     ₦{goal.saved.toLocaleString()} recorded of ₦{goal.target.toLocaleString()}{" "}
                     target
                   </p>
-                </div>
+                </Link>
               );
             })}
             <p className="text-sm text-muted-foreground">
