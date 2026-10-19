@@ -202,7 +202,7 @@ export function NavigationMenu({ className = "" }: { className?: string }) {
 }
 
 export function Shell({ children }: { children: ReactNode }) {
-  const { s, set } = useStore();
+  const { s, set, hydrated } = useStore();
   const loc = useLocation();
   const { collapsed, toggle } = useContext(NavigationContext);
   const lvl = levelOf(s.xp);
@@ -277,13 +277,17 @@ export function Shell({ children }: { children: ReactNode }) {
                 <option value="explorer">Explorer</option>
                 <option value="provider">Provider</option>
               </select>
-            ) : (
+            ) : hydrated ? (
               <Link
                 to="/auth"
                 className="flex items-center gap-1 rounded-full border border-border px-2 py-1"
               >
                 <User className="h-3 w-3" /> Sign in
               </Link>
+            ) : (
+              <span className="rounded-full border border-border px-2 py-1" aria-live="polite">
+                Loading profile…
+              </span>
             )}
           </div>
         </div>
