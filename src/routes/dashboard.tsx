@@ -21,7 +21,7 @@ export const Route = createFileRoute("/dashboard")({
 const STREAK_BADGES = [3, 7, 30];
 
 function Dashboard() {
-  const { s, set, gain, badge } = useStore();
+  const { s, set, gain, badge, hydrated } = useStore();
   const [stageNote, setStageNote] = useState("");
   const stageActionInFlight = useRef(false);
   const lvl = levelOf(s.xp);
@@ -94,7 +94,7 @@ function Dashboard() {
       <h1 className="text-3xl font-extrabold">
         {s.user ? `Welcome, ${s.user.name}` : "Your journey"}
       </h1>
-      {!s.user && (
+      {hydrated && !s.user && (
         <p className="text-sm text-muted-foreground">
           <Link to="/auth" className="text-primary underline">
             Create a profile
