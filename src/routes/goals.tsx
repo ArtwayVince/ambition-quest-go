@@ -55,32 +55,25 @@ function Goals() {
                       (m === "First ₦1,000 saved" && g.saved >= 1000) ||
                       (m === "Reach 25%" && g.saved >= g.target * 0.25) ||
                       (m === "Reach 50%" && g.saved >= g.target * 0.5);
-                    const destination =
-                      m === "Complete a resort visit" ? "/tour" :
-                      m === "Learn charter basics" ? "/play" :
-                      m === "Book" ? "/experiences/$id" :
-                      /farm visit|shadow day|attend a class|workshop|resort/i.test(m) ? "/explore" :
-                      /learn|research|business plan|skill|practise|apply|pick a skill|first sale/i.test(m) ? "/play" :
-                      null;
-                    const linkProps = m === "Book"
-                      ? { to: "/experiences/$id" as const, params: { id: "yuby-day-visit" } }
-                      : destination === "/tour"
-                        ? { to: "/tour" as const }
-                        : destination === "/play"
-                          ? { to: "/play" as const }
-                          : destination === "/explore"
-                            ? { to: "/explore" as const }
-                            : null;
+                    const milestoneLink =
+                      m === "Complete a resort visit" ? (
+                        <Link to="/tour" className="underline decoration-dotted underline-offset-4 hover:text-primary">{m}</Link>
+                      ) : m === "Learn charter basics" ? (
+                        <Link to="/play" className="underline decoration-dotted underline-offset-4 hover:text-primary">{m}</Link>
+                      ) : m === "Book" ? (
+                        <Link to="/experiences/$id" params={{ id: "yuby-day-visit" }} className="underline decoration-dotted underline-offset-4 hover:text-primary">{m}</Link>
+                      ) : /farm visit|shadow day|attend a class|workshop|resort/i.test(m) ? (
+                        <Link to="/explore" className="underline decoration-dotted underline-offset-4 hover:text-primary">{m}</Link>
+                      ) : /learn|research|business plan|skill|practise|apply|pick a skill|first sale/i.test(m) ? (
+                        <Link to="/play" className="underline decoration-dotted underline-offset-4 hover:text-primary">{m}</Link>
+                      ) : null;
                     return (
                       <li key={m} className="flex items-start gap-2">
                         <span aria-hidden="true" className={completed ? "font-bold text-success" : "text-muted-foreground"}>
                           {completed ? "✓" : "○"}
                         </span>
-                        {linkProps ? (
-                          <Link {...linkProps} className="underline decoration-dotted underline-offset-4 hover:text-primary">
-                            {m}
-                            <span className="sr-only"> — open related preparation</span>
-                          </Link>
+                        {milestoneLink ? (
+                          milestoneLink
                         ) : (
                           <span className={completed ? "text-success" : "text-muted-foreground"}>{m}</span>
                         )}
