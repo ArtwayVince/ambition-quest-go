@@ -14,6 +14,8 @@ export type State = {
   wallet: number;
   budgetCompleted: number[];
   goals: Goal[];
+  /** Sequential, self-reported completed action indexes for each ambition. */
+  goalSteps: Record<string, number[]>;
   requests: Request[];
   apps: ProviderApp[];
   missions: { m1: boolean; m2: boolean; m3: boolean; m3Option?: "A" | "B"; aspiration?: string; reflection?: string; photo?: string };
@@ -30,7 +32,7 @@ export type State = {
 const initial: State = {
   user: null, role: "explorer", xp: 0,
   attrs: { Mindset: 0, Presence: 0, Discipline: 0, Network: 0 },
-  wallet: 100000, budgetCompleted: [], goals: [], requests: [], apps: [],
+  wallet: 100000, budgetCompleted: [], goals: [], goalSteps: {}, requests: [], apps: [],
   missions: { m1: false, m2: false, m3: false },
   stage: 0, stageNotes: [], streak: 0, dailyDone: [], toured: [], readiness: 0, badges: [],
 };
