@@ -122,7 +122,7 @@ function Readiness() {
                 <Btn onClick={() => {
                   const next = i + 1;
                   if (next >= questions.length) {
-                    set((p) => ({ ...p, readiness: Math.max(p.readiness, score) }));
+                    set((p) => ({ ...p, readiness: Math.max(p.readiness, score), readinessByGoal: { ...(p.readinessByGoal ?? {}), [selectedGoal?.id ?? "__general__"]: score } }));
                     gain(25, { Presence: 10 });
                   }
                   setI(next);
