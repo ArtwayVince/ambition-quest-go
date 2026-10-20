@@ -95,11 +95,15 @@ function Goals() {
                 </ul>
               </div>
             )}
-            {tpl && (
-              <p className="mt-2 text-xs text-muted-foreground">
-                Your ambition-specific action plan is on the dashboard. The next step may involve learning, planning, or practical preparation—not only saving.
-              </p>
-            )}
+            <div className="mt-3">
+              <Link
+                to="/dashboard"
+                hash={`meaningful-step-${g.id}`}
+                className="inline-flex text-sm font-semibold text-primary underline underline-offset-4"
+              >
+                View this ambition’s action plan →
+              </Link>
+            </div>
             <div className="mt-3 flex gap-2">
               <input
                 inputMode="numeric"
@@ -128,7 +132,7 @@ function Goals() {
                     Your next meaningful step is available on the dashboard. Record it only after you have taken the action.
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <Link to="/dashboard"><Btn>View Dashboard &amp; XP</Btn></Link>
+                    <Link to="/dashboard" hash={`meaningful-step-${g.id}`}><Btn>View this action plan</Btn></Link>
                     <Link to="/play"><Btn variant="ghost">Take a mission</Btn></Link>
                     <Link to="/explore"><Btn variant="ghost">Explore experiences</Btn></Link>
                   </div>
