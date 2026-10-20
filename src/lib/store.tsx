@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 export type Role = "explorer" | "provider" | "admin";
 export type Attr = "Mindset" | "Presence" | "Discipline" | "Network";
 export type Goal = { id: string; title: string; target: number; saved: number; log: { amt: number; at: string }[] };
+export type GoalActivityRecord = { result: string; completedAt: string };
 export type Request = { id: string; expId: string; title: string; date: string; note: string; at: string };
 export type ProviderApp = { id: string; business: string; category: string; contact: string; description: string; status: "pending" | "approved" | "rejected"; at: string };
 
@@ -14,8 +15,11 @@ export type State = {
   wallet: number;
   budgetCompleted: number[];
   goals: Goal[];
-  /** Sequential, self-reported completed action indexes for each ambition. */
+  /** Legacy starter-step indexes retained so older saved progress is never silently discarded. */
   goalSteps: Record<string, number[]>;
+  /** Stable activity IDs map to a self-reported result and completion timestamp. */
+  goalActivityRecords: Record<string, Record<string, GoalActivityRecord>>;
+  schemaVersion: number;
   requests: Request[];
   apps: ProviderApp[];
   missions: { m1: boolean; m2: boolean; m3: boolean; m3Option?: "A" | "B"; aspiration?: string; reflection?: string; photo?: string };
@@ -32,7 +36,7 @@ export type State = {
 const initial: State = {
   user: null, role: "explorer", xp: 0,
   attrs: { Mindset: 0, Presence: 0, Discipline: 0, Network: 0 },
-  wallet: 100000, budgetCompleted: [], goals: [], goalSteps: {}, requests: [], apps: [],
+  wallet: 100000, budgetCompleted: [], goals: [], goalSteps: {}, goalActivityRecords: {}, schemaVersion: 2, requests: [], apps: [],
   missions: { m1: false, m2: false, m3: false },
   stage: 0, stageNotes: [], streak: 0, dailyDone: [], toured: [], readiness: 0, badges: [],
 };
@@ -59,7 +63,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [s, setS] = useState<State>(initial);
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    try { const raw = localStorage.getItem(KEY); if (raw) setS({ ...initial, ...JSON.parse(raw) }); } catch {}
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<State>;
+        setS({ ...initial, ...parsed, schemaVersion: 2, goalActivityRecords: parsed.goalActivityRecords ?? {} });
+      }
+    } catch {}
     setReady(true);
   }, []);
   useEffect(() => { if (ready) localStorage.setItem(KEY, JSON.stringify(s)); }, [s, ready]);
