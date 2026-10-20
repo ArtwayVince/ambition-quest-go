@@ -72,8 +72,109 @@ export const GOAL_JOURNEYS: Record<string, GoalJourney> = {
   ]),
 };
 
-export function journeyFor(goalId: string): GoalJourney {
-  return GOAL_JOURNEYS[goalId] ?? DEFAULT_JOURNEY;
+const tailoredCustomJourney = (title: string): GoalJourney => {
+  const name = title.trim() || "your ambition";
+  const lower = name.toLowerCase();
+  let entries: Array<[string, string, string, string, string, string]>;
+  if (/cyber|software|coding|program|technology|digital skill/.test(lower)) entries = [
+    ["custom-tech-outcome", `Define the outcome for ${name}.`, "Describe the specific skill, tool, service, or product you want to deliver, who would use it, and what a successful demonstration looks like.", "A concrete outcome connects learning to a useful result.", "What will you demonstrate, and who could benefit?", "custom-tech-outcome-defined"],
+    ["custom-tech-route", "Choose a credible learning and practice route.", "Compare documentation, courses, mentors, and hands-on practice. Check prerequisites, costs, time, credibility, and practical work.", "The right route builds capability rather than only collecting certificates.", "Which route did you choose and what practical work will it involve?", "custom-tech-route-chosen"],
+    ["custom-tech-project", "Build and review a small demonstration.", "Create a small project or exercise related to this ambition. Test it, document what works, and identify gaps before relying on it in a real setting.", "Demonstrable work gives evidence of progress and reveals what to learn next.", "What did you build or test, what happened, and what needs improvement?", "custom-tech-demo-reviewed"],
+  ];
+  else if (/school|university|college|course|degree|education|learn|training|academy|certif/.test(lower)) entries = [
+    ["custom-education-options", `Identify suitable routes for ${name}.`, "Find relevant institutions or learning routes. Check official recognition, prerequisites, delivery format, and whether the programme matches your intended outcome.", "Checking suitability first avoids investing in an unsuitable route.", "Which routes did you compare and what reliable source supports your shortlist?", "custom-education-routes-checked"],
+    ["custom-education-requirements", "Compare requirements, time, and full costs.", "Record deadlines, prerequisites, duration, fees, materials, transport or connectivity, and possible funding. Separate estimates from verified figures.", "The full commitment is clearer when time and non-tuition costs are included.", "Which requirements and costs did you record, and what remains uncertain?", "custom-education-requirements-compared"],
+    ["custom-education-plan", "Prepare an application and learning plan.", "List documents, prerequisite skills, deadlines, funding questions, and the next dated task. Contact the institution to verify anything unclear.", "A plan turns the ambition into manageable actions without assuming admission or success.", "What is your next dated action and what must be ready first?", "custom-education-plan-prepared"],
+  ];
+  else if (/farm|agric|crop|livestock|poultry|fish farm|fishery/.test(lower)) entries = [
+    ["custom-agri-scope", `Define the project behind ${name}.`, "Specify the product or activity, scale, location, season, likely customers, and what local evidence supports demand.", "A defined scope makes resource estimates more realistic.", "What exactly will you produce or provide, and what evidence of demand did you find?", "custom-agri-scope-defined"],
+    ["custom-agri-resources", "Estimate inputs, operations, and risks.", "List land or space, water, inputs, labour, equipment, storage, transport, timing, likely prices, and relevant local risks. Seek local estimates for important unknowns.", "Agricultural feasibility depends on local conditions as well as the idea.", "Which inputs and risks did you identify, and which need local advice?", "custom-agri-resources-estimated"],
+    ["custom-agri-validation", "Validate the plan with local expertise.", "Speak with an experienced producer, extension officer, or credible local buyer. Ask about common failures, seasonal constraints, and how to test the plan before investing heavily.", "Local evidence can reveal risks that generic estimates miss.", "Who did you consult or plan to consult, and what did you learn?", "custom-agri-plan-validated"],
+  ];
+  else if (/business|company|startup|enterprise|shop|sell|brand|market/.test(lower)) entries = [
+    ["custom-business-customer", `Identify the customer and need for ${name}.`, "Describe the people you hope to serve, their problem, and how your offer could help. Speak with potential customers where possible and separate evidence from assumptions.", "A business needs a real customer problem, not just an appealing idea.", "Who is the intended customer, what need did you confirm, and what remains an assumption?", "custom-business-need-validated"],
+    ["custom-business-model", "Map the costs and sustainability assumptions.", "List startup and recurring costs, pricing assumptions, suppliers, time, legal or regulatory requirements, and major risks. Identify figures needing verification.", "A basic model helps reveal whether the idea can be tested responsibly.", "What are the main costs and assumptions, and how will you verify them?", "custom-business-model-mapped"],
+    ["custom-business-test", "Design a small test and define useful evidence.", "Plan a low-risk pilot, sample, interview, or trial. Set a modest budget and a clear way to judge feedback before a larger commitment.", "A small test helps decide whether to continue, adapt, or stop.", "What test will you run, what will it cost, and what result would change your decision?", "custom-business-test-designed"],
+  ];
+  else if (/house|home|land|property|real estate|building/.test(lower)) entries = [
+    ["custom-property-needs", `Clarify the property outcome for ${name}.`, "Define intended location, use, essential features, and constraints. Research comparable options and record the source and date of estimates.", "Clear requirements make comparisons more useful.", "What are your essential requirements, and what evidence supports your shortlist?", "custom-property-needs-defined"],
+    ["custom-property-costs", "Estimate full costs and ongoing obligations.", "Consider purchase or construction costs, legal and documentation fees, utilities, repairs, maintenance, and ongoing expenses. Separate estimates from confirmed figures.", "The advertised price rarely represents the full commitment.", "Which costs did you include, and what needs professional confirmation?", "custom-property-costs-estimated"],
+    ["custom-property-checks", "Plan independent checks before committing.", "List documents, permissions, ownership or title checks, inspections, and qualified professionals relevant to the decision. Do not pay or sign based only on unverified claims.", "Independent verification helps protect against serious risks.", "Which checks must happen first, and who is qualified to verify them?", "custom-property-checks-planned"],
+  ];
+  else if (/book|write|novel|film|music|art|creative|content|publish/.test(lower)) entries = [
+    ["custom-creative-outcome", `Define the finished work for ${name}.`, "Describe the audience, format, scope, and what counts as a finished first version. Break the work into a small deliverable.", "A defined deliverable makes a creative ambition easier to start and review.", "What will you create first, for whom, and how will you know it is finished?", "custom-creative-outcome-defined"],
+    ["custom-creative-plan", "Build a realistic production and feedback plan.", "Break the work into stages, estimate time and essential costs, identify tools or permissions, and decide who can give useful feedback.", "A workable process protects time and helps improve the work.", "What are your main stages, resources, and feedback source?", "custom-creative-plan-created"],
+    ["custom-creative-draft", "Create a small draft and review it.", "Produce a sample, outline, prototype, or first section. Review it against your intended audience and use feedback to choose the next revision.", "A real draft gives more useful evidence than waiting for a perfect plan.", "What did you produce, what feedback did you get, and what will you revise?", "custom-creative-draft-reviewed"],
+  ];
+  else if (/travel|visit|trip|holiday|resort|experience|journey|concert|event/.test(lower)) entries = [
+    ["custom-experience-requirements", `Research what ${name} requires.`, "Identify destination or provider, dates, eligibility, access, transport, safety requirements, and inclusions. Verify important details with reliable sources.", "The details determine whether the experience is practical and suitable.", "What requirements did you verify, and what is still unconfirmed?", "custom-experience-requirements-checked"],
+    ["custom-experience-budget", "Build a complete and flexible estimate.", "Include entry or participation fees, transport, accommodation if needed, meals, equipment, contingency, and cancellation terms. Mark unverified amounts clearly.", "A complete estimate helps prevent surprises.", "What costs did you include, and which figures need confirmation?", "custom-experience-costs-estimated"],
+    ["custom-experience-plan", "Make a safe participation plan.", "Check provider credibility, access rules, travel arrangements, emergency contacts, and a realistic timeline. Do not treat a practice score as a booking.", "Responsible planning covers safety and logistics as well as money.", "What is the next verified step, and what must be confirmed before committing?", "custom-experience-plan-prepared"],
+  ];
+  else entries = [
+    ["custom-outcome", `Define what achieving “${name}” means.`, `Describe what achieving “${name}” would look like in observable terms. Identify who or what is involved, the intended outcome, and the first important unknown to resolve.`, "A specific outcome helps distinguish useful progress from unrelated activity.", "What would success look like, and what key question must you answer first?", "custom-outcome-defined"],
+    ["custom-requirements", `Research the real requirements for “${name}”.`, `Find reliable information about the skills, people, permissions, resources, time, costs if relevant, and risks involved in “${name}”. Record sources and separate facts from assumptions.`, "Reliable information helps you choose an appropriate next action.", "What requirements did you identify, what evidence supports them, and what remains uncertain?", "custom-requirements-researched"],
+    ["custom-practical-step", `Take and review one practical step toward “${name}”.`, "Choose a small action that fits your present circumstances. Do it if appropriate, record the result, and decide what the result means for your next step.", "Progress becomes meaningful when an action produces evidence or better-informed decisions.", "What step did you take, what happened, and what will you do next?", "custom-practical-step-reviewed"],
+  ];
+  return makeJourney(entries);
+};
+
+export function journeyFor(goalId: string, goalTitle = ""): GoalJourney {
+  return GOAL_JOURNEYS[goalId] ?? tailoredCustomJourney(goalTitle);
+}
+
+export type ReadinessQuestion = { q: string; opts: string[]; correct: number; tip: string };
+
+export function readinessFor(goalId: string, goalTitle = ""): ReadinessQuestion[] {
+  const title = goalTitle.trim() || "your ambition";
+  const known: Record<string, ReadinessQuestion[]> = {
+    jet: [
+      { q: "Before relying on a private-jet charter estimate, what should you do?", opts: ["Treat an online headline price as final", "Confirm route, aircraft, dates, fees and terms with a legitimate provider", "Assume the virtual balance can pay for it"], correct: 1, tip: "A route-specific quote and clear terms are needed; a practice balance is not real money." },
+      { q: "What belongs in a realistic charter estimate?", opts: ["Only the flight headline price", "No ground transport or fees", "Main cost items, with unknown figures marked for verification"], correct: 2, tip: "Keep estimates, unknowns and verified quotes separate." },
+      { q: "If the real cost exceeds your present resources, what should you do?", opts: ["Protect essential expenses and revise timing or alternatives", "Borrow immediately without comparing risks", "Claim readiness because your quiz score is high"], correct: 0, tip: "Readiness requires realistic finances and verified arrangements." },
+    ],
+    house: [
+      { q: "Before paying for a property, what should be checked?", opts: ["Only the seller's verbal assurance", "Ownership/title, documents and relevant approvals with qualified help", "Only the advertised price"], correct: 1, tip: "Independent due diligence should precede payment or signing." },
+      { q: "Which estimate is most useful for a home purchase?", opts: ["Asking price alone", "A guessed price with no source", "Full costs including legal, transaction, repair and ongoing expenses"], correct: 2, tip: "Include costs beyond the headline price and verify them." },
+      { q: "A property claim cannot be verified. What next?", opts: ["Pause and seek qualified independent advice", "Pay a deposit to secure it", "Assume it is genuine"], correct: 0, tip: "Unverified claims are a reason to pause, not rush." },
+    ],
+    school: [
+      { q: "How should you check whether a programme suits your ambition?", opts: ["Rely only on a social-media advert", "Check official recognition and programme requirements", "Assume every certificate is accepted everywhere"], correct: 1, tip: "Use official sources to verify recognition and entry requirements." },
+      { q: "What should a realistic education plan include?", opts: ["Tuition only", "Only the first payment", "Fees, materials, deadlines, duration and funding assumptions"], correct: 2, tip: "Consider the full period of study and confirm current figures." },
+      { q: "You discover a prerequisite you do not meet. What next?", opts: ["Record it and plan how or when to meet it", "Hide it from the institution", "Assume it will not matter"], correct: 0, tip: "Turn gaps into practical preparation tasks." },
+    ],
+    agri: [
+      { q: "Before investing in an agricultural project, what should you validate?", opts: ["Only equipment price", "Demand, local conditions, inputs and risks", "A social-media success story"], correct: 1, tip: "Feasibility depends on local conditions and market evidence." },
+      { q: "How should uncertain input and selling prices be handled?", opts: ["Assume the most favourable price", "Ignore seasonal changes", "Record assumptions and seek current local estimates"], correct: 2, tip: "Use realistic ranges and validate assumptions locally." },
+      { q: "Who may help check the plan against local realities?", opts: ["An experienced producer or agricultural extension officer", "Only someone selling equipment", "No one"], correct: 0, tip: "Local expertise can identify seasonal and operational risks." },
+    ],
+    biz: [
+      { q: "What is a strong early test of a business idea?", opts: ["Spend heavily before talking to anyone", "Assume friends' praise proves demand", "Speak with potential customers about their needs and alternatives"], correct: 2, tip: "Customer evidence is more useful than assumptions alone." },
+      { q: "Before a larger investment, what should you estimate?", opts: ["Startup and recurring costs, pricing assumptions and risks", "Only logo cost", "Revenue as if every prospect will buy"], correct: 0, tip: "A simple model should expose assumptions and recurring obligations." },
+      { q: "What is the purpose of a small pilot?", opts: ["Guarantee success", "Test key assumptions at manageable risk", "Avoid collecting feedback"], correct: 1, tip: "A pilot helps decide whether to continue, adapt, or stop." },
+    ],
+    skill: [
+      { q: "How can you define progress in a practical skill?", opts: ["Count only videos watched", "Choose a specific task or project you can demonstrate", "Assume enrollment proves mastery"], correct: 1, tip: "Demonstrable outcomes are stronger evidence than attendance alone." },
+      { q: "How should you choose a learning route?", opts: ["Compare credibility, practical work, cost and time", "Choose only the cheapest advert", "Ignore prerequisites"], correct: 0, tip: "Check the quality and fit of the route before committing." },
+      { q: "What should you do after practising?", opts: ["Claim expertise without review", "Avoid feedback", "Review the result, identify gaps and practise again"], correct: 2, tip: "Feedback and iteration help turn practice into capability." },
+    ],
+  };
+  if (known[goalId]) return known[goalId];
+  const journey = tailoredCustomJourney(title);
+  const first = journey.activities[0].title;
+  const second = journey.activities[1].title;
+  const third = journey.activities[2].title;
+  const lower = title.toLowerCase();
+  if (/farm|agric|crop|livestock|poultry|fish farm|fishery/.test(lower)) return [
+    { q: `For “${title}”, what should you validate before committing resources?`, opts: ["Local demand, operating conditions, inputs and risks", "Only the cheapest equipment", "A success story from a different region"], correct: 0, tip: "Check the assumptions that most affect feasibility in your context." },
+    { q: `When estimating resources for “${title}”, how should unknowns be handled?`, opts: ["Assume ideal conditions", "Record assumptions and seek reliable local estimates", "Ignore seasonal variation"], correct: 1, tip: "Mark uncertainty clearly and consult relevant local expertise." },
+    { q: `What is a sensible next step for “${title}” if major risks remain unknown?`, opts: ["Invest everything immediately", "Treat a quiz result as proof", "Seek informed advice and test the riskiest assumption on a small scale"], correct: 2, tip: "Reduce avoidable risk before a major commitment." },
+  ];
+  return [
+    { q: `For “${title}”, what is the best approach to the first step: ${first}?`, opts: ["Complete the relevant checks and record evidence or questions", "Skip it and assume everything is ready", "Commit significant resources before checking details"], correct: 0, tip: "Start with evidence that is specific to your ambition." },
+    { q: `While pursuing “${title}”, how should you handle the step “${second}”?`, opts: ["Ignore uncertainties", "Separate verified facts from assumptions and check important unknowns", "Treat practice points as real resources"], correct: 1, tip: "Record what is known and what still needs verification." },
+    { q: `What makes the next step toward “${title}” useful: ${third}?`, opts: ["It sounds impressive even if unrelated", "It requires a large payment first", "It is relevant, realistic, and produces evidence or learning"], correct: 2, tip: "Choose a step that genuinely advances the ambition." },
+  ];
 }
 
 export function milestoneIsComplete(
