@@ -283,36 +283,13 @@ function Dashboard() {
       </Card>
 
       <Card className="mt-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="font-bold">Readiness practice score</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {s.readiness}/{READINESS.length} scenarios answered correctly.
-            </p>
-          </div>
-          <span className="shrink-0 text-sm font-semibold text-primary">
-            {Math.round((s.readiness / READINESS.length) * 100)}%
-          </span>
-        </div>
-        <div
-          className="mt-3 h-2 overflow-hidden rounded-full bg-muted"
-          role="progressbar"
-          aria-label="Preparation practice score"
-          aria-valuemin={0}
-          aria-valuemax={READINESS.length}
-          aria-valuenow={s.readiness}
-        >
-          <div
-            className="h-full rounded-full bg-primary"
-            style={{ width: `${(s.readiness / READINESS.length) * 100}%` }}
-          />
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          This is a practice score, not proof of real-world readiness or provider confirmation.
+        <h2 className="font-bold">Readiness practice</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Practise decisions for a specific ambition. Your results are tracked separately for each ambition and do not certify real-world readiness.
         </p>
         <div className="mt-3">
           <Link to="/readiness">
-            <Btn variant="ghost">Continue readiness practice</Btn>
+            <Btn variant="ghost">Choose an ambition to practise</Btn>
           </Link>
         </div>
       </Card>
