@@ -13,6 +13,7 @@ import {
 } from "@/lib/store";
 import { PATH_STAGES, DAILY_CHALLENGES } from "@/lib/data";
 import { GuidedJourneys } from "@/components/GuidedJourneys";
+import { AIAmbitionCoach } from "@/components/AIAmbitionCoach";
 import { journeyFor } from "@/lib/journeys";
 
 export const Route = createFileRoute("/dashboard")({
@@ -172,6 +173,8 @@ function Dashboard() {
         )}
       </Card>
 
+      <AIAmbitionCoach />
+
       {s.goals.length > 0 && (
         <Card className="mt-4">
           <h2 className="font-bold">Ambition readiness overview</h2>
@@ -181,7 +184,7 @@ function Dashboard() {
           </p>
           <div className="mt-3 space-y-4">
             {s.goals.map((goal) => {
-              const journey = journeyFor(goal.id, goal.title);
+              const journey = s.aiJourneys?.[goal.id] ?? journeyFor(goal.id, goal.title);
               const records = s.goalActivityRecords[goal.id] ?? {};
               const completed = journey.activities.filter((activity) => Boolean(records[activity.id])).length;
               const nextActivity = journey.activities.find((activity) => !records[activity.id]);
