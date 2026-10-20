@@ -11,7 +11,7 @@ import {
   STAGE_NOTE_MIN_LENGTH,
   type Attr,
 } from "@/lib/store";
-import { PATH_STAGES, DAILY_CHALLENGES, READINESS } from "@/lib/data";
+import { PATH_STAGES, DAILY_CHALLENGES } from "@/lib/data";
 import { GuidedJourneys } from "@/components/GuidedJourneys";
 import { journeyFor } from "@/lib/journeys";
 
@@ -221,17 +221,28 @@ function Dashboard() {
                       </p>
                     )}
                   </div>
+                  <div className="mt-3 rounded-lg bg-muted p-3">
+                    <p className="text-sm font-semibold">
+                      Readiness practice: {s.readinessByGoal?.[goal.id] === undefined ? "Not taken yet" : `${s.readinessByGoal[goal.id]}/3 scenarios`}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      This score belongs to this ambition only. It is practice, not proof of affordability, booking, or real-world readiness.
+                    </p>
+                    <Link to="/readiness" className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4">
+                      Practise for this ambition →
+                    </Link>
+                  </div>
                 </div>
               );
             })}
           </div>
           <div className="mt-4 rounded-lg bg-muted p-3">
-            <p className="text-sm font-semibold">Readiness practice: {s.readiness}/{READINESS.length} scenarios</p>
+            <p className="text-sm font-semibold">Readiness practice</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              This quiz score is separate from financial progress and recorded activities. It is practice, not proof that an experience is affordable, booked or confirmed.
+              Practise decisions for a specific ambition. Each score is tracked separately and is not proof of affordability, booking, or real-world readiness.
             </p>
             <Link to="/readiness" className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4">
-              Continue readiness practice →
+              Choose an ambition and practise →
             </Link>
           </div>
         </Card>
