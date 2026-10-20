@@ -65,7 +65,6 @@ function Goals() {
 
       {s.goals.map((g) => {
         const pct = Math.min(100, (g.saved / g.target) * 100);
-        const tpl = GOAL_TEMPLATES.find((t) => t.id === g.id);
         const journey = journeyFor(g.id);
         const activityRecords = s.goalActivityRecords[g.id] ?? {};
         const completedActivities = journey.activities.filter((activity) => Boolean(activityRecords[activity.id])).length;
