@@ -66,8 +66,17 @@ function Goals() {
         const pct = Math.min(100, (g.saved / g.target) * 100);
         const tpl = GOAL_TEMPLATES.find((t) => t.id === g.id);
         return (
-          <Card key={g.id} className="mt-4">
+          <div id={`review-ambition-${g.id}`} className="scroll-mt-4">
+          <Card className="mt-4">
             <h2 className="font-bold">{g.title}</h2>
+            <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary">Ambition review</p>
+              <p className="mt-1 text-sm">You have recorded {naira(g.saved)} toward your initial target of {naira(g.target)} ({pct.toFixed(pct < 1 ? 2 : 0)}%). This is a planning snapshot, not a guarantee that the ambition is within reach yet.</p>
+              <p className="mt-2 text-sm">{(s.goalSteps[g.id] ?? []).length} of {(tpl?.id ? ({ jet: 3, house: 3, school: 3, agri: 3, biz: 3, skill: 3 } as Record<string, number>)[tpl.id] : 3) ?? 3} starter actions recorded.</p>
+              <p className="mt-2 text-sm font-semibold">Next decision</p>
+              <p className="text-sm text-muted-foreground">Review what has changed since your last action. Identify the next requirement, check any costs or risks, and decide on one practical step you can responsibly take next. Saving is only one possible part of preparation.</p>
+              <Link to="/dashboard" hash={`meaningful-step-${g.id}`} className="mt-3 inline-flex text-sm font-semibold text-primary underline underline-offset-4">Return to this ambition’s action plan →</Link>
+            </div>
             <p className="text-sm text-muted-foreground">{naira(g.saved)} of {naira(g.target)} · {pct.toFixed(pct < 1 ? 2 : 0)}%</p>
             <div className="mt-2 h-2 rounded-full bg-muted"><div className="h-full rounded-full bg-sunset" style={{ width: `${Math.max(pct, g.saved ? 1 : 0)}%` }} /></div>
             {tpl && (
@@ -140,6 +149,7 @@ function Goals() {
               </div>
             )}
           </Card>
+          </div>
         );
       })}
 
