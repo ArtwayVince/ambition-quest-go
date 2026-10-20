@@ -46,7 +46,7 @@ export function GuidedJourneys() {
   return (
     <>
       {s.goals.map((goal) => {
-        const journey = journeyFor(goal.id);
+        const journey = journeyFor(goal.id, goal.title);
         const records = s.goalActivityRecords[goal.id] ?? {};
         const completedCount = journey.activities.filter((activity) =>
           Boolean(records[activity.id]),
