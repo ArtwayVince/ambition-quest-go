@@ -14,6 +14,7 @@ function Goals() {
   const { s, set, gain } = useStore();
   const [amt, setAmt] = useState<Record<string, string>>({});
   const [msg, setMsg] = useState<Record<string, string>>({});
+  const [savedNotice, setSavedNotice] = useState<Record<string, string>>({});
   const [custom, setCustom] = useState("");
   const [customTarget, setCustomTarget] = useState("1000000");
 
@@ -23,14 +24,37 @@ function Goals() {
     gain(10, { Mindset: 5 });
   };
   const log = (id: string) => {
-    const n = Math.floor(Number(amt[id]));
-    if (!n || n < 1) { toast.error("Enter an amount of at least ₦1"); return; }
-    const g = s.goals.find((x) => x.id === id)!;
+    const n = Number(amt[id]);
+    if (!Number.isSafeInteger(n) || n < 1) {
+      toast.error("Enter a whole-number amount of at least ₦1");
+      return;
+    }
+    const g = s.goals.find((x) => x.id === id);
+    if (!g) {
+      toast.error("We couldn't find that ambition. Please refresh and try again.");
+      return;
+    }
     const saved = g.saved + n;
-    set((p) => ({ ...p, goals: p.goals.map((x) => (x.id === id ? { ...x, saved, log: [...x.log, { amt: n, at: new Date().toISOString() }] } : x)) }));
+    if (!Number.isSafeInteger(saved)) {
+      toast.error("That amount is too large to record safely");
+      return;
+    }
+    set((p) => ({
+      ...p,
+      goals: p.goals.map((x) =>
+        x.id === id
+          ? { ...x, saved, log: [...x.log, { amt: n, at: new Date().toISOString() }] }
+          : x,
+      ),
+    }));
     gain(10, { Discipline: 5 });
     setMsg((m) => ({ ...m, [id]: coach(saved, g.target, n) }));
+    setSavedNotice((notices) => ({
+      ...notices,
+      [id]: `✔ Saving recorded: ₦${n.toLocaleString()}. Total saved: ₦${saved.toLocaleString()}.`,
+    }));
     setAmt((a) => ({ ...a, [id]: "" }));
+    toast.success("✔ Saving recorded");
   };
 
   return (
@@ -46,12 +70,51 @@ function Goals() {
             <h2 className="font-bold">{g.title}</h2>
             <p className="text-sm text-muted-foreground">{naira(g.saved)} of {naira(g.target)} · {pct.toFixed(pct < 1 ? 2 : 0)}%</p>
             <div className="mt-2 h-2 rounded-full bg-muted"><div className="h-full rounded-full bg-sunset" style={{ width: `${Math.max(pct, g.saved ? 1 : 0)}%` }} /></div>
-            {tpl && <ul className="mt-3 space-y-1 text-xs text-muted-foreground">{tpl.milestones.map((m) => <li key={m}>◇ {m}</li>)}</ul>}
+            {tpl && (
+              <div className="mt-3">
+                <p className="text-xs font-semibold">Milestones</p>
+                <ul className="mt-1 space-y-2 text-sm">
+                  {tpl.milestones.map((m) => {
+                    const completed =
+                      (m === "First ₦1,000 saved" && g.saved >= 1000) ||
+                      (m === "Open savings habit" && g.saved > 0) ||
+                      (m === "Reach 10%" && g.saved >= g.target * 0.1) ||
+                      (m === "Reach 25%" && g.saved >= g.target * 0.25) ||
+                      (m === "Reach 30%" && g.saved >= g.target * 0.3) ||
+                      (m === "Reach 40%" && g.saved >= g.target * 0.4) ||
+                      (m === "Reach 50%" && g.saved >= g.target * 0.5);
+                    return (
+                      <li key={m} className="flex items-start gap-2">
+                        <span aria-hidden="true" className={completed ? "font-bold text-success" : "text-muted-foreground"}>
+                          {completed ? "✔" : "○"}
+                        </span>
+                        <span className={completed ? "text-success" : "text-muted-foreground"}>{m}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
             {tpl && <p className="mt-2 text-xs">Next: {tpl.actions[0]}</p>}
             <div className="mt-3 flex gap-2">
-              <input inputMode="numeric" placeholder="e.g. 1000" value={amt[g.id] ?? ""} onChange={(e) => setAmt({ ...amt, [g.id]: e.target.value.replace(/\D/g, "") })} className="w-32 rounded-xl border border-input bg-background px-3 py-2" />
+              <input
+                inputMode="numeric"
+                type="number"
+                min="1"
+                step="1"
+                aria-label={`Amount saved toward ${g.title}`}
+                placeholder="e.g. 1000"
+                value={amt[g.id] ?? ""}
+                onChange={(e) => setAmt((a) => ({ ...a, [g.id]: e.target.value.replace(/\D/g, "") }))}
+                className="w-32 rounded-xl border border-input bg-background px-3 py-2"
+              />
               <Btn onClick={() => log(g.id)}>Log saving</Btn>
             </div>
+            {savedNotice[g.id] && (
+              <p role="status" aria-live="polite" className="mt-2 rounded-lg border border-success/30 bg-success/5 p-3 text-sm font-semibold text-success">
+                {savedNotice[g.id]}
+              </p>
+            )}
             {msg[g.id] && (
               <div className="mt-3 rounded-xl border border-primary/30 bg-primary/5 p-3">
                 <p className="text-sm text-success">💬 {msg[g.id]}</p>
