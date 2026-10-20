@@ -95,7 +95,11 @@ function Goals() {
                 </ul>
               </div>
             )}
-            {tpl && <p className="mt-2 text-xs">Next: {tpl.actions[0]}</p>}
+            {tpl && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Your ambition-specific action plan is on the dashboard. The next step may involve learning, planning, or practical preparation—not only saving.
+              </p>
+            )}
             <div className="mt-3 flex gap-2">
               <input
                 inputMode="numeric"
@@ -121,7 +125,7 @@ function Goals() {
                 <div className="mt-3">
                   <p className="text-sm font-semibold">Your next steps</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Next practical milestone: {tpl?.actions[0] ?? "Choose one small action toward this ambition."}
+                    Your next meaningful step is available on the dashboard. Record it only after you have taken the action.
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Link to="/dashboard"><Btn>View Dashboard &amp; XP</Btn></Link>
