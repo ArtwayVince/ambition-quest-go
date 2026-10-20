@@ -165,10 +165,40 @@ export function readinessFor(goalId: string, goalTitle = ""): ReadinessQuestion[
   const second = journey.activities[1].title;
   const third = journey.activities[2].title;
   const lower = title.toLowerCase();
+  if (/cyber|software|coding|program|technology|digital skill/.test(lower)) return [
+    { q: `For “${title}”, how should you define useful progress?`, opts: ["Choose a skill or product you can demonstrate in a small practical project", "Count only videos watched", "Assume a course certificate proves practical ability"], correct: 0, tip: "A concrete demonstration helps connect learning to a useful result." },
+    { q: `When choosing a route for “${title}”, what should you compare?`, opts: ["Only the most popular advert", "Credibility, prerequisites, hands-on work, cost and time", "Ignore whether you can practise"], correct: 1, tip: "Choose a route that fits your goals and gives you practical work." },
+    { q: `Before relying on a solution built for “${title}”, what should you do?`, opts: ["Assume it works because it runs once", "Skip documentation", "Test it, record what works, and identify security or reliability gaps"], correct: 2, tip: "Testing and reviewing gaps are part of responsible technical work." },
+  ];
   if (/farm|agric|crop|livestock|poultry|fish farm|fishery/.test(lower)) return [
     { q: `For “${title}”, what should you validate before committing resources?`, opts: ["Local demand, operating conditions, inputs and risks", "Only the cheapest equipment", "A success story from a different region"], correct: 0, tip: "Check the assumptions that most affect feasibility in your context." },
     { q: `When estimating resources for “${title}”, how should unknowns be handled?`, opts: ["Assume ideal conditions", "Record assumptions and seek reliable local estimates", "Ignore seasonal variation"], correct: 1, tip: "Mark uncertainty clearly and consult relevant local expertise." },
     { q: `What is a sensible next step for “${title}” if major risks remain unknown?`, opts: ["Invest everything immediately", "Treat a quiz result as proof", "Seek informed advice and test the riskiest assumption on a small scale"], correct: 2, tip: "Reduce avoidable risk before a major commitment." },
+  ];
+  if (/house|home|land|property|real estate|building/.test(lower)) return [
+    { q: `Before committing to “${title}”, what should you clarify?`, opts: ["Essential requirements, location and independent evidence", "Only how attractive it looks", "A seller's promise without checking"], correct: 0, tip: "Clear requirements help you compare options and avoid pressure." },
+    { q: `How should you estimate the costs of “${title}”?`, opts: ["Use the asking price alone", "Include transaction, legal, repair and ongoing costs, verifying important figures", "Ignore future obligations"], correct: 1, tip: "Include the full commitment and separate estimates from verified costs." },
+    { q: `If ownership or permission details for “${title}” are unclear, what should you do?`, opts: ["Pay a deposit immediately", "Assume the paperwork is fine", "Pause and arrange qualified independent checks"], correct: 2, tip: "Independent checks should come before signing or paying." },
+  ];
+  if (/school|university|college|course|degree|education|learn|training|academy|certif/.test(lower)) return [
+    { q: `Before pursuing “${title}”, how should you check a learning route?`, opts: ["Rely on a promotional claim", "Verify recognition, requirements and suitability from reliable sources", "Assume all providers are equivalent"], correct: 1, tip: "Verify the route and its requirements before investing." },
+    { q: `What belongs in a plan for “${title}”?`, opts: ["Deadlines, prerequisites, total costs and funding assumptions", "Tuition only with no dates", "A promise that admission is guaranteed"], correct: 0, tip: "Plan around the full commitment and outstanding requirements." },
+    { q: `If you discover a missing requirement for “${title}”, what should you do?`, opts: ["Pretend it is completed", "Ignore the deadline", "Record it and plan a realistic way to address it"], correct: 2, tip: "Turn gaps into specific preparation steps." },
+  ];
+  if (/business|company|startup|enterprise|shop|sell|brand|market/.test(lower)) return [
+    { q: `What is the best way to test the need behind “${title}”?`, opts: ["Talk to potential customers and record their needs", "Assume demand because you like the idea", "Spend the full budget immediately"], correct: 0, tip: "Use customer evidence to challenge assumptions." },
+    { q: `How should you handle uncertain costs for “${title}”?`, opts: ["Ignore recurring costs", "List assumptions, verify important figures and plan a small test", "Assume every sale will be profitable"], correct: 1, tip: "A small, measured test can reduce the risk of a larger commitment." },
+    { q: `What should you learn from a pilot for “${title}”?`, opts: ["Only whether it felt exciting", "That success is guaranteed", "What customers did, what it cost and what decision the evidence supports"], correct: 2, tip: "Use results to decide whether to continue, adapt or stop." },
+  ];
+  if (/book|write|novel|film|music|art|creative|content|publish/.test(lower)) return [
+    { q: `How can you make progress on “${title}” visible?`, opts: ["Wait until the whole work is perfect", "Create a defined draft, sample or outline", "Only collect inspiration without making anything"], correct: 1, tip: "A small finished piece creates something you can review." },
+    { q: `How should you plan the work for “${title}”?`, opts: ["Break it into stages and identify time, tools and feedback", "Assume it takes no time", "Avoid deciding what finished means"], correct: 0, tip: "A staged plan makes creative work more manageable." },
+    { q: `What should you do with useful feedback on “${title}”?`, opts: ["Ignore all feedback", "Claim the work is complete immediately", "Use it to decide what to revise next"], correct: 2, tip: "Feedback should inform your next revision." },
+  ];
+  if (/travel|visit|trip|holiday|resort|experience|journey|concert|event/.test(lower)) return [
+    { q: `Before arranging “${title}”, what should you verify?`, opts: ["Access rules, current terms, provider details and safety requirements", "Only a photo of the venue", "Assume online details are current"], correct: 0, tip: "Confirm important details directly with a reliable source." },
+    { q: `How should you estimate the full cost of “${title}”?`, opts: ["Count only the entry fee", "Include transport and other likely costs, marking unverified figures", "Assume all extras are free"], correct: 1, tip: "A full estimate helps avoid unexpected expenses." },
+    { q: `If a key detail for “${title}” is unconfirmed, what should you do?`, opts: ["Assume it will work out", "Treat a high quiz score as a booking", "Verify it before making an irreversible commitment"], correct: 2, tip: "Practice is not confirmation; verify the actual arrangement." },
   ];
   return [
     { q: `For “${title}”, what is the best approach to the first step: ${first}?`, opts: ["Complete the relevant checks and record evidence or questions", "Skip it and assume everything is ready", "Commit significant resources before checking details"], correct: 0, tip: "Start with evidence that is specific to your ambition." },
