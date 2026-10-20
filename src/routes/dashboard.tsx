@@ -161,7 +161,7 @@ function Dashboard() {
         </div>
         {s.goals.length ? (
           <div className="mt-3 space-y-3">
-            {s.goals.slice(0, 3).map((goal) => {
+            {s.goals.map((goal) => {
               const pct =
                 goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
               return (
@@ -193,13 +193,13 @@ function Dashboard() {
             <Link to="/goals">
               <Btn>Work on my ambition</Btn>
             </Link>
-            {s.goals.slice(0, 3).map((goal) => {
+            {s.goals.map((goal) => {
               const steps = GOAL_STEPS[goal.id] ?? DEFAULT_STEPS;
               const completed = s.goalSteps[goal.id] ?? [];
               const nextIndex = completed.length;
               const nextStep = steps[nextIndex];
               return (
-                <div key={goal.id} className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
+                <div id={`meaningful-step-${goal.id}`} key={goal.id} className="mt-4 scroll-mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
                   <p className="text-xs font-semibold uppercase tracking-wider text-primary">
                     Meaningful steps · {goal.title}
                   </p>
