@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import type { GoalJourney } from "@/lib/journeys";
 
 export type Role = "explorer" | "provider" | "admin";
 export type Attr = "Mindset" | "Presence" | "Discipline" | "Network";
@@ -32,6 +33,8 @@ export type State = {
   readiness: number;
   /** Best practice score recorded separately for each ambition. */
   readinessByGoal: Record<string, number>;
+  /** AI-generated activity plans, stored locally per ambition. */
+  aiJourneys: Record<string, GoalJourney>;
   badges: string[];
 };
 
@@ -40,7 +43,7 @@ const initial: State = {
   attrs: { Mindset: 0, Presence: 0, Discipline: 0, Network: 0 },
   wallet: 100000, budgetCompleted: [], goals: [], goalSteps: {}, goalActivityRecords: {}, schemaVersion: 2, requests: [], apps: [],
   missions: { m1: false, m2: false, m3: false },
-  stage: 0, stageNotes: [], streak: 0, dailyDone: [], toured: [], readiness: 0, readinessByGoal: {}, badges: [],
+  stage: 0, stageNotes: [], streak: 0, dailyDone: [], toured: [], readiness: 0, readinessByGoal: {}, aiJourneys: {}, badges: [],
 };
 
 export const XP_PER_LEVEL = 100;
@@ -69,7 +72,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<State>;
-        setS({ ...initial, ...parsed, schemaVersion: 2, goalActivityRecords: parsed.goalActivityRecords ?? {} });
+        setS({ ...initial, ...parsed, schemaVersion: 2, goalActivityRecords: parsed.goalActivityRecords ?? {}, aiJourneys: parsed.aiJourneys ?? {} });
       }
     } catch {}
     setReady(true);
