@@ -228,7 +228,7 @@ function Dashboard() {
                       <p className="mt-2 text-sm text-muted-foreground">
                         Review what changed, update your target or assumptions, and decide on the next set of actions. This record does not mean the ambition itself has been achieved.
                       </p>
-                      <div className="mt-3"><Link to="/goals"><Btn variant="ghost">Review ambition</Btn></Link></div>
+                      <div className="mt-3"><Link to="/goals" hash={`review-ambition-${goal.id}`}><Btn variant="ghost">Review ambition</Btn></Link></div>
                     </>
                   )}
                   <p className="mt-3 text-xs text-muted-foreground">
