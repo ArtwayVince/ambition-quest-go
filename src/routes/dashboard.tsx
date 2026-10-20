@@ -236,15 +236,6 @@ function Dashboard() {
               );
             })}
           </div>
-          <div className="mt-4 rounded-lg bg-muted p-3">
-            <p className="text-sm font-semibold">Readiness practice</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Practise decisions for a specific ambition. Each score is tracked separately and is not proof of affordability, booking, or real-world readiness.
-            </p>
-            <Link to="/readiness" className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4">
-              Choose an ambition and practise →
-            </Link>
-          </div>
         </Card>
       )}
 
