@@ -76,16 +76,10 @@ export function journeyFor(goalId: string): GoalJourney {
   return GOAL_JOURNEYS[goalId] ?? DEFAULT_JOURNEY;
 }
 
-export function activityCompletionCount(
-  records: Record<string, { result: string; completedAt: string }> | undefined,
-): number {
-  return Object.keys(records ?? {}).length;
-}
-
 export function milestoneIsComplete(
   milestone: JourneyMilestone,
   records: Record<string, { result: string; completedAt: string }> | undefined,
 ): boolean {
   const record = records?.[milestone.activityId];
-  return Boolean(record?.result.trim() && record.completedAt);
+  return Boolean(record && typeof record.result === "string" && record.result.trim() && record.completedAt);
 }
