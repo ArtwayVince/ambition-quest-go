@@ -30,7 +30,7 @@ Additional context from the user:
 ${context || "No additional context supplied."}
 
 Previously recorded activity results (self-reported, not independently verified):
-${completedActivityResults.length ? completedActivityResults.map((result, index) => `${index + 1}. ${result}`).join("\\n") : "None recorded."}
+${completedActivityResults.length ? completedActivityResults.map((result, index) => `${index + 1}. ${result}`).join("\n") : "None recorded."}
 
 Return ONLY valid JSON with this exact shape:
 {
