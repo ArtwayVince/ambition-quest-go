@@ -65,7 +65,7 @@ function Goals() {
 
       {s.goals.map((g) => {
         const pct = Math.min(100, (g.saved / g.target) * 100);
-        const journey = journeyFor(g.id);
+        const journey = journeyFor(g.id, g.title);
         const activityRecords = s.goalActivityRecords[g.id] ?? {};
         const completedActivities = journey.activities.filter((activity) => Boolean(activityRecords[activity.id])).length;
         const legacyCount = (s.goalSteps[g.id] ?? []).length;

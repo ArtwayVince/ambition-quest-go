@@ -46,11 +46,12 @@ export function GuidedJourneys() {
   return (
     <>
       {s.goals.map((goal) => {
-        const journey = journeyFor(goal.id);
+        const journey = journeyFor(goal.id, goal.title);
         const records = s.goalActivityRecords[goal.id] ?? {};
         const completedCount = journey.activities.filter((activity) =>
           Boolean(records[activity.id]),
         ).length;
+        const nextActivity = journey.activities.find((activity) => !records[activity.id]);
         const legacyCount = (s.goalSteps[goal.id] ?? []).length;
 
         return (
@@ -74,6 +75,22 @@ export function GuidedJourneys() {
               Choose any activity you are ready to do, including work you have already completed.
               Record a brief result so the milestone reflects what you learned or achieved.
             </p>
+            {nextActivity ? (
+              <div className="mt-3 rounded-xl border border-primary/30 bg-background p-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-primary">Suggested next activity</p>
+                <p className="mt-1 font-semibold">{nextActivity.title}</p>
+                <p className="mt-1 text-sm text-muted-foreground">Start here if you are unsure what to do next. You can also choose another activity below.</p>
+                <div className="mt-3">
+                  <Link to="/dashboard" hash={`activity-${goal.id}-${nextActivity.id}`}>
+                    <Btn>Start suggested activity →</Btn>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <p className="mt-3 rounded-xl border border-success/30 bg-success/5 p-3 text-sm font-semibold text-success">
+                All guided activities have recorded results. Review your plan and verify any outstanding real-world requirements.
+              </p>
+            )}
             <div className="mt-3 space-y-3">
               {journey.activities.map((activity, index) => {
                 const key = `${goal.id}:${activity.id}`;

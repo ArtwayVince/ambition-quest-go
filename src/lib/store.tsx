@@ -30,6 +30,8 @@ export type State = {
   dailyDone: string[];
   toured: string[];
   readiness: number;
+  /** Best practice score recorded separately for each ambition. */
+  readinessByGoal: Record<string, number>;
   badges: string[];
 };
 
@@ -38,7 +40,7 @@ const initial: State = {
   attrs: { Mindset: 0, Presence: 0, Discipline: 0, Network: 0 },
   wallet: 100000, budgetCompleted: [], goals: [], goalSteps: {}, goalActivityRecords: {}, schemaVersion: 2, requests: [], apps: [],
   missions: { m1: false, m2: false, m3: false },
-  stage: 0, stageNotes: [], streak: 0, dailyDone: [], toured: [], readiness: 0, badges: [],
+  stage: 0, stageNotes: [], streak: 0, dailyDone: [], toured: [], readiness: 0, readinessByGoal: {}, badges: [],
 };
 
 export const XP_PER_LEVEL = 100;

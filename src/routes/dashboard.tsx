@@ -11,7 +11,7 @@ import {
   STAGE_NOTE_MIN_LENGTH,
   type Attr,
 } from "@/lib/store";
-import { PATH_STAGES, DAILY_CHALLENGES, READINESS } from "@/lib/data";
+import { PATH_STAGES, DAILY_CHALLENGES } from "@/lib/data";
 import { GuidedJourneys } from "@/components/GuidedJourneys";
 import { journeyFor } from "@/lib/journeys";
 
@@ -181,7 +181,7 @@ function Dashboard() {
           </p>
           <div className="mt-3 space-y-4">
             {s.goals.map((goal) => {
-              const journey = journeyFor(goal.id);
+              const journey = journeyFor(goal.id, goal.title);
               const records = s.goalActivityRecords[goal.id] ?? {};
               const completed = journey.activities.filter((activity) => Boolean(records[activity.id])).length;
               const nextActivity = journey.activities.find((activity) => !records[activity.id]);
@@ -210,9 +210,9 @@ function Dashboard() {
                         <Link
                           to="/dashboard"
                           hash={"activity-" + goal.id + "-" + nextActivity.id}
-                          className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4"
+                          className="mt-2 inline-flex rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         >
-                          Go to next activity →
+                          Start suggested activity →
                         </Link>
                       </>
                     ) : (
@@ -221,18 +221,20 @@ function Dashboard() {
                       </p>
                     )}
                   </div>
+                  <div className="mt-3 rounded-lg bg-muted p-3">
+                    <p className="text-sm font-semibold">
+                      Readiness practice: {s.readinessByGoal?.[goal.id] === undefined ? "Not taken yet" : `${s.readinessByGoal[goal.id]}/3 scenarios`}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      This score belongs to this ambition only. It is practice, not proof of affordability, booking, or real-world readiness.
+                    </p>
+                    <Link to="/readiness" className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4">
+                      Practise for this ambition →
+                    </Link>
+                  </div>
                 </div>
               );
             })}
-          </div>
-          <div className="mt-4 rounded-lg bg-muted p-3">
-            <p className="text-sm font-semibold">Readiness practice: {s.readiness}/{READINESS.length} scenarios</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              This quiz score is separate from financial progress and recorded activities. It is practice, not proof that an experience is affordable, booked or confirmed.
-            </p>
-            <Link to="/readiness" className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4">
-              Continue readiness practice →
-            </Link>
           </div>
         </Card>
       )}
@@ -272,36 +274,13 @@ function Dashboard() {
       </Card>
 
       <Card className="mt-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="font-bold">Readiness practice score</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {s.readiness}/{READINESS.length} scenarios answered correctly.
-            </p>
-          </div>
-          <span className="shrink-0 text-sm font-semibold text-primary">
-            {Math.round((s.readiness / READINESS.length) * 100)}%
-          </span>
-        </div>
-        <div
-          className="mt-3 h-2 overflow-hidden rounded-full bg-muted"
-          role="progressbar"
-          aria-label="Preparation practice score"
-          aria-valuemin={0}
-          aria-valuemax={READINESS.length}
-          aria-valuenow={s.readiness}
-        >
-          <div
-            className="h-full rounded-full bg-primary"
-            style={{ width: `${(s.readiness / READINESS.length) * 100}%` }}
-          />
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          This is a practice score, not proof of real-world readiness or provider confirmation.
+        <h2 className="font-bold">Readiness practice</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Practise decisions for a specific ambition. Your results are tracked separately for each ambition and do not certify real-world readiness.
         </p>
         <div className="mt-3">
           <Link to="/readiness">
-            <Btn variant="ghost">Continue readiness practice</Btn>
+            <Btn variant="ghost">Choose an ambition to practise</Btn>
           </Link>
         </div>
       </Card>
