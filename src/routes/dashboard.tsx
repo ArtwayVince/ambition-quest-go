@@ -219,7 +219,7 @@ function Dashboard() {
                           });
                           toast.success("Step recorded. Your next action is ready.");
                         }}>Mark step complete</Btn>
-                        <Link to="/goals"><Btn variant="ghost">Review ambition</Btn></Link>
+                        <Link to="/goals" hash={`review-ambition-${goal.id}`}><Btn variant="ghost">Review ambition</Btn></Link>
                       </div>
                     </>
                   ) : (
