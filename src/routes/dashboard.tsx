@@ -11,7 +11,7 @@ import {
   STAGE_NOTE_MIN_LENGTH,
   type Attr,
 } from "@/lib/store";
-import { PATH_STAGES, DAILY_CHALLENGES, READINESS } from "@/lib/data";
+import { PATH_STAGES, DAILY_CHALLENGES, READINESS, GOAL_TEMPLATES } from "@/lib/data";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => meta("Your journey", "Your ambition, current progress and the next meaningful step."),
@@ -19,6 +19,46 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 const STREAK_BADGES = [3, 7, 30];
+
+type MeaningfulStep = { title: string; guidance: string };
+const DEFAULT_STEPS: MeaningfulStep[] = [
+  { title: "Identify what this ambition requires.", guidance: "Write down one thing you need to learn, obtain, arrange, or verify before this ambition becomes possible." },
+  { title: "Choose one practical action for this week.", guidance: "Make the action specific and realistic for your time, responsibilities, and resources." },
+  { title: "Review the resources and risks.", guidance: "Consider likely costs, time, skills, support, and risks before making commitments." },
+];
+const GOAL_STEPS: Record<string, MeaningfulStep[]> = {
+  jet: [
+    { title: "Learn what a private-jet charter includes.", guidance: "Find out how route, aircraft size, flight time, fees, and operating details affect the price. A headline price may not be the full cost." },
+    { title: "Estimate the full cost of the journey you want.", guidance: "List the route, passengers, ground transport, timing, and other likely charges. Treat estimates as provisional until a legitimate provider confirms them." },
+    { title: "Set a realistic preparation and savings plan.", guidance: "Protect essential expenses first, then decide what you can responsibly set aside and what information you still need." },
+  ],
+  house: [
+    { title: "Learn the basics of property due diligence.", guidance: "Write down the title and ownership questions you must verify with qualified professionals before committing money." },
+    { title: "Estimate the full cost of buying.", guidance: "Consider more than the advertised price: legal checks, documentation, taxes or fees, repairs, and other transaction costs." },
+    { title: "Plan a safe next step with qualified advice.", guidance: "Identify a reputable property professional or lawyer to consult before making a payment or signing anything." },
+  ],
+  school: [
+    { title: "Shortlist three suitable institutions.", guidance: "Choose institutions that offer your intended programme and verify their accreditation or official recognition." },
+    { title: "Compare requirements, fees, and deadlines.", guidance: "Use official sources to record entry requirements, programme duration, application dates, and the full expected cost." },
+    { title: "Build an application and funding plan.", guidance: "List the documents, preparation tasks, deadlines, and funding options you can realistically pursue." },
+  ],
+  agri: [
+    { title: "Define the agricultural project and its market.", guidance: "Choose what you want to produce or do, who might buy it, and what local evidence supports the idea." },
+    { title: "Estimate inputs and identify major risks.", guidance: "Consider land, inputs, labour, water, transport, storage, timing, and price changes before investing." },
+    { title: "Learn from someone with relevant experience.", guidance: "Identify an experienced farmer or agricultural extension officer and prepare specific questions before spending." },
+  ],
+  biz: [
+    { title: "Describe the customer problem you would solve.", guidance: "State who the customer is, what problem they have, and why your proposed offer could help." },
+    { title: "Speak with three potential customers.", guidance: "Ask about their needs and current alternatives; record what you learn rather than assuming demand exists." },
+    { title: "Plan a small, low-risk test.", guidance: "Estimate basic costs and test demand on a small scale before committing substantial money." },
+  ],
+  skill: [
+    { title: "Choose a specific skill and outcome.", guidance: "Describe what you want to be able to do, not just the name of a course you might take." },
+    { title: "Compare two credible ways to learn.", guidance: "Check the provider, cost, practical work, time commitment, and what you will be able to demonstrate." },
+    { title: "Create a realistic practice routine.", guidance: "Set a weekly practice schedule and choose a small project that will show what you have learned." },
+  ],
+};
+
 
 function Dashboard() {
   const { s, set, gain, badge } = useStore();
@@ -153,25 +193,50 @@ function Dashboard() {
             <Link to="/goals">
               <Btn>Work on my ambition</Btn>
             </Link>
-            {s.goals.some((goal) => goal.saved > 0) && (
-              <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
-                <h3 className="font-bold">Your next meaningful step</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Saving is progress. Take one practical step toward your ambition.
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Link to="/play">
-                    <Btn>Take a mission</Btn>
-                  </Link>
-                  <Link to="/explore">
-                    <Btn variant="ghost">Explore experiences</Btn>
-                  </Link>
-                  <Link to="/goals">
-                    <Btn variant="ghost">Manage savings</Btn>
-                  </Link>
+            {s.goals.slice(0, 3).map((goal) => {
+              const steps = GOAL_STEPS[goal.id] ?? DEFAULT_STEPS;
+              const completed = s.goalSteps[goal.id] ?? [];
+              const nextIndex = completed.length;
+              const nextStep = steps[nextIndex];
+              return (
+                <div key={goal.id} className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                    Meaningful steps · {goal.title}
+                  </p>
+                  {nextStep ? (
+                    <>
+                      <h3 className="mt-1 font-bold">Step {nextIndex + 1} of {steps.length}: {nextStep.title}</h3>
+                      <p className="mt-2 text-sm">{nextStep.guidance}</p>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Take the action in real life, then record it here. Completion is self-reported; it is not independent verification.
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Btn onClick={() => {
+                          set((p) => {
+                            const prior = p.goalSteps[goal.id] ?? [];
+                            if (prior.includes(nextIndex)) return p;
+                            return { ...p, goalSteps: { ...p.goalSteps, [goal.id]: [...prior, nextIndex] } };
+                          });
+                          toast.success("Step recorded. Your next action is ready.");
+                        }}>Mark step complete</Btn>
+                        <Link to="/goals"><Btn variant="ghost">Review ambition</Btn></Link>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="mt-1 font-bold">You have completed this starter plan ✓</h3>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        Review what changed, update your target or assumptions, and decide on the next set of actions. This record does not mean the ambition itself has been achieved.
+                      </p>
+                      <div className="mt-3"><Link to="/goals"><Btn variant="ghost">Review ambition</Btn></Link></div>
+                    </>
+                  )}
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Starter actions recorded: {Math.min(completed.length, steps.length)}/{steps.length}
+                  </p>
                 </div>
-              </div>
-            )}
+              );
+            })}
           </div>
         ) : (
           <div className="mt-3">
