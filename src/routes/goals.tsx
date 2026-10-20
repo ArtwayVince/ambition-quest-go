@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
 import { useStore, coach } from "@/lib/store";
 import { GOAL_TEMPLATES, naira } from "@/lib/data";
+import { journeyFor, milestoneIsComplete } from "@/lib/journeys";
 
 export const Route = createFileRoute("/goals")({
   head: () => meta("Goals", "Choose a long-term ambition and track self-reported savings with encouraging coaching."),
@@ -65,6 +66,10 @@ function Goals() {
       {s.goals.map((g) => {
         const pct = Math.min(100, (g.saved / g.target) * 100);
         const tpl = GOAL_TEMPLATES.find((t) => t.id === g.id);
+        const journey = journeyFor(g.id);
+        const activityRecords = s.goalActivityRecords[g.id] ?? {};
+        const completedActivities = journey.activities.filter((activity) => Boolean(activityRecords[activity.id])).length;
+        const legacyCount = (s.goalSteps[g.id] ?? []).length;
         return (
           <div id={`review-ambition-${g.id}`} className="scroll-mt-4">
           <Card className="mt-4">
@@ -72,38 +77,67 @@ function Goals() {
             <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-primary">Ambition review</p>
               <p className="mt-1 text-sm">You have recorded {naira(g.saved)} toward your initial target of {naira(g.target)} ({pct.toFixed(pct < 1 ? 2 : 0)}%). This is a planning snapshot, not a guarantee that the ambition is within reach yet.</p>
-              <p className="mt-2 text-sm">{(s.goalSteps[g.id] ?? []).length} of {(tpl?.id ? ({ jet: 3, house: 3, school: 3, agri: 3, biz: 3, skill: 3 } as Record<string, number>)[tpl.id] : 3) ?? 3} starter actions recorded.</p>
+              <p className="mt-2 text-sm">{completedActivities} of {journey.activities.length} guided activities recorded.</p>
+              {legacyCount > 0 && <p className="mt-1 text-xs text-muted-foreground">{legacyCount} earlier starter-step record(s) preserved for review; they are not automatically treated as completed guided activities.</p>}
               <p className="mt-2 text-sm font-semibold">Next decision</p>
               <p className="text-sm text-muted-foreground">Review what has changed since your last action. Identify the next requirement, check any costs or risks, and decide on one practical step you can responsibly take next. Saving is only one possible part of preparation.</p>
               <Link to="/dashboard" hash={`meaningful-step-${g.id}`} className="mt-3 inline-flex text-sm font-semibold text-primary underline underline-offset-4">Return to this ambition’s action plan →</Link>
             </div>
             <p className="text-sm text-muted-foreground">{naira(g.saved)} of {naira(g.target)} · {pct.toFixed(pct < 1 ? 2 : 0)}%</p>
             <div className="mt-2 h-2 rounded-full bg-muted"><div className="h-full rounded-full bg-sunset" style={{ width: `${Math.max(pct, g.saved ? 1 : 0)}%` }} /></div>
-            {tpl && (
-              <div className="mt-3">
-                <p className="text-xs font-semibold">Milestones</p>
-                <ul className="mt-1 space-y-2 text-sm">
-                  {tpl.milestones.map((m) => {
-                    const completed =
-                      (m === "First ₦1,000 saved" && g.saved >= 1000) ||
-                      (m === "Open savings habit" && g.saved > 0) ||
-                      (m === "Reach 10%" && g.saved >= g.target * 0.1) ||
-                      (m === "Reach 25%" && g.saved >= g.target * 0.25) ||
-                      (m === "Reach 30%" && g.saved >= g.target * 0.3) ||
-                      (m === "Reach 40%" && g.saved >= g.target * 0.4) ||
-                      (m === "Reach 50%" && g.saved >= g.target * 0.5);
-                    return (
-                      <li key={m} className="flex items-start gap-2">
-                        <span aria-hidden="true" className={completed ? "font-bold text-success" : "text-muted-foreground"}>
-                          {completed ? "✔" : "○"}
-                        </span>
-                        <span className={completed ? "text-success" : "text-muted-foreground"}>{m}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
+            <div id={`journey-milestones-${g.id}`} className="mt-4 scroll-mt-4">
+              <p className="text-sm font-semibold">Journey milestones</p>
+              <p className="mt-1 text-xs text-muted-foreground">Each milestone is reached only when its related activity has a saved result.</p>
+              <ul className="mt-2 space-y-2 text-sm">
+                {journey.milestones.map((milestone) => {
+                  const completed = milestoneIsComplete(milestone, activityRecords);
+                  return (
+                    <li key={milestone.id} className="flex items-start gap-2">
+                      <span aria-hidden="true" className={completed ? "font-bold text-success" : "text-muted-foreground"}>{completed ? "✔" : "○"}</span>
+                      <div>
+                        <p className={completed ? "font-medium text-success" : "font-medium text-muted-foreground"}>{milestone.title}</p>
+                        <p className="text-xs text-muted-foreground">{milestone.description}</p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="mt-4 text-sm font-semibold">Activities in this journey</p>
+              <div className="mt-2 space-y-2">
+                {journey.activities.map((activity, index) => {
+                  const record = activityRecords[activity.id];
+                  return (
+                    <div key={activity.id} className="rounded-lg border border-border p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm font-semibold">{index + 1}. {activity.title}</p>
+                        <span className={record ? "shrink-0 text-xs font-semibold text-success" : "shrink-0 text-xs text-muted-foreground"}>{record ? "Recorded ✓" : "Not yet recorded"}</span>
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">{activity.guidance}</p>
+                      {record && <p className="mt-2 whitespace-pre-wrap text-sm">Result: {record.result}</p>}
+                      {!record && <Link to="/dashboard" hash={`activity-${g.id}-${activity.id}`} className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4">Go to this activity →</Link>}
+                    </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
+            <div className="mt-4">
+              <p className="text-sm font-semibold">Savings milestones</p>
+              <p className="mt-1 text-xs text-muted-foreground">Savings are tracked separately from learning and preparation. The initial target is illustrative and should be reviewed against real costs.</p>
+              <ul className="mt-2 space-y-2 text-sm">
+                {[
+                  { title: "Record your first ₦1,000", threshold: 1000 },
+                  { title: "Reach 10% of the initial target", threshold: g.target * 0.1 },
+                  { title: "Reach 25% of the initial target", threshold: g.target * 0.25 },
+                  { title: "Reach 50% of the initial target", threshold: g.target * 0.5 },
+                ].map((milestone) => {
+                  const completed = g.saved >= milestone.threshold;
+                  return <li key={milestone.title} className="flex items-start gap-2">
+                    <span aria-hidden="true" className={completed ? "font-bold text-success" : "text-muted-foreground"}>{completed ? "✔" : "○"}</span>
+                    <span className={completed ? "text-success" : "text-muted-foreground"}>{milestone.title}{milestone.threshold !== 1000 ? ` (\u20a6${Math.ceil(milestone.threshold).toLocaleString("en-NG")})` : ""}</span>
+                  </li>;
+                })}
+              </ul>
+            </div>
             <div className="mt-3">
               <Link
                 to="/dashboard"
