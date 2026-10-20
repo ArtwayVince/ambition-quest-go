@@ -11,7 +11,8 @@ import {
   STAGE_NOTE_MIN_LENGTH,
   type Attr,
 } from "@/lib/store";
-import { PATH_STAGES, DAILY_CHALLENGES, READINESS, GOAL_TEMPLATES } from "@/lib/data";
+import { PATH_STAGES, DAILY_CHALLENGES, READINESS } from "@/lib/data";
+import { journeyFor, milestoneIsComplete } from "@/lib/journeys";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => meta("Your journey", "Your ambition, current progress and the next meaningful step."),
@@ -20,49 +21,11 @@ export const Route = createFileRoute("/dashboard")({
 
 const STREAK_BADGES = [3, 7, 30];
 
-type MeaningfulStep = { title: string; guidance: string };
-const DEFAULT_STEPS: MeaningfulStep[] = [
-  { title: "Identify what this ambition requires.", guidance: "Write down one thing you need to learn, obtain, arrange, or verify before this ambition becomes possible." },
-  { title: "Choose one practical action for this week.", guidance: "Make the action specific and realistic for your time, responsibilities, and resources." },
-  { title: "Review the resources and risks.", guidance: "Consider likely costs, time, skills, support, and risks before making commitments." },
-];
-const GOAL_STEPS: Record<string, MeaningfulStep[]> = {
-  jet: [
-    { title: "Learn what a private-jet charter includes.", guidance: "Find out how route, aircraft size, flight time, fees, and operating details affect the price. A headline price may not be the full cost." },
-    { title: "Estimate the full cost of the journey you want.", guidance: "List the route, passengers, ground transport, timing, and other likely charges. Treat estimates as provisional until a legitimate provider confirms them." },
-    { title: "Set a realistic preparation and savings plan.", guidance: "Protect essential expenses first, then decide what you can responsibly set aside and what information you still need." },
-  ],
-  house: [
-    { title: "Learn the basics of property due diligence.", guidance: "Write down the title and ownership questions you must verify with qualified professionals before committing money." },
-    { title: "Estimate the full cost of buying.", guidance: "Consider more than the advertised price: legal checks, documentation, taxes or fees, repairs, and other transaction costs." },
-    { title: "Plan a safe next step with qualified advice.", guidance: "Identify a reputable property professional or lawyer to consult before making a payment or signing anything." },
-  ],
-  school: [
-    { title: "Shortlist three suitable institutions.", guidance: "Choose institutions that offer your intended programme and verify their accreditation or official recognition." },
-    { title: "Compare requirements, fees, and deadlines.", guidance: "Use official sources to record entry requirements, programme duration, application dates, and the full expected cost." },
-    { title: "Build an application and funding plan.", guidance: "List the documents, preparation tasks, deadlines, and funding options you can realistically pursue." },
-  ],
-  agri: [
-    { title: "Define the agricultural project and its market.", guidance: "Choose what you want to produce or do, who might buy it, and what local evidence supports the idea." },
-    { title: "Estimate inputs and identify major risks.", guidance: "Consider land, inputs, labour, water, transport, storage, timing, and price changes before investing." },
-    { title: "Learn from someone with relevant experience.", guidance: "Identify an experienced farmer or agricultural extension officer and prepare specific questions before spending." },
-  ],
-  biz: [
-    { title: "Describe the customer problem you would solve.", guidance: "State who the customer is, what problem they have, and why your proposed offer could help." },
-    { title: "Speak with three potential customers.", guidance: "Ask about their needs and current alternatives; record what you learn rather than assuming demand exists." },
-    { title: "Plan a small, low-risk test.", guidance: "Estimate basic costs and test demand on a small scale before committing substantial money." },
-  ],
-  skill: [
-    { title: "Choose a specific skill and outcome.", guidance: "Describe what you want to be able to do, not just the name of a course you might take." },
-    { title: "Compare two credible ways to learn.", guidance: "Check the provider, cost, practical work, time commitment, and what you will be able to demonstrate." },
-    { title: "Create a realistic practice routine.", guidance: "Set a weekly practice schedule and choose a small project that will show what you have learned." },
-  ],
-};
-
-
 function Dashboard() {
   const { s, set, gain, badge } = useStore();
   const [stageNote, setStageNote] = useState("");
+  const [activityDrafts, setActivityDrafts] = useState<Record<string, string>>({});
+  const activityActionInFlight = useRef(new Set<string>());
   const stageActionInFlight = useRef(false);
   const lvl = levelOf(s.xp);
   const into = s.xp % XP_PER_LEVEL;
@@ -108,6 +71,38 @@ function Dashboard() {
     gain(15, { Mindset: 5 });
     setStageNote("");
     toast.success("Reflection recorded. +15 XP");
+  };
+
+  const completeActivity = (goalId: string, activityId: string) => {
+    const key = `${goalId}:${activityId}`;
+    const result = (activityDrafts[key] ?? "").trim();
+    if (result.length < 10) {
+      toast.error("Record at least 10 characters about what you did or learned");
+      return;
+    }
+    if (s.goalActivityRecords[goalId]?.[activityId]) {
+      toast.error("This activity already has a recorded result");
+      return;
+    }
+    if (activityActionInFlight.current.has(key)) return;
+    activityActionInFlight.current.add(key);
+    const record = { result, completedAt: new Date().toISOString() };
+    set((p) => {
+      if (p.goalActivityRecords[goalId]?.[activityId]) return p;
+      return {
+        ...p,
+        goalActivityRecords: {
+          ...p.goalActivityRecords,
+          [goalId]: {
+            ...(p.goalActivityRecords[goalId] ?? {}),
+            [activityId]: record,
+          },
+        },
+      };
+    });
+    gain(15, { Mindset: 5 });
+    setActivityDrafts((drafts) => ({ ...drafts, [key]: "" }));
+    toast.success("Activity result recorded. +15 XP");
   };
 
   const completeDaily = () => {
@@ -194,46 +189,83 @@ function Dashboard() {
               <Btn>Work on my ambition</Btn>
             </Link>
             {s.goals.map((goal) => {
-              const steps = GOAL_STEPS[goal.id] ?? DEFAULT_STEPS;
-              const completed = s.goalSteps[goal.id] ?? [];
-              const nextIndex = completed.length;
-              const nextStep = steps[nextIndex];
+              const journey = journeyFor(goal.id);
+              const records = s.goalActivityRecords[goal.id] ?? {};
+              const completedCount = journey.activities.filter((activity) => Boolean(records[activity.id])).length;
+              const legacyCount = (s.goalSteps[goal.id] ?? []).length;
               return (
                 <div id={`meaningful-step-${goal.id}`} key={goal.id} className="mt-4 scroll-mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-                    Meaningful steps · {goal.title}
-                  </p>
-                  {nextStep ? (
-                    <>
-                      <h3 className="mt-1 font-bold">Step {nextIndex + 1} of {steps.length}: {nextStep.title}</h3>
-                      <p className="mt-2 text-sm">{nextStep.guidance}</p>
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        Take the action in real life, then record it here. Completion is self-reported; it is not independent verification.
-                      </p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <Btn onClick={() => {
-                          set((p) => {
-                            const prior = p.goalSteps[goal.id] ?? [];
-                            if (prior.includes(nextIndex)) return p;
-                            return { ...p, goalSteps: { ...p.goalSteps, [goal.id]: [...prior, nextIndex] } };
-                          });
-                          toast.success("Step recorded. Your next action is ready.");
-                        }}>Mark step complete</Btn>
-                        <Link to="/goals" hash={`review-ambition-${goal.id}`}><Btn variant="ghost">Review ambition</Btn></Link>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <h3 className="mt-1 font-bold">You have completed this starter plan ✓</h3>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Review what changed, update your target or assumptions, and decide on the next set of actions. This record does not mean the ambition itself has been achieved.
-                      </p>
-                      <div className="mt-3"><Link to="/goals" hash={`review-ambition-${goal.id}`}><Btn variant="ghost">Review ambition</Btn></Link></div>
-                    </>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-primary">Guided ambition journey</p>
+                      <h3 className="mt-1 font-bold">{goal.title}</h3>
+                    </div>
+                    <span className="shrink-0 text-xs font-semibold">{completedCount}/{journey.activities.length} activities</span>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">Choose any activity you are ready to do, including work you have already completed. Record a brief result so the milestone reflects what you learned or achieved.</p>
+                  <div className="mt-3 space-y-3">
+                    {journey.activities.map((activity, index) => {
+                      const key = `${goal.id}:${activity.id}`;
+                      const record = records[activity.id];
+                      const milestone = journey.milestones.find((item) => item.id === activity.milestoneId);
+                      return (
+                        <section id={`activity-${goal.id}-${activity.id}`} key={activity.id} className="rounded-xl border border-border bg-background p-3">
+                          <div className="flex items-start gap-2">
+                            <span className="mt-0.5 text-xs font-bold text-muted-foreground">{index + 1}.</span>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold">{activity.title}</p>
+                              <p className="mt-1 text-sm">{activity.guidance}</p>
+                              <p className="mt-2 text-xs text-muted-foreground">Why it matters: {activity.why}</p>
+                              {record ? (
+                                <div className="mt-3 rounded-lg border border-success/30 bg-success/5 p-3">
+                                  <p className="text-sm font-semibold text-success">✓ Result recorded</p>
+                                  <p className="mt-1 whitespace-pre-wrap text-sm">{record.result}</p>
+                                  <p className="mt-2 text-xs text-muted-foreground">Self-reported on {new Date(record.completedAt).toLocaleDateString()}</p>
+                                  {milestone && <p className="mt-1 text-xs font-semibold text-success">Milestone reached: {milestone.title}</p>}
+                                </div>
+                              ) : (
+                                <div className="mt-3 space-y-2">
+                                  <label htmlFor={`result-${key}`} className="block text-sm font-semibold">Record your result</label>
+                                  <textarea
+                                    id={`result-${key}`}
+                                    value={activityDrafts[key] ?? ""}
+                                    onChange={(event) => setActivityDrafts((drafts) => ({ ...drafts, [key]: event.target.value }))}
+                                    maxLength={500}
+                                    rows={2}
+                                    placeholder={activity.resultPrompt}
+                                    className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
+                                  />
+                                  <Btn onClick={() => completeActivity(goal.id, activity.id)}>Record activity result</Btn>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </section>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-4 rounded-xl border border-border bg-background p-3">
+                    <h4 className="font-semibold">Milestones</h4>
+                    <ul className="mt-2 space-y-2 text-sm">
+                      {journey.milestones.map((milestone) => {
+                        const completed = milestoneIsComplete(milestone, records);
+                        return <li key={milestone.id} className="flex items-start gap-2">
+                          <span aria-hidden="true" className={completed ? "font-bold text-success" : "text-muted-foreground"}>{completed ? "✔" : "○"}</span>
+                          <span className={completed ? "text-success" : "text-muted-foreground"}>{milestone.title}</span>
+                        </li>;
+                      })}
+                    </ul>
+                  </div>
+                  {legacyCount > 0 && (
+                    <p className="mt-3 rounded-lg border border-border p-3 text-xs text-muted-foreground">
+                      Earlier starter-step records preserved: {legacyCount}. They have not been automatically marked as guided activities because the old records did not include a result. Review the relevant activity above and record what you actually did.
+                    </p>
                   )}
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    Starter actions recorded: {Math.min(completed.length, steps.length)}/{steps.length}
-                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link to="/goals" hash={`review-ambition-${goal.id}`}><Btn variant="ghost">Review ambition</Btn></Link>
+                    <Link to="/goals" hash={`journey-milestones-${goal.id}`}><Btn variant="ghost">Review all milestones</Btn></Link>
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">These are self-reported preparation milestones, not independent verification or proof that the ambition itself has been achieved.</p>
                 </div>
               );
             })}
