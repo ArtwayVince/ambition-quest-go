@@ -5,7 +5,7 @@ import { READINESS } from "@/lib/data";
 import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/readiness")({
-  head: () => meta("Readiness Coach", "Scenario-based checks to prepare you for a real visit."),
+  head: () => meta("Readiness Practice", "Scenario-based practice for planning real-world experiences."),
   component: Readiness,
 });
 
@@ -18,11 +18,13 @@ function Readiness() {
   const q = READINESS[Math.min(i, READINESS.length - 1)]!;
   return (
     <Shell>
-      <h1 className="text-3xl font-extrabold">JET OFF Readiness Coach</h1>
+      <h1 className="text-3xl font-extrabold">Readiness Practice</h1>
+      <p className="mt-2 text-sm text-muted-foreground">Use these scenarios to practise making informed choices. Your score is a learning aid, not a certification or confirmation that an experience is affordable, booked, or ready to take place.</p>
       {done ? (
         <Card className="mt-4">
           <p className="text-2xl font-bold">{score}/{READINESS.length}</p>
-          <p className="text-sm text-muted-foreground">{score >= 3 ? "You're ready for the real visit." : "Good practice — try again to sharpen up. No penalties."}</p>
+          <p className="text-sm text-muted-foreground">{score >= 3 ? "Strong practice result. Review any remaining real-world requirements before making plans." : "Good practice — review the tips and try again to sharpen up. No penalties."}</p>
+          <p className="mt-2 text-sm text-muted-foreground">This score reflects only these practice scenarios. Check your ambition's financial position, outstanding activities, current requirements, and provider details separately.</p>
           <div className="mt-3"><Btn onClick={() => { setI(0); setScore(0); setPick(null); }}>Retake</Btn></div>
         </Card>
       ) : (
