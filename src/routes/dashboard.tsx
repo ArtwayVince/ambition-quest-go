@@ -181,7 +181,7 @@ function Dashboard() {
           </p>
           <div className="mt-3 space-y-4">
             {s.goals.map((goal) => {
-              const journey = journeyFor(goal.id);
+              const journey = journeyFor(goal.id, goal.title);
               const records = s.goalActivityRecords[goal.id] ?? {};
               const completed = journey.activities.filter((activity) => Boolean(records[activity.id])).length;
               const nextActivity = journey.activities.find((activity) => !records[activity.id]);
@@ -210,9 +210,9 @@ function Dashboard() {
                         <Link
                           to="/dashboard"
                           hash={"activity-" + goal.id + "-" + nextActivity.id}
-                          className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4"
+                          className="mt-2 inline-flex rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         >
-                          Go to next activity →
+                          Start suggested activity →
                         </Link>
                       </>
                     ) : (
