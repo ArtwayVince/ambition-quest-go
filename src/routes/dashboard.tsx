@@ -13,6 +13,7 @@ import {
 } from "@/lib/store";
 import { PATH_STAGES, DAILY_CHALLENGES, READINESS } from "@/lib/data";
 import { GuidedJourneys } from "@/components/GuidedJourneys";
+import { journeyFor } from "@/lib/journeys";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => meta("Your journey", "Your ambition, current progress and the next meaningful step."),
@@ -171,6 +172,71 @@ function Dashboard() {
         )}
       </Card>
 
+      {s.goals.length > 0 && (
+        <Card className="mt-4">
+          <h2 className="font-bold">Ambition readiness overview</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            See your financial progress, practical preparation and practice score separately.
+            These measures describe different parts of your journey; none alone guarantees an outcome.
+          </p>
+          <div className="mt-3 space-y-4">
+            {s.goals.map((goal) => {
+              const journey = journeyFor(goal.id);
+              const records = s.goalActivityRecords[goal.id] ?? {};
+              const completed = journey.activities.filter((activity) => Boolean(records[activity.id])).length;
+              const nextActivity = journey.activities.find((activity) => !records[activity.id]);
+              const financialPct =
+                goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
+              return (
+                <div key={goal.id} className="rounded-xl border border-border p-3">
+                  <h3 className="font-semibold">{goal.title}</h3>
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span>Financial progress</span>
+                      <span className="font-semibold">{financialPct}%</span>
+                    </div>
+                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-muted">
+                      <div className="h-full rounded-full bg-primary" style={{ width: (financialPct + "%") }} />
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      ₦{goal.saved.toLocaleString()} recorded of ₦{goal.target.toLocaleString()} target
+                    </p>
+                  </div>
+                  <div className="mt-3">
+                    <p className="text-sm font-semibold">Practical preparation: {completed}/{journey.activities.length} activities recorded</p>
+                    {nextActivity ? (
+                      <>
+                        <p className="mt-1 text-sm text-muted-foreground">Suggested next step: {nextActivity.title}</p>
+                        <Link
+                          to="/dashboard"
+                          hash={"activity-" + goal.id + "-" + nextActivity.id}
+                          className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4"
+                        >
+                          Go to next activity →
+                        </Link>
+                      </>
+                    ) : (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        All guided activities have recorded results. Review your plan and verify any outstanding real-world requirements.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-4 rounded-lg bg-muted p-3">
+            <p className="text-sm font-semibold">Readiness practice: {s.readiness}/{READINESS.length} scenarios</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              This quiz score is separate from financial progress and recorded activities. It is practice, not proof that an experience is affordable, booked or confirmed.
+            </p>
+            <Link to="/readiness" className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4">
+              Continue readiness practice →
+            </Link>
+          </div>
+        </Card>
+      )}
+
       <Card className="mt-4">
         <div className="flex items-end justify-between">
           <div>
@@ -208,9 +274,9 @@ function Dashboard() {
       <Card className="mt-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="font-bold">Preparation readiness</h2>
+            <h2 className="font-bold">Readiness practice score</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Practice check: {s.readiness}/{READINESS.length} scenarios answered correctly.
+              {s.readiness}/{READINESS.length} scenarios answered correctly.
             </p>
           </div>
           <span className="shrink-0 text-sm font-semibold text-primary">
