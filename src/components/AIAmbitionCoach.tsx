@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Btn, Card } from "@/components/Shell";
 import { useStore } from "@/lib/store";
-import { generateAmbitionJourney, type AIJourneyDraft } from "@/lib/ai-coach";
+import {
+  clarifyAmbition,
+  generateAmbitionJourney,
+  type AIJourneyDraft,
+  type ClarificationTurn,
+} from "@/lib/ai-coach";
 import type { GoalJourney } from "@/lib/journeys";
+
+type ClarificationStatus = "idle" | "question" | "ready";
 
 export function AIAmbitionCoach() {
   const { s, set } = useStore();
@@ -12,11 +19,143 @@ export function AIAmbitionCoach() {
   const [draft, setDraft] = useState<AIJourneyDraft | null>(null);
   const [draftGoalId, setDraftGoalId] = useState("");
   const [busy, setBusy] = useState(false);
+  const [turns, setTurns] = useState<ClarificationTurn[]>([]);
+  const [clarificationStatus, setClarificationStatus] = useState<ClarificationStatus>("idle");
+  const [clarificationQuestion, setClarificationQuestion] = useState("");
+  const [clarifiedBrief, setClarifiedBrief] = useState("");
+  const [clarificationAnswer, setClarificationAnswer] = useState("");
+  const [briefConfirmed, setBriefConfirmed] = useState(false);
+  const [hydratedGoalId, setHydratedGoalId] = useState("");
   const selectedGoal = s.goals.find((goal) => goal.id === selectedGoalId) ?? s.goals[0];
 
-  const generate = async () => {
+  useEffect(() => {
+    const goalId = selectedGoal?.id;
+    if (!goalId || typeof window === "undefined") return;
+    setHydratedGoalId("");
+    try {
+      const saved = window.localStorage.getItem(`aqg-clarifier:${goalId}`);
+      if (saved) {
+        const session = JSON.parse(saved) as {
+          context?: string;
+          turns?: ClarificationTurn[];
+          clarificationStatus?: ClarificationStatus;
+          clarificationQuestion?: string;
+          clarifiedBrief?: string;
+          briefConfirmed?: boolean;
+        };
+        setContext(typeof session.context === "string" ? session.context : "");
+        setTurns(Array.isArray(session.turns) ? session.turns : []);
+        setClarificationStatus(session.clarificationStatus ?? "idle");
+        setClarificationQuestion(session.clarificationQuestion ?? "");
+        setClarifiedBrief(session.clarifiedBrief ?? "");
+        setBriefConfirmed(session.briefConfirmed === true);
+      } else {
+        setContext("");
+        setTurns([]);
+        setClarificationStatus("idle");
+        setClarificationQuestion("");
+        setClarifiedBrief("");
+        setBriefConfirmed(false);
+      }
+      setClarificationAnswer("");
+      setDraft(null);
+      setDraftGoalId("");
+    } catch {
+      setContext("");
+      setTurns([]);
+      setClarificationStatus("idle");
+      setClarificationQuestion("");
+      setClarifiedBrief("");
+      setBriefConfirmed(false);
+      setClarificationAnswer("");
+    }
+    setHydratedGoalId(goalId);
+  }, [selectedGoal?.id]);
+
+  useEffect(() => {
+    if (!selectedGoal || hydratedGoalId !== selectedGoal.id || typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(`aqg-clarifier:${selectedGoal.id}`, JSON.stringify({
+        context,
+        turns,
+        clarificationStatus,
+        clarificationQuestion,
+        clarifiedBrief,
+        briefConfirmed,
+      }));
+    } catch {
+      // The clarification can still be used for this session if browser storage is unavailable.
+    }
+  }, [selectedGoal, hydratedGoalId, context, turns, clarificationStatus, clarificationQuestion, clarifiedBrief, briefConfirmed]);
+
+  const startClarification = async () => {
     if (!selectedGoal) {
-      toast.error("Define an ambition before generating a tailored journey.");
+      toast.error("Define an ambition before clarifying it.");
+      return;
+    }
+    setBusy(true);
+    setDraft(null);
+    try {
+      const result = await clarifyAmbition({
+        data: { title: selectedGoal.title, context: context.trim(), turns: [] },
+      });
+      setTurns(result.status === "question" ? [{ role: "assistant", content: result.question }] : []);
+      setClarificationStatus(result.status);
+      setClarificationQuestion(result.status === "question" ? result.question : "");
+      setClarifiedBrief(result.status === "ready" ? result.clarifiedBrief : "");
+      setBriefConfirmed(false);
+      setClarificationAnswer("");
+      toast.success(result.status === "ready" ? "The ambition is clear enough to review." : "Let's make the ambition more specific.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "We couldn't clarify this ambition. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitClarificationAnswer = async () => {
+    if (!selectedGoal) return;
+    const answer = clarificationAnswer.trim();
+    if (answer.length < 2) {
+      toast.error("Please add a little more detail so the coach can understand.");
+      return;
+    }
+    const nextTurns: ClarificationTurn[] = [...turns, { role: "user", content: answer }];
+    setBusy(true);
+    setDraft(null);
+    try {
+      const result = await clarifyAmbition({
+        data: { title: selectedGoal.title, context: context.trim(), turns: nextTurns },
+      });
+      const savedTurns = result.status === "question"
+        ? [...nextTurns, { role: "assistant" as const, content: result.question }]
+        : nextTurns;
+      setTurns(savedTurns);
+      setClarificationStatus(result.status);
+      setClarificationQuestion(result.status === "question" ? result.question : "");
+      setClarifiedBrief(result.status === "ready" ? result.clarifiedBrief : "");
+      setBriefConfirmed(false);
+      setClarificationAnswer("");
+      toast.success(result.status === "ready" ? "The ambition is ready for your review." : "Thanks. Let's clarify one more detail.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "We couldn't process that answer. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const askForCorrection = () => {
+    const prompt = "What should I correct or add to this understanding?";
+    setTurns((previous) => [...previous, { role: "assistant", content: prompt }]);
+    setClarificationQuestion(prompt);
+    setClarificationStatus("question");
+    setClarificationAnswer("");
+    setBriefConfirmed(false);
+  };
+
+  const generate = async () => {
+    if (!selectedGoal || !briefConfirmed || !clarifiedBrief.trim()) {
+      toast.error("Clarify and confirm what you want to achieve before generating a journey.");
       return;
     }
     setBusy(true);
@@ -25,10 +164,15 @@ export function AIAmbitionCoach() {
       const records = Object.values(s.goalActivityRecords[selectedGoal.id] ?? {})
         .slice(-5)
         .map((record) => record.result);
+      const confirmedContext = [
+        context.trim(),
+        `Confirmed ambition brief: ${clarifiedBrief.trim()}`,
+        "Use the confirmed brief as the user's intended outcome. Do not guess a different interpretation.",
+      ].filter(Boolean).join("\\n\\n");
       const result = await generateAmbitionJourney({
         data: {
           title: selectedGoal.title,
-          context: context.trim(),
+          context: confirmedContext,
           completedActivityResults: records,
         },
       });
@@ -43,7 +187,7 @@ export function AIAmbitionCoach() {
   };
 
   const applyJourney = () => {
-    if (!draft || !selectedGoal || draftGoalId !== selectedGoal.id) return;
+    if (!draft || !selectedGoal || draftGoalId !== selectedGoal.id || !briefConfirmed) return;
     const journey: GoalJourney = {
       activities: draft.activities.map((activity, index) => ({
         id: `${selectedGoal.id}-ai-${index + 1}`,
@@ -71,10 +215,9 @@ export function AIAmbitionCoach() {
   return (
     <Card className="mt-4 border-primary/30">
       <p className="text-xs font-semibold uppercase tracking-wider text-primary">AI ambition coach · Preview</p>
-      <h2 className="mt-1 text-xl font-bold">Create a journey around your actual ambition</h2>
+      <h2 className="mt-1 text-xl font-bold">Let's understand your ambition first</h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        Generate new activities and milestones for an ambition, including unusual goals that don't fit a preset category.
-        Review the suggestions before applying them. AI guidance can be mistaken and important facts must be verified.
+        Tell us what you want to achieve. If the meaning is unclear, the coach will ask simple follow-up questions before creating a plan. You can correct its understanding before anything is applied.
       </p>
 
       {s.goals.length ? (
@@ -98,18 +241,76 @@ export function AIAmbitionCoach() {
             onChange={(event) => setContext(event.target.value)}
             maxLength={1200}
             rows={3}
-            placeholder="Your starting point, constraints, skills, location, timeframe, or what you have already tried."
+            placeholder="Your starting point, what you mean, constraints, skills, location, timeframe, or what you have already tried."
             className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
           />
           <p className="mt-1 text-xs text-muted-foreground">{context.length}/1200 characters. Avoid entering private or sensitive information.</p>
-          <div className="mt-3">
-            <Btn disabled={busy || !selectedGoal} onClick={generate}>
-              {busy ? "Generating tailored journey…" : "Generate AI journey"}
-            </Btn>
-          </div>
+
+          {clarificationStatus === "idle" ? (
+            <div className="mt-3">
+              <Btn disabled={busy || !selectedGoal} onClick={startClarification}>
+                {busy ? "Understanding your ambition…" : "Clarify my ambition"}
+              </Btn>
+            </div>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {turns.length > 0 && (
+                <div className="space-y-2">
+                  {turns.map((turn, index) => (
+                    <div key={index} className={turn.role === "assistant" ? "rounded-xl border border-primary/20 bg-primary/5 p-3" : "ml-4 rounded-xl border border-border p-3"}>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{turn.role === "assistant" ? "Ambition coach" : "Your answer"}</p>
+                      <p className="mt-1 whitespace-pre-wrap text-sm">{turn.content}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {clarificationStatus === "question" && (
+                <div className="rounded-xl border border-primary/30 p-3">
+                  <p className="font-semibold">Let's make sure we understand</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Answer in your own words. If this is still unclear, the coach will ask another focused question.</p>
+                  <label htmlFor="ai-clarification-answer" className="mt-3 block text-sm font-semibold">Your answer</label>
+                  <textarea
+                    id="ai-clarification-answer"
+                    value={clarificationAnswer}
+                    onChange={(event) => setClarificationAnswer(event.target.value)}
+                    maxLength={1200}
+                    rows={3}
+                    placeholder="Explain what you mean…"
+                    className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
+                  />
+                  <Btn disabled={busy || clarificationAnswer.trim().length < 2} onClick={submitClarificationAnswer}>
+                    {busy ? "Checking your answer…" : "Send answer"}
+                  </Btn>
+                </div>
+              )}
+
+              {clarificationStatus === "ready" && (
+                <div className="rounded-xl border border-success/30 bg-success/5 p-3">
+                  <p className="font-semibold">Is this what you mean?</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm">{clarifiedBrief}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">Review this carefully. The journey will be based on this understanding.</p>
+                  {!briefConfirmed ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Btn onClick={() => setBriefConfirmed(true)}>Yes, that's what I mean</Btn>
+                      <Btn variant="ghost" onClick={askForCorrection}>Not quite — let me clarify</Btn>
+                    </div>
+                  ) : (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-sm font-semibold text-success">Understanding confirmed.</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Btn disabled={busy} onClick={generate}>{busy ? "Building your journey…" : "Create my tailored journey"}</Btn>
+                        <Btn variant="ghost" onClick={askForCorrection}>Change my answer</Btn>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </>
       ) : (
-        <p className="mt-3 text-sm font-medium">Define your ambition first to generate a useful journey.</p>
+        <p className="mt-3 text-sm font-medium">Define your ambition first to begin the clarification process.</p>
       )}
 
       {draft && draftGoalId === selectedGoal?.id && (
@@ -132,8 +333,7 @@ export function AIAmbitionCoach() {
             </section>
           ))}
           <p className="text-xs text-muted-foreground">
-            Applying replaces the displayed activity plan for this ambition, but does not delete its existing self-reported records.
-            AI-generated content is a suggestion, not verification of facts or outcomes.
+            Applying replaces the displayed activity plan for this ambition, but does not delete its existing self-reported records. AI-generated content is a suggestion, not verification of facts or outcomes.
           </p>
           <Btn onClick={applyJourney}>Apply this journey</Btn>
         </div>
