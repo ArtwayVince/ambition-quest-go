@@ -13,7 +13,7 @@ const ClarificationInputSchema = z.object({
   turns: z.array(z.object({
     role: z.enum(["assistant", "user"]),
     content: z.string().trim().min(1).max(1200),
-  })).max(12).default([]),
+  })).max(30).default([]),
 });
 
 const ClarificationResultSchema = z.discriminatedUnion("status", [
