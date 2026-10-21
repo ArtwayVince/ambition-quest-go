@@ -14,9 +14,19 @@ export type JourneyMilestone = {
   activityId: string;
 };
 
+export type UniversalPlanNotes = {
+  requirements: string[];
+  resources: string[];
+  uncertainties: string[];
+  risks: string[];
+  firstAction: string;
+};
+
 export type GoalJourney = {
   activities: JourneyActivity[];
   milestones: JourneyMilestone[];
+  /** Optional AI planner context retained when the generated journey is applied. */
+  planner?: UniversalPlanNotes;
 };
 
 const makeJourney = (
