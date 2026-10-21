@@ -189,6 +189,7 @@ export function AIAmbitionCoach() {
   const applyJourney = () => {
     if (!draft || !selectedGoal || draftGoalId !== selectedGoal.id || !briefConfirmed) return;
     const journey: GoalJourney = {
+      planner: draft.planner,
       activities: draft.activities.map((activity, index) => ({
         id: `${selectedGoal.id}-ai-${index + 1}`,
         title: activity.title,
@@ -316,9 +317,37 @@ export function AIAmbitionCoach() {
       {draft && draftGoalId === selectedGoal?.id && (
         <div className="mt-4 space-y-3">
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
-            <p className="font-semibold">How this journey is tailored</p>
+            <p className="font-semibold">Universal plan overview</p>
             <p className="mt-1 text-sm">{draft.summary}</p>
           </div>
+          <section className="rounded-xl border border-border p-3">
+            <h3 className="font-semibold">What this ambition requires</h3>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+              {draft.planner.requirements.map((item, index) => <li key={index}>{item}</li>)}
+            </ul>
+          </section>
+          <section className="rounded-xl border border-border p-3">
+            <h3 className="font-semibold">Resources to consider</h3>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+              {draft.planner.resources.map((item, index) => <li key={index}>{item}</li>)}
+            </ul>
+          </section>
+          <section className="rounded-xl border border-border p-3">
+            <h3 className="font-semibold">Unknowns to verify</h3>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+              {draft.planner.uncertainties.map((item, index) => <li key={index}>{item}</li>)}
+            </ul>
+          </section>
+          <section className="rounded-xl border border-border p-3">
+            <h3 className="font-semibold">Risks and safeguards</h3>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+              {draft.planner.risks.map((item, index) => <li key={index}>{item}</li>)}
+            </ul>
+          </section>
+          <section className="rounded-xl border border-primary/30 bg-primary/5 p-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">Your next action</p>
+            <p className="mt-1 text-sm">{draft.planner.firstAction}</p>
+          </section>
           {draft.activities.map((activity, index) => (
             <section key={index} className="rounded-xl border border-border p-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Activity {index + 1}</p>
