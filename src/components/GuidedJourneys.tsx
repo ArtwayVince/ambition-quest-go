@@ -71,6 +71,28 @@ export function GuidedJourneys() {
                 {completedCount}/{journey.activities.length} activities
               </span>
             </div>
+            {journey.planner && (
+              <div className="mt-3 space-y-3 rounded-xl border border-primary/20 bg-background p-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">Universal plan</p>
+                  <p className="mt-1 text-sm font-semibold">Your next action</p>
+                  <p className="mt-1 text-sm">{journey.planner.firstAction}</p>
+                </div>
+                {([
+                  ["Requirements", journey.planner.requirements],
+                  ["Resources to consider", journey.planner.resources],
+                  ["Unknowns to verify", journey.planner.uncertainties],
+                  ["Risks and safeguards", journey.planner.risks],
+                ] as const).map(([heading, items]) => (
+                  <div key={heading}>
+                    <p className="text-sm font-semibold">{heading}</p>
+                    <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                      {items.map((item, index) => <li key={index}>{item}</li>)}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
             <p className="mt-2 text-sm text-muted-foreground">
               Choose any activity you are ready to do, including work you have already completed.
               Record a brief result so the milestone reflects what you learned or achieved.

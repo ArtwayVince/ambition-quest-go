@@ -31,6 +31,13 @@ const ClarificationResultSchema = z.discriminatedUnion("status", [
 
 const JourneyDraftSchema = z.object({
   summary: z.string().trim().min(20).max(500),
+  planner: z.object({
+    requirements: z.array(z.string().trim().min(8).max(300)).min(2).max(6),
+    resources: z.array(z.string().trim().min(5).max(250)).min(1).max(6),
+    uncertainties: z.array(z.string().trim().min(5).max(250)).min(1).max(6),
+    risks: z.array(z.string().trim().min(5).max(250)).min(1).max(6),
+    firstAction: z.string().trim().min(10).max(400),
+  }),
   activities: z.array(
     z.object({
       title: z.string().trim().min(4).max(120),
@@ -142,6 +149,13 @@ ${completedActivityResults.length ? completedActivityResults.map((result, index)
 Return ONLY valid JSON with this exact shape:
 {
   "summary": "A concise explanation of how this journey is tailored to the ambition",
+  "planner": {
+    "requirements": ["2 to 6 specific requirements, dependencies, or conditions for this ambition"],
+    "resources": ["Relevant skills, people, tools, time, money only if relevant, or other resources"],
+    "uncertainties": ["Important unknowns to verify; state clearly when there is no reliable basis to assert a fact"],
+    "risks": ["Material risks and practical ways to reduce or manage them"],
+    "firstAction": "One specific, manageable action the user can take next, with a clear result"
+  },
   "activities": [
     {
       "title": "Specific activity title",
@@ -155,7 +169,13 @@ Return ONLY valid JSON with this exact shape:
 }
 
 Rules:
+- Produce a universal plan, not just an activity list. The planner fields must be meaningfully tailored to the confirmed ambition and complement the activities.
 - Produce 3 to 5 sequential activities specific to the actual ambition, not a generic goal template.
+- Requirements should identify the real conditions, prerequisites, dependencies, or decisions that matter for this ambition.
+- Resources should name only relevant resource types. Money and saving are not default requirements; include them only when the ambition warrants it.
+- Uncertainties must identify the important facts or assumptions the user should verify, not repeat generic warnings.
+- Risks should be ambition-specific and include proportionate ways to reduce them.
+- firstAction must be concrete, manageable, and consistent with the first activity.
 - If the context contains a confirmed ambition brief, treat it as the primary description of the user's intended outcome. Do not revert to guessing from the original short title.
 - For unfamiliar ambitions, tailor the research and first practical steps to the confirmed meaning, rather than using a generic template.
 - Each activity must be realistically actionable, with a concrete result the user can record.
