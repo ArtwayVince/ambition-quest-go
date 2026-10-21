@@ -168,7 +168,7 @@ export function AIAmbitionCoach() {
         context.trim(),
         `Confirmed ambition brief: ${clarifiedBrief.trim()}`,
         "Use the confirmed brief as the user's intended outcome. Do not guess a different interpretation.",
-      ].filter(Boolean).join("\\n\\n");
+      ].filter(Boolean).join("\n\n");
       const result = await generateAmbitionJourney({
         data: {
           title: selectedGoal.title,
