@@ -18,12 +18,33 @@ function Goals() {
   const [savedNotice, setSavedNotice] = useState<Record<string, string>>({});
   const [custom, setCustom] = useState("");
   const [customTarget, setCustomTarget] = useState("1000000");
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   const add = (id: string, title: string, target: number) => {
     if (s.goals.some((g) => g.id === id)) return;
     set((p) => ({ ...p, goals: [...p.goals, { id, title, target, saved: 0, log: [] }] }));
     gain(10, { Mindset: 5 });
   };
+  const deleteAmbition = (id: string) => {
+    if (!s.goals.some((goal) => goal.id === id)) {
+      setPendingDelete(null);
+      return;
+    }
+    set((p) => {
+      const goalSteps = { ...p.goalSteps };
+      const goalActivityRecords = { ...p.goalActivityRecords };
+      const aiJourneys = { ...(p.aiJourneys ?? {}) };
+      const readinessByGoal = { ...(p.readinessByGoal ?? {}) };
+      delete goalSteps[id];
+      delete goalActivityRecords[id];
+      delete aiJourneys[id];
+      delete readinessByGoal[id];
+      return { ...p, goals: p.goals.filter((goal) => goal.id !== id), goalSteps, goalActivityRecords, aiJourneys, readinessByGoal };
+    });
+    setPendingDelete(null);
+    toast.success("Ambition deleted");
+  };
+
   const log = (id: string) => {
     const n = Number(amt[id]);
     if (!Number.isSafeInteger(n) || n < 1) {
@@ -72,7 +93,20 @@ function Goals() {
         return (
           <div id={`review-ambition-${g.id}`} className="scroll-mt-4">
           <Card className="mt-4">
-            <h2 className="font-bold">{g.title}</h2>
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="font-bold">{g.title}</h2>
+              <button type="button" onClick={() => setPendingDelete(g.id)} className="shrink-0 rounded-lg border border-destructive/40 px-3 py-2 text-xs font-semibold text-destructive hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive" aria-label={`Delete ambition: ${g.title}`}>Delete ambition</button>
+            </div>
+            {pendingDelete === g.id && (
+              <div role="alertdialog" aria-label={`Confirm deletion of ${g.title}`} className="mt-3 rounded-xl border border-destructive/40 bg-destructive/5 p-3">
+                <p className="text-sm font-semibold">Delete “{g.title}”?</p>
+                <p className="mt-1 text-sm text-muted-foreground">This permanently removes its saved amount, savings log, AI journey, activity results and ambition-specific readiness record from this app. Your other ambitions and overall XP will remain unchanged.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Btn variant="ghost" onClick={() => setPendingDelete(null)}>Cancel</Btn>
+                  <button type="button" onClick={() => deleteAmbition(g.id)} className="rounded-xl bg-destructive px-4 py-3 text-sm font-semibold text-destructive-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive">Confirm deletion</button>
+                </div>
+              </div>
+            )}
             <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-primary">Ambition review</p>
               <p className="mt-1 text-sm">You have recorded {naira(g.saved)} toward your initial target of {naira(g.target)} ({pct.toFixed(pct < 1 ? 2 : 0)}%). This is a planning snapshot, not a guarantee that the ambition is within reach yet.</p>
