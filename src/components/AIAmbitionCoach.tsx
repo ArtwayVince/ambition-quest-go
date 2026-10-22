@@ -28,6 +28,23 @@ export function AIAmbitionCoach() {
   const [briefConfirmed, setBriefConfirmed] = useState(false);
   const [hydratedGoalId, setHydratedGoalId] = useState("");
   const selectedGoal = s.goals.find((goal) => goal.id === selectedGoalId) ?? s.goals[0];
+  const busyMessage = clarificationStatus === "question"
+    ? (turns.length > 0 && turns[turns.length - 1]?.role === "user"
+      ? "Checking your answer…"
+      : "Understanding your ambition…")
+    : clarificationStatus === "ready" && briefConfirmed
+      ? "Building your tailored journey…"
+      : "Understanding your ambition…";
+
+  useEffect(() => {
+    if (!busy || typeof window === "undefined") return;
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warnBeforeLeaving);
+    return () => window.removeEventListener("beforeunload", warnBeforeLeaving);
+  }, [busy]);
 
   useEffect(() => {
     const goalId = selectedGoal?.id;
@@ -271,6 +288,16 @@ export function AIAmbitionCoach() {
           />
           <p className="mt-1 text-xs text-muted-foreground">{context.length}/1200 characters. Avoid entering private or sensitive information.</p>
 
+          {busy && (
+            <div role="status" aria-live="polite" className="mt-3 flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3">
+              <span aria-hidden="true" className="mt-0.5 inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+              <div>
+                <p className="text-sm font-semibold text-primary">{busyMessage}</p>
+                <p className="mt-1 text-xs text-muted-foreground">Please keep this page open while the coach is working. You’ll see the result here when the request finishes.</p>
+              </div>
+            </div>
+          )}
+
           {clarificationStatus === "idle" ? (
             <div className="mt-3">
               <Btn disabled={busy || !selectedGoal} onClick={startClarification}>
@@ -317,15 +344,15 @@ export function AIAmbitionCoach() {
                   <p className="mt-2 text-xs text-muted-foreground">Review this carefully. The journey will be based on this understanding.</p>
                   {!briefConfirmed ? (
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <Btn onClick={() => setBriefConfirmed(true)}>Yes, that's what I mean</Btn>
-                      <Btn variant="ghost" onClick={askForCorrection}>Not quite — let me clarify</Btn>
+                      <Btn disabled={busy} onClick={() => setBriefConfirmed(true)}>Confirm understanding & continue</Btn>
+                      <Btn disabled={busy} variant="ghost" onClick={askForCorrection}>Not quite — let me clarify</Btn>
                     </div>
                   ) : (
                     <div className="mt-3 space-y-2">
                       <p className="text-sm font-semibold text-success">Understanding confirmed.</p>
                       <div className="flex flex-wrap gap-2">
                         <Btn disabled={busy} onClick={generate}>{busy ? "Building your journey…" : "Create my tailored journey"}</Btn>
-                        <Btn variant="ghost" onClick={askForCorrection}>Change my answer</Btn>
+                        <Btn disabled={busy} variant="ghost" onClick={askForCorrection}>Change my answer</Btn>
                       </div>
                     </div>
                   )}
@@ -388,7 +415,7 @@ export function AIAmbitionCoach() {
           <p className="text-xs text-muted-foreground">
             Applying replaces the displayed activity plan for this ambition, but does not delete its existing self-reported records. AI-generated content is a suggestion, not verification of facts or outcomes.
           </p>
-          <Btn onClick={applyJourney}>Apply this journey</Btn>
+          <Btn disabled={busy} onClick={applyJourney}>Apply this journey</Btn>
         </div>
       )}
     </Card>
