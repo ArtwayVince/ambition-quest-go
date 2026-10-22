@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
+import { ActivityNextAction } from "@/components/ActivityNextAction";
 import { useStore, coach, type GoalActivityHistoryRecord } from "@/lib/store";
 import { GOAL_TEMPLATES, naira } from "@/lib/data";
 import { journeyFor, milestoneIsComplete } from "@/lib/journeys";
@@ -213,6 +214,7 @@ function Goals() {
                       <p className="mt-1 text-sm text-muted-foreground">{activity.guidance}</p>
                       {record && <p className="mt-2 whitespace-pre-wrap text-sm">Result: {record.result}</p>}
                       {record?.reusedFromHistoryId && <p className="mt-1 text-xs font-semibold text-primary">Reused from a previous activity result after your review.</p>}
+                      {record && <ActivityNextAction goalId={g.id} activityId={activity.id} />}
                       {!record && <Link to="/dashboard" hash={`activity-${g.id}-${activity.id}`} className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4">Go to this activity →</Link>}
                     </div>
                   );
