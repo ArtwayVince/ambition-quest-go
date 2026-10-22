@@ -42,7 +42,9 @@ function Goals() {
       delete aiJourneys[id];
       delete readinessByGoal[id];
       delete goalActivityHistory[id];
-      return { ...p, goals: p.goals.filter((goal) => goal.id !== id), goalSteps, goalActivityRecords, goalActivityHistory, aiJourneys, readinessByGoal };
+      const goalNextActions = { ...(p.goalNextActions ?? {}) };
+      delete goalNextActions[id];
+      return { ...p, goals: p.goals.filter((goal) => goal.id !== id), goalSteps, goalActivityRecords, goalActivityHistory, goalNextActions, aiJourneys, readinessByGoal };
     });
     setPendingDelete(null);
     toast.success("Ambition deleted");
@@ -135,6 +137,8 @@ function Goals() {
         const activityRecords = s.goalActivityRecords[g.id] ?? {};
         const completedActivities = journey.activities.filter((activity) => Boolean(activityRecords[activity.id])).length;
         const nextActivity = journey.activities.find((activity) => !activityRecords[activity.id]);
+        const latestNextAction = (s.goalNextActions?.[g.id] ?? []).slice().reverse()[0];
+        const acceptedNextAction = latestNextAction?.status === "accepted" ? latestNextAction : undefined;
         const legacyCount = (s.goalSteps[g.id] ?? []).length;
         const historyRecords = s.goalActivityHistory?.[g.id] ?? [];
         return (
@@ -160,12 +164,17 @@ function Goals() {
               <p className="mt-2 text-sm">{completedActivities} of {journey.activities.length} guided activities recorded.</p>
               {legacyCount > 0 && <p className="mt-1 text-xs text-muted-foreground">{legacyCount} earlier starter-step record(s) preserved for review; they are not automatically treated as completed guided activities.</p>}
               <p className="mt-2 text-sm font-semibold text-primary">Next decision</p>
-              {nextActivity ? (
+              {acceptedNextAction ? (
+                <>
+                  <p className="text-sm font-semibold">{acceptedNextAction.title}</p>
+                  <p className="text-sm text-muted-foreground">{acceptedNextAction.recommendation}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">This is the next action you accepted. Record what happens in the guided journey before deciding what comes next.</p>
+                </>
+              ) : nextActivity ? (
                 <>
                   <p className="text-sm font-semibold">{nextActivity.title}</p>
                   <p className="text-sm text-muted-foreground">{nextActivity.guidance}</p>
                   <p className="mt-1 text-xs text-muted-foreground">This is the same recommended next step shown in your guided journey. If your latest result revealed a more urgent obstacle or important unknown, address that responsibly and update your plan before continuing.</p>
-                </>
               ) : (
                 <p className="text-sm text-muted-foreground">All current guided activities have recorded results. Review what those results actually establish, revisit unresolved requirements and risks, and verify important real-world facts before treating the ambition as ready. Saving is only one possible part of preparation.</p>
               )}
