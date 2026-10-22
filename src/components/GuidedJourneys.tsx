@@ -75,8 +75,9 @@ export function GuidedJourneys() {
               <div className="mt-3 space-y-3 rounded-xl border border-primary/20 bg-background p-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-primary">Universal plan</p>
-                  <p className="mt-1 text-sm font-semibold">Your next action</p>
+                  <p className="mt-1 text-sm font-semibold">Plan's original starting point</p>
                   <p className="mt-1 text-sm">{journey.planner.firstAction}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">The recommended next step below follows the current guided journey. Revisit this starting point if your circumstances or findings have changed.</p>
                 </div>
                 {([
                   ["Requirements", journey.planner.requirements],
@@ -99,19 +100,21 @@ export function GuidedJourneys() {
             </p>
             {nextActivity ? (
               <div className="mt-3 rounded-xl border border-primary/30 bg-background p-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-primary">Suggested next activity</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-primary">Recommended next step</p>
                 <p className="mt-1 font-semibold">{nextActivity.title}</p>
-                <p className="mt-1 text-sm text-muted-foreground">Start here if you are unsure what to do next. You can also choose another activity below.</p>
+                <p className="mt-1 text-sm">{nextActivity.guidance}</p>
+                <p className="mt-2 text-sm text-muted-foreground">Why now: {completedCount === 0 ? "This is the first activity in your current journey and gives you a concrete place to begin." : "This is the first activity in your current journey without a recorded result. Review what you have learned so far and adapt if your findings reveal a more urgent issue."}</p>
                 <div className="mt-3">
                   <Link to="/dashboard" hash={`activity-${goal.id}-${nextActivity.id}`}>
-                    <Btn>Start suggested activity →</Btn>
+                    <Btn>Go to recommended step →</Btn>
                   </Link>
                 </div>
               </div>
             ) : (
-              <p className="mt-3 rounded-xl border border-success/30 bg-success/5 p-3 text-sm font-semibold text-success">
-                All guided activities have recorded results. Review your plan and verify any outstanding real-world requirements.
-              </p>
+              <div className="mt-3 rounded-xl border border-success/30 bg-success/5 p-3">
+                <p className="text-sm font-semibold text-success">All guided activities have recorded results.</p>
+                <p className="mt-1 text-sm">Review the recorded results, revisit any unresolved questions or risks, and verify outstanding real-world requirements before treating the ambition as ready. If new information changes the plan, update the journey rather than repeating completed activities.</p>
+              </div>
             )}
             <div className="mt-3 space-y-3">
               {journey.activities.map((activity, index) => {
