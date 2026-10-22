@@ -188,7 +188,10 @@ function Dashboard() {
               const records = s.goalActivityRecords[goal.id] ?? {};
               const completed = journey.activities.filter((activity) => Boolean(records[activity.id])).length;
               const nextActivity = journey.activities.find((activity) => !records[activity.id]);
-              const latestNextAction = (s.goalNextActions?.[goal.id] ?? []).filter((action) => !action.archivedAt).slice().reverse()[0];
+              const latestNextAction = (s.goalNextActions?.[goal.id] ?? [])
+                .filter((action) => !action.archivedAt)
+                .slice()
+                .reverse()[0];
               const acceptedNextAction = latestNextAction?.status === "accepted" ? latestNextAction : undefined;
               const financialPct =
                 goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
@@ -213,7 +216,13 @@ function Dashboard() {
                       <>
                         <p className="mt-1 text-sm text-muted-foreground">Accepted next action: {acceptedNextAction.title}</p>
                         <p className="mt-1 text-sm">{acceptedNextAction.recommendation}</p>
-                        <Link to="/dashboard" hash={"activity-" + goal.id + "-" + acceptedNextAction.sourceActivityId} className="mt-2 inline-flex rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">Continue accepted action →</Link>
+                        <Link
+                          to="/dashboard"
+                          hash={"activity-" + goal.id + "-" + acceptedNextAction.sourceActivityId}
+                          className="mt-2 inline-flex rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        >
+                          Continue accepted action →
+                        </Link>
                       </>
                     ) : nextActivity ? (
                       <>
