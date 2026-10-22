@@ -188,6 +188,8 @@ function Dashboard() {
               const records = s.goalActivityRecords[goal.id] ?? {};
               const completed = journey.activities.filter((activity) => Boolean(records[activity.id])).length;
               const nextActivity = journey.activities.find((activity) => !records[activity.id]);
+              const latestNextAction = (s.goalNextActions?.[goal.id] ?? []).slice().reverse()[0];
+              const acceptedNextAction = latestNextAction?.status === "accepted" ? latestNextAction : undefined;
               const financialPct =
                 goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
               return (
@@ -207,7 +209,13 @@ function Dashboard() {
                   </div>
                   <div className="mt-3">
                     <p className="text-sm font-semibold">Practical preparation: {completed}/{journey.activities.length} activities recorded</p>
-                    {nextActivity ? (
+                    {acceptedNextAction ? (
+                      <>
+                        <p className="mt-1 text-sm text-muted-foreground">Accepted next action: {acceptedNextAction.title}</p>
+                        <p className="mt-1 text-sm">{acceptedNextAction.recommendation}</p>
+                        <Link to="/dashboard" hash={"activity-" + goal.id + "-" + acceptedNextAction.sourceActivityId} className="mt-2 inline-flex rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">Continue accepted action →</Link>
+                      </>
+                    ) : nextActivity ? (
                       <>
                         <p className="mt-1 text-sm text-muted-foreground">Suggested next step: {nextActivity.title}</p>
                         <Link
