@@ -137,7 +137,7 @@ function Goals() {
         const activityRecords = s.goalActivityRecords[g.id] ?? {};
         const completedActivities = journey.activities.filter((activity) => Boolean(activityRecords[activity.id])).length;
         const nextActivity = journey.activities.find((activity) => !activityRecords[activity.id]);
-        const latestNextAction = (s.goalNextActions?.[g.id] ?? []).slice().reverse()[0];
+        const latestNextAction = (s.goalNextActions?.[g.id] ?? []).filter((action) => !action.archivedAt).slice().reverse()[0];
         const acceptedNextAction = latestNextAction?.status === "accepted" ? latestNextAction : undefined;
         const legacyCount = (s.goalSteps[g.id] ?? []).length;
         const historyRecords = s.goalActivityHistory?.[g.id] ?? [];
