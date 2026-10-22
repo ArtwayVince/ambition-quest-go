@@ -23,14 +23,14 @@ export function ActivityNextAction({ goalId, activityId }: { goalId: string; act
   const requestSuggestion = async (answer = "", previous = latest?.recommendation ?? "", completedAction?: GoalNextAction) => {
     setBusy(true);
     try {
-      const sourceIsCompletedAction = Boolean(completedAction) || latest?.status === "completed";
-      const sourceTitle = completedAction?.title ?? (sourceIsCompletedAction ? latest!.title : activity.title);
-      const sourceResult = completedAction?.result ?? (sourceIsCompletedAction ? (latest?.result ?? "") : record.result);
+      const sourceIsActionFollowup = Boolean(completedAction) || Boolean(latest?.sourceActionId) || latest?.status === "completed";
+      const sourceTitle = completedAction?.title ?? (latest?.status === "completed" ? latest.title : sourceIsActionFollowup ? latest!.sourceActivityTitle : activity.title);
+      const sourceResult = completedAction?.result ?? (latest?.status === "completed" ? (latest.result ?? "") : sourceIsActionFollowup ? latest!.sourceResult : record.result);
       const draft = await recommendAmbitionNextAction({
         data: {
           title: goal.title,
           activityTitle: sourceTitle,
-          activityGuidance: completedAction?.recommendation ?? (sourceIsCompletedAction ? latest!.recommendation : activity.guidance),
+          activityGuidance: completedAction?.recommendation ?? (sourceIsActionFollowup ? latest!.recommendation : activity.guidance),
           result: sourceResult,
           planner: journey?.planner,
           previousSuggestion: previous,
@@ -40,7 +40,7 @@ export function ActivityNextAction({ goalId, activityId }: { goalId: string; act
       const next: GoalNextAction = {
         id: `next-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         sourceActivityId: activityId,
-        sourceActionId: sourceIsCompletedAction ? (completedAction?.id ?? latest!.id) : undefined,
+        sourceActionId: sourceIsActionFollowup ? (completedAction?.id ?? latest!.id) : undefined,
         sourceActivityTitle: sourceTitle,
         sourceResult,
         ...draft,
