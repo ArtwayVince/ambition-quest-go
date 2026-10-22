@@ -244,11 +244,16 @@ export function AIAmbitionCoach() {
       goalActivityHistory[selectedGoal.id] = [...(goalActivityHistory[selectedGoal.id] ?? []), ...archived];
       const goalActivityRecords = { ...previous.goalActivityRecords };
       delete goalActivityRecords[selectedGoal.id];
+      const goalNextActions = { ...(previous.goalNextActions ?? {}) };
+      goalNextActions[selectedGoal.id] = (goalNextActions[selectedGoal.id] ?? []).map((action) =>
+        action.archivedAt ? action : { ...action, archivedAt: appliedAt },
+      );
       return {
         ...previous,
         aiJourneys: { ...(previous.aiJourneys ?? {}), [selectedGoal.id]: journey },
         goalActivityRecords,
         goalActivityHistory,
+        goalNextActions,
       };
     });
     setDraft(null);

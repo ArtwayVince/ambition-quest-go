@@ -7,6 +7,28 @@ const InputSchema = z.object({
   completedActivityResults: z.array(z.string().trim().max(500)).max(5).default([]),
 });
 
+const NextActionInputSchema = z.object({
+  title: z.string().trim().min(2).max(160),
+  activityTitle: z.string().trim().min(2).max(160),
+  activityGuidance: z.string().trim().max(700).default(""),
+  result: z.string().trim().min(2).max(500),
+  planner: z.object({
+    requirements: z.array(z.string().max(300)).max(6).default([]),
+    resources: z.array(z.string().max(250)).max(6).default([]),
+    uncertainties: z.array(z.string().max(250)).max(6).default([]),
+    risks: z.array(z.string().max(250)).max(6).default([]),
+    firstAction: z.string().max(400).default(""),
+  }).optional(),
+  previousSuggestion: z.string().trim().max(400).default(""),
+  clarification: z.string().trim().max(1000).default(""),
+});
+const NextActionResultSchema = z.object({
+  category: z.enum(["progress", "clarify", "revise", "help"]),
+  title: z.string().trim().min(4).max(120),
+  recommendation: z.string().trim().min(10).max(400),
+  rationale: z.string().trim().min(10).max(300),
+  followUpQuestion: z.string().trim().max(500).optional(),
+});
 const ClarificationInputSchema = z.object({
   title: z.string().trim().min(2).max(160),
   context: z.string().trim().max(1200).default(""),
@@ -51,6 +73,7 @@ const JourneyDraftSchema = z.object({
 });
 
 export type AIJourneyDraft = z.infer<typeof JourneyDraftSchema>;
+export type AINextActionDraft = z.infer<typeof NextActionResultSchema>;
 export type AmbitionClarificationResult = z.infer<typeof ClarificationResultSchema>;
 export type ClarificationTurn = z.infer<typeof ClarificationInputSchema>["turns"][number];
 
@@ -187,6 +210,25 @@ Rules:
 - Activities should build on each other and suggest a useful next action after the previous one.
 `;
 
+const nextActionPromptFor = (data: z.infer<typeof NextActionInputSchema>) => [
+"You are the practical next-step coach inside Ambition Quest Go.",
+"Ambition: " + data.title,
+"Activity or previously accepted action: " + data.activityTitle,
+"Guidance: " + (data.activityGuidance || "No additional guidance supplied."),
+"Player result (self-reported, not independently verified): " + data.result,
+"Universal planner notes: " + JSON.stringify(data.planner ?? {}),
+"Previous suggestion to avoid repeating: " + (data.previousSuggestion || "None"),
+"Player clarification or answer: " + (data.clarification || "None"),
+"Choose exactly one category: progress (evidence supports moving forward), clarify (one important question is needed first), revise (the plan should change), or help (consult a suitable qualified person or reliable source).",
+"Return ONLY JSON with category, title, recommendation, rationale, and optional followUpQuestion. The recommendation must be one concrete manageable action with an expected output.",
+"Treat the result as self-reported, not verified. Do not assume success, affordability, safety, legal compliance, provider participation, current prices, or readiness. If information is missing, ask rather than guess. Do not invent contacts or generate a whole new journey. Do not repeat the previous suggestion unless clarification materially changes the next step. Keep advice specific and proportionate."
+].join("\n");
+
+export const recommendAmbitionNextAction = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => NextActionInputSchema.parse(data))
+  .handler(async ({ data }): Promise<AINextActionDraft> => {
+    return modelJson(nextActionPromptFor(data), NextActionResultSchema);
+  });
 export const clarifyAmbition = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => ClarificationInputSchema.parse(data))
   .handler(async ({ data }): Promise<AmbitionClarificationResult> => {

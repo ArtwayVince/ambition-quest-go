@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { Btn } from "@/components/Shell";
 import { useStore } from "@/lib/store";
 import { journeyFor, milestoneIsComplete } from "@/lib/journeys";
+import { ActivityNextAction } from "@/components/ActivityNextAction";
 
 export function GuidedJourneys() {
   const { s, set, gain } = useStore();
@@ -52,6 +53,8 @@ export function GuidedJourneys() {
           Boolean(records[activity.id]),
         ).length;
         const nextActivity = journey.activities.find((activity) => !records[activity.id]);
+        const latestNextAction = (s.goalNextActions?.[goal.id] ?? []).filter((action) => !action.archivedAt).slice().reverse()[0];
+        const acceptedNextAction = latestNextAction?.status === "accepted" ? latestNextAction : undefined;
         const legacyCount = (s.goalSteps[goal.id] ?? []).length;
 
         return (
@@ -98,7 +101,19 @@ export function GuidedJourneys() {
               Choose any activity you are ready to do, including work you have already completed.
               Record a brief result so the milestone reflects what you learned or achieved.
             </p>
-            {nextActivity ? (
+            {acceptedNextAction ? (
+              <div className="mt-3 rounded-xl border border-primary/30 bg-background p-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-primary">Your accepted next action</p>
+                <p className="mt-1 font-semibold">{acceptedNextAction.title}</p>
+                <p className="mt-1 text-sm">{acceptedNextAction.recommendation}</p>
+                <p className="mt-2 text-xs text-muted-foreground">You chose this action. Return to its source activity below to record what happened before deciding what comes next.</p>
+                <div className="mt-3">
+                  <Link to="/dashboard" hash={`activity-${goal.id}-${acceptedNextAction.sourceActivityId}`}>
+                    <Btn>Continue accepted action →</Btn>
+                  </Link>
+                </div>
+              </div>
+            ) : nextActivity ? (
               <div className="mt-3 rounded-xl border border-primary/30 bg-background p-3">
                 <p className="text-xs font-semibold uppercase tracking-wider text-primary">Recommended next step</p>
                 <p className="mt-1 font-semibold">{nextActivity.title}</p>
@@ -153,6 +168,7 @@ export function GuidedJourneys() {
                                 Milestone reached: {milestone.title}
                               </p>
                             )}
+                            <ActivityNextAction goalId={goal.id} activityId={activity.id} />
                           </div>
                         ) : (
                           <div className="mt-3 space-y-2">
