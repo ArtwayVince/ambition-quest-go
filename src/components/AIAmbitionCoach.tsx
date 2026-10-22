@@ -100,9 +100,9 @@ export function AIAmbitionCoach() {
     }
   }, [selectedGoal, hydratedGoalId, context, turns, clarificationStatus, clarificationQuestion, clarifiedBrief, briefConfirmed]);
 
-  const startClarification = async () => {
+  const startClarification = async (confirmIfReady = false) => {
     if (!selectedGoal) {
-      toast.error("Define an ambition before clarifying it.");
+      toast.error("Define an ambition before continuing.");
       return;
     }
     setBusyMessage("Understanding your ambition…");
@@ -116,9 +116,13 @@ export function AIAmbitionCoach() {
       setClarificationStatus(result.status);
       setClarificationQuestion(result.status === "question" ? result.question : "");
       setClarifiedBrief(result.status === "ready" ? result.clarifiedBrief : "");
-      setBriefConfirmed(false);
+      setBriefConfirmed(result.status === "ready" && confirmIfReady);
       setClarificationAnswer("");
-      toast.success(result.status === "ready" ? "The ambition is clear enough to review." : "Let's make the ambition more specific.");
+      if (result.status === "ready" && confirmIfReady) {
+        toast.success("The ambition is clear. You can now create your tailored journey.");
+      } else {
+        toast.success(result.status === "ready" ? "The ambition is clear enough to review." : "Let's make the ambition more specific.");
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "We couldn't clarify this ambition. Please try again.");
     } finally {
@@ -296,9 +300,12 @@ export function AIAmbitionCoach() {
           )}
 
           {clarificationStatus === "idle" ? (
-            <div className="mt-3">
-              <Btn disabled={busy || !selectedGoal} onClick={startClarification}>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Btn disabled={busy || !selectedGoal} onClick={() => startClarification(false)}>
                 {busy ? "Understanding your ambition…" : "Clarify my ambition"}
+              </Btn>
+              <Btn disabled={busy || !selectedGoal} variant="ghost" onClick={() => startClarification(true)}>
+                {busy ? "Sending to AI Coach…" : "Send to AI Coach"}
               </Btn>
             </div>
           ) : (
