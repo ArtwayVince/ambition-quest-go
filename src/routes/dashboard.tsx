@@ -188,7 +188,7 @@ function Dashboard() {
               const records = s.goalActivityRecords[goal.id] ?? {};
               const completed = journey.activities.filter((activity) => Boolean(records[activity.id])).length;
               const nextActivity = journey.activities.find((activity) => !records[activity.id]);
-              const latestNextAction = (s.goalNextActions?.[goal.id] ?? []).slice().reverse()[0];
+              const latestNextAction = (s.goalNextActions?.[goal.id] ?? []).filter((action) => !action.archivedAt).slice().reverse()[0];
               const acceptedNextAction = latestNextAction?.status === "accepted" ? latestNextAction : undefined;
               const financialPct =
                 goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
