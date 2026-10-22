@@ -53,7 +53,7 @@ export function GuidedJourneys() {
           Boolean(records[activity.id]),
         ).length;
         const nextActivity = journey.activities.find((activity) => !records[activity.id]);
-        const latestNextAction = (s.goalNextActions?.[goal.id] ?? []).slice().reverse()[0];
+        const latestNextAction = (s.goalNextActions?.[goal.id] ?? []).filter((action) => !action.archivedAt).slice().reverse()[0];
         const acceptedNextAction = latestNextAction?.status === "accepted" ? latestNextAction : undefined;
         const legacyCount = (s.goalSteps[goal.id] ?? []).length;
 
