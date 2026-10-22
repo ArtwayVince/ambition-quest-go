@@ -179,23 +179,23 @@ function Dashboard() {
         <Card className="mt-4">
           <h2 className="font-bold">Ambition readiness overview</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            See your financial progress, practical preparation and practice score separately.
-            These measures describe different parts of your journey; none alone guarantees an outcome.
+            See your financial progress, practical preparation and practice score separately. These
+            measures describe different parts of your journey; none alone guarantees an outcome.
           </p>
           <div className="mt-3 space-y-4">
             {s.goals.map((goal) => {
               const journey = s.aiJourneys?.[goal.id] ?? journeyFor(goal.id, goal.title);
               const records = s.goalActivityRecords[goal.id] ?? {};
-              const completed = journey.activities.filter((activity) => Boolean(records[activity.id])).length;
+              const completed = journey.activities.filter((activity) =>
+                Boolean(records[activity.id]),
+              ).length;
               const nextActivity = journey.activities.find((activity) => !records[activity.id]);
               const latestNextAction = (s.goalNextActions?.[goal.id] ?? [])
                 .filter((action) => !action.archivedAt)
                 .slice()
                 .reverse()[0];
               const acceptedNextAction =
-                latestNextAction?.status === "accepted"
-                  ? latestNextAction
-                  : undefined;
+                latestNextAction?.status === "accepted" ? latestNextAction : undefined;
               const financialPct =
                 goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
               return (
@@ -207,17 +207,26 @@ function Dashboard() {
                       <span className="font-semibold">{financialPct}%</span>
                     </div>
                     <div className="mt-1 h-2 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full bg-primary" style={{ width: (financialPct + "%") }} />
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: financialPct + "%" }}
+                      />
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      ₦{goal.saved.toLocaleString()} recorded of ₦{goal.target.toLocaleString()} target
+                      ₦{goal.saved.toLocaleString()} recorded of ₦{goal.target.toLocaleString()}{" "}
+                      target
                     </p>
                   </div>
                   <div className="mt-3">
-                    <p className="text-sm font-semibold">Practical preparation: {completed}/{journey.activities.length} activities recorded</p>
+                    <p className="text-sm font-semibold">
+                      Practical preparation: {completed}/{journey.activities.length} activities
+                      recorded
+                    </p>
                     {acceptedNextAction ? (
                       <>
-                        <p className="mt-1 text-sm text-muted-foreground">Accepted next action: {acceptedNextAction.title}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Accepted next action: {acceptedNextAction.title}
+                        </p>
                         <p className="mt-1 text-sm">{acceptedNextAction.recommendation}</p>
                         <Link
                           to="/dashboard"
@@ -229,7 +238,9 @@ function Dashboard() {
                       </>
                     ) : nextActivity ? (
                       <>
-                        <p className="mt-1 text-sm text-muted-foreground">Suggested next step: {nextActivity.title}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Suggested next step: {nextActivity.title}
+                        </p>
                         <Link
                           to="/dashboard"
                           hash={"activity-" + goal.id + "-" + nextActivity.id}
@@ -240,18 +251,26 @@ function Dashboard() {
                       </>
                     ) : (
                       <p className="mt-1 text-sm text-muted-foreground">
-                        All guided activities have recorded results. Review your plan and verify any outstanding real-world requirements.
+                        All guided activities have recorded results. Review your plan and verify any
+                        outstanding real-world requirements.
                       </p>
                     )}
                   </div>
                   <div className="mt-3 rounded-lg bg-muted p-3">
                     <p className="text-sm font-semibold">
-                      Readiness practice: {s.readinessByGoal?.[goal.id] === undefined ? "Not taken yet" : `${s.readinessByGoal[goal.id]}/3 scenarios`}
+                      Readiness practice:{" "}
+                      {s.readinessByGoal?.[goal.id] === undefined
+                        ? "Not taken yet"
+                        : `${s.readinessByGoal[goal.id]}/3 scenarios`}
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      This score belongs to this ambition only. It is practice, not proof of affordability, booking, or real-world readiness.
+                      This score belongs to this ambition only. It is practice, not proof of
+                      affordability, booking, or real-world readiness.
                     </p>
-                    <Link to="/readiness" className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4">
+                    <Link
+                      to="/readiness"
+                      className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4"
+                    >
                       Practise for this ambition →
                     </Link>
                   </div>
@@ -299,7 +318,8 @@ function Dashboard() {
       <Card className="mt-4">
         <h2 className="font-bold">Readiness practice</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Practise decisions for a specific ambition. Your results are tracked separately for each ambition and do not certify real-world readiness.
+          Practise decisions for a specific ambition. Your results are tracked separately for each
+          ambition and do not certify real-world readiness.
         </p>
         <div className="mt-3">
           <Link to="/readiness">
