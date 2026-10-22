@@ -192,7 +192,8 @@ function Dashboard() {
                 .filter((action) => !action.archivedAt)
                 .slice()
                 .reverse()[0];
-              const acceptedNextAction = latestNextAction?.status === "accepted" ? latestNextAction : undefined;
+              const acceptedNextAction =
+                latestNextAction?.status === "accepted" ? latestNextAction : undefined;
               const financialPct =
                 goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
               return (
