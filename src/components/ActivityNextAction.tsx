@@ -20,17 +20,17 @@ export function ActivityNextAction({ goalId, activityId }: { goalId: string; act
 
   if (!goal || !activity || !record) return null;
 
-  const requestSuggestion = async (answer = "", previous = latest?.recommendation ?? "") => {
+  const requestSuggestion = async (answer = "", previous = latest?.recommendation ?? "", completedAction?: GoalNextAction) => {
     setBusy(true);
     try {
-      const sourceIsCompletedAction = latest?.status === "completed";
-      const sourceTitle = sourceIsCompletedAction ? latest.title : activity.title;
-      const sourceResult = sourceIsCompletedAction ? (latest.result ?? "") : record.result;
+      const sourceIsCompletedAction = Boolean(completedAction) || latest?.status === "completed";
+      const sourceTitle = completedAction?.title ?? (sourceIsCompletedAction ? latest!.title : activity.title);
+      const sourceResult = completedAction?.result ?? (sourceIsCompletedAction ? (latest?.result ?? "") : record.result);
       const draft = await recommendAmbitionNextAction({
         data: {
           title: goal.title,
           activityTitle: sourceTitle,
-          activityGuidance: sourceIsCompletedAction ? latest.recommendation : activity.guidance,
+          activityGuidance: completedAction?.recommendation ?? (sourceIsCompletedAction ? latest!.recommendation : activity.guidance),
           result: sourceResult,
           planner: journey?.planner,
           previousSuggestion: previous,
@@ -40,7 +40,7 @@ export function ActivityNextAction({ goalId, activityId }: { goalId: string; act
       const next: GoalNextAction = {
         id: `next-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         sourceActivityId: activityId,
-        sourceActionId: sourceIsCompletedAction ? latest.id : undefined,
+        sourceActionId: sourceIsCompletedAction ? (completedAction?.id ?? latest!.id) : undefined,
         sourceActivityTitle: sourceTitle,
         sourceResult,
         ...draft,
@@ -93,9 +93,10 @@ export function ActivityNextAction({ goalId, activityId }: { goalId: string; act
       toast.error("Record at least 10 characters about what happened.");
       return;
     }
-    updateLatest({ status: "completed", result, completedAt: new Date().toISOString() });
+    const completedAction = { ...latest, status: "completed" as const, result, completedAt: new Date().toISOString() };
+    updateLatest({ status: "completed", result, completedAt: completedAction.completedAt });
     setActionResult("");
-    void requestSuggestion("", latest.recommendation);
+    void requestSuggestion("", latest.recommendation, completedAction);
   };
 
   return (
