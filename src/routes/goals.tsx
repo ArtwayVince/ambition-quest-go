@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
-import { useStore, coach } from "@/lib/store";
+import { useStore, coach, type GoalActivityHistoryRecord } from "@/lib/store";
 import { GOAL_TEMPLATES, naira } from "@/lib/data";
 import { journeyFor, milestoneIsComplete } from "@/lib/journeys";
 
@@ -19,6 +19,7 @@ function Goals() {
   const [custom, setCustom] = useState("");
   const [customTarget, setCustomTarget] = useState("1000000");
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [historyTargets, setHistoryTargets] = useState<Record<string, string>>({});
 
   const add = (id: string, title: string, target: number) => {
     if (s.goals.some((g) => g.id === id)) return;
@@ -35,14 +36,58 @@ function Goals() {
       const goalActivityRecords = { ...p.goalActivityRecords };
       const aiJourneys = { ...(p.aiJourneys ?? {}) };
       const readinessByGoal = { ...(p.readinessByGoal ?? {}) };
+      const goalActivityHistory = { ...(p.goalActivityHistory ?? {}) };
       delete goalSteps[id];
       delete goalActivityRecords[id];
       delete aiJourneys[id];
       delete readinessByGoal[id];
-      return { ...p, goals: p.goals.filter((goal) => goal.id !== id), goalSteps, goalActivityRecords, aiJourneys, readinessByGoal };
+      delete goalActivityHistory[id];
+      return { ...p, goals: p.goals.filter((goal) => goal.id !== id), goalSteps, goalActivityRecords, goalActivityHistory, aiJourneys, readinessByGoal };
     });
     setPendingDelete(null);
     toast.success("Ambition deleted");
+  };
+
+  const reusePreviousResult = (goalId: string, historyRecord: GoalActivityHistoryRecord, activityId: string) => {
+    if (!activityId) {
+      toast.error("Choose an activity that this earlier result genuinely satisfies.");
+      return;
+    }
+    const goal = s.goals.find((item) => item.id === goalId);
+    const journey = goal ? (s.aiJourneys?.[goalId] ?? journeyFor(goalId, goal.title)) : null;
+    const target = journey?.activities.find((activity) => activity.id === activityId);
+    if (!target) {
+      toast.error("That activity is no longer in this journey. Please choose a current activity.");
+      return;
+    }
+    if (s.goalActivityRecords[goalId]?.[activityId]) {
+      toast.error("That activity already has a recorded result.");
+      return;
+    }
+    set((previous) => {
+      if (previous.goalActivityRecords[goalId]?.[activityId]) return previous;
+      const goalActivityHistory = { ...(previous.goalActivityHistory ?? {}) };
+      goalActivityHistory[goalId] = (goalActivityHistory[goalId] ?? []).map((item) =>
+        item.id === historyRecord.id ? { ...item, reusedInActivityId: activityId } : item,
+      );
+      return {
+        ...previous,
+        goalActivityRecords: {
+          ...previous.goalActivityRecords,
+          [goalId]: {
+            ...(previous.goalActivityRecords[goalId] ?? {}),
+            [activityId]: {
+              result: historyRecord.result,
+              completedAt: historyRecord.completedAt,
+              reusedFromHistoryId: historyRecord.id,
+            },
+          },
+        },
+        goalActivityHistory,
+      };
+    });
+    setHistoryTargets((previous) => ({ ...previous, [historyRecord.id]: "" }));
+    toast.success("Previous result applied to the selected activity. Review the result before relying on it.");
   };
 
   const log = (id: string) => {
@@ -90,6 +135,7 @@ function Goals() {
         const activityRecords = s.goalActivityRecords[g.id] ?? {};
         const completedActivities = journey.activities.filter((activity) => Boolean(activityRecords[activity.id])).length;
         const legacyCount = (s.goalSteps[g.id] ?? []).length;
+        const historyRecords = s.goalActivityHistory?.[g.id] ?? [];
         return (
           <div id={`review-ambition-${g.id}`} className="scroll-mt-4">
           <Card className="mt-4">
@@ -147,12 +193,49 @@ function Goals() {
                       </div>
                       <p className="mt-1 text-sm text-muted-foreground">{activity.guidance}</p>
                       {record && <p className="mt-2 whitespace-pre-wrap text-sm">Result: {record.result}</p>}
+                      {record?.reusedFromHistoryId && <p className="mt-1 text-xs font-semibold text-primary">Reused from a previous activity result after your review.</p>}
                       {!record && <Link to="/dashboard" hash={`activity-${g.id}-${activity.id}`} className="mt-2 inline-flex text-sm font-semibold text-primary underline underline-offset-4">Go to this activity →</Link>}
                     </div>
                   );
                 })}
               </div>
             </div>
+            {historyRecords.length > 0 && (
+              <section className="mt-4 rounded-xl border border-border p-3" aria-label={`Previous activity results for ${g.title}`}>
+                <p className="font-semibold">Previous activity results</p>
+                <p className="mt-1 text-xs text-muted-foreground">These results are from earlier plans. Review each one and apply it only if it genuinely satisfies a current activity. Applying a result is your explicit confirmation; nothing is carried over automatically.</p>
+                <div className="mt-3 space-y-3">
+                  {historyRecords.slice().reverse().map((record) => {
+                    const usedFor = journey.activities.find((activity) => activity.id === record.reusedInActivityId);
+                    const eligibleActivities = journey.activities.filter((activity) => !activityRecords[activity.id]);
+                    return (
+                      <div key={record.id} className="rounded-lg border border-border p-3">
+                        <p className="text-sm font-semibold">{record.activityTitle}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Saved result · {new Date(record.completedAt).toLocaleDateString()}</p>
+                        <p className="mt-2 whitespace-pre-wrap text-sm">{record.result}</p>
+                        {record.reusedInActivityId ? (
+                          <p className="mt-2 text-xs font-semibold text-success">Previously applied to: {usedFor?.title ?? "an activity in an earlier plan"}</p>
+                        ) : (
+                          <div className="mt-3 space-y-2">
+                            <label className="block text-xs font-semibold" htmlFor={`history-target-${record.id}`}>If this result satisfies a current activity, choose it</label>
+                            <select
+                              id={`history-target-${record.id}`}
+                              value={historyTargets[record.id] ?? ""}
+                              onChange={(event) => setHistoryTargets((previous) => ({ ...previous, [record.id]: event.target.value }))}
+                              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                            >
+                              <option value="">Choose a current activity</option>
+                              {eligibleActivities.map((activity) => <option key={activity.id} value={activity.id}>{activity.title}</option>)}
+                            </select>
+                            <Btn variant="ghost" disabled={!historyTargets[record.id]} onClick={() => reusePreviousResult(g.id, record, historyTargets[record.id] ?? "")}>Apply result to activity</Btn>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
             <div className="mt-4">
               <p className="text-sm font-semibold">Savings milestones</p>
               <p className="mt-1 text-xs text-muted-foreground">Savings are tracked separately from learning and preparation. The initial target is illustrative and should be reviewed against real costs.</p>
