@@ -134,6 +134,7 @@ function Goals() {
         const journey = s.aiJourneys?.[g.id] ?? journeyFor(g.id, g.title);
         const activityRecords = s.goalActivityRecords[g.id] ?? {};
         const completedActivities = journey.activities.filter((activity) => Boolean(activityRecords[activity.id])).length;
+        const nextActivity = journey.activities.find((activity) => !activityRecords[activity.id]);
         const legacyCount = (s.goalSteps[g.id] ?? []).length;
         const historyRecords = s.goalActivityHistory?.[g.id] ?? [];
         return (
@@ -159,7 +160,15 @@ function Goals() {
               <p className="mt-2 text-sm">{completedActivities} of {journey.activities.length} guided activities recorded.</p>
               {legacyCount > 0 && <p className="mt-1 text-xs text-muted-foreground">{legacyCount} earlier starter-step record(s) preserved for review; they are not automatically treated as completed guided activities.</p>}
               <p className="mt-2 text-sm font-semibold">Next decision</p>
-              <p className="text-sm text-muted-foreground">Review what has changed since your last action. Identify the next requirement, check any costs or risks, and decide on one practical step you can responsibly take next. Saving is only one possible part of preparation.</p>
+              {nextActivity ? (
+                <>
+                  <p className="text-sm font-semibold">{nextActivity.title}</p>
+                  <p className="text-sm text-muted-foreground">{nextActivity.guidance}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">This is the same recommended next step shown in your guided journey. If your latest result revealed a more urgent obstacle or important unknown, address that responsibly and update your plan before continuing.</p>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">All current guided activities have recorded results. Review what those results actually establish, revisit unresolved requirements and risks, and verify important real-world facts before treating the ambition as ready. Saving is only one possible part of preparation.</p>
+              )}
               <Link to="/dashboard" hash={`meaningful-step-${g.id}`} className="mt-3 inline-flex text-sm font-semibold text-primary underline underline-offset-4">Return to this ambition’s action plan →</Link>
             </div>
             <p className="text-sm text-muted-foreground">{naira(g.saved)} of {naira(g.target)} · {pct.toFixed(pct < 1 ? 2 : 0)}%</p>
