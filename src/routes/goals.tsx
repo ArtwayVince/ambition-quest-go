@@ -142,7 +142,7 @@ function Goals() {
           <Card className="mt-4">
             <div className="flex items-start justify-between gap-3">
               <h2 className="font-bold">{g.title}</h2>
-              <button type="button" onClick={() => setPendingDelete(g.id)} className="shrink-0 rounded-lg border border-destructive/40 px-3 py-2 text-xs font-semibold text-destructive hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive" aria-label={`Delete ambition: ${g.title}`}>Delete ambition</button>
+              <button type="button" onClick={() => setPendingDelete(g.id)} className="shrink-0 rounded-lg border border-primary/40 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Delete ambition: ${g.title}`}>Delete ambition</button>
             </div>
             {pendingDelete === g.id && (
               <div role="alertdialog" aria-label={`Confirm deletion of ${g.title}`} className="mt-3 rounded-xl border border-destructive/40 bg-destructive/5 p-3">
@@ -159,7 +159,7 @@ function Goals() {
               <p className="mt-1 text-sm">You have recorded {naira(g.saved)} toward your initial target of {naira(g.target)} ({pct.toFixed(pct < 1 ? 2 : 0)}%). This is a planning snapshot, not a guarantee that the ambition is within reach yet.</p>
               <p className="mt-2 text-sm">{completedActivities} of {journey.activities.length} guided activities recorded.</p>
               {legacyCount > 0 && <p className="mt-1 text-xs text-muted-foreground">{legacyCount} earlier starter-step record(s) preserved for review; they are not automatically treated as completed guided activities.</p>}
-              <p className="mt-2 text-sm font-semibold">Next decision</p>
+              <p className="mt-2 text-sm font-semibold text-primary">Next decision</p>
               {nextActivity ? (
                 <>
                   <p className="text-sm font-semibold">{nextActivity.title}</p>
