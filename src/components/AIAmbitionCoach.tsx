@@ -28,13 +28,7 @@ export function AIAmbitionCoach() {
   const [briefConfirmed, setBriefConfirmed] = useState(false);
   const [hydratedGoalId, setHydratedGoalId] = useState("");
   const selectedGoal = s.goals.find((goal) => goal.id === selectedGoalId) ?? s.goals[0];
-  const busyMessage = clarificationStatus === "question"
-    ? (turns.length > 0 && turns[turns.length - 1]?.role === "user"
-      ? "Checking your answer…"
-      : "Understanding your ambition…")
-    : clarificationStatus === "ready" && briefConfirmed
-      ? "Building your tailored journey…"
-      : "Understanding your ambition…";
+  const [busyMessage, setBusyMessage] = useState("Understanding your ambition…");
 
   useEffect(() => {
     if (!busy || typeof window === "undefined") return;
@@ -111,6 +105,7 @@ export function AIAmbitionCoach() {
       toast.error("Define an ambition before clarifying it.");
       return;
     }
+    setBusyMessage("Understanding your ambition…");
     setBusy(true);
     setDraft(null);
     try {
@@ -139,6 +134,7 @@ export function AIAmbitionCoach() {
       return;
     }
     const nextTurns: ClarificationTurn[] = [...turns, { role: "user", content: answer }];
+    setBusyMessage("Checking your answer…");
     setBusy(true);
     setDraft(null);
     try {
@@ -176,6 +172,7 @@ export function AIAmbitionCoach() {
       toast.error("Clarify and confirm what you want to achieve before generating a journey.");
       return;
     }
+    setBusyMessage("Building your tailored journey…");
     setBusy(true);
     setDraft(null);
     try {
