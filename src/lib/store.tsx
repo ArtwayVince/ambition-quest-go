@@ -5,6 +5,7 @@ export type Role = "explorer" | "provider" | "admin";
 export type Attr = "Mindset" | "Presence" | "Discipline" | "Network";
 export type Goal = { id: string; title: string; target: number; saved: number; log: { amt: number; at: string }[] };
 export type GoalActivityRecord = { result: string; completedAt: string; reusedFromHistoryId?: string };
+export type GoalNextAction = { id: string; sourceActivityId: string; sourceActionId?: string; sourceActivityTitle: string; sourceResult: string; category: "progress" | "clarify" | "revise" | "help"; title: string; recommendation: string; rationale: string; followUpQuestion?: string; status: "proposed" | "accepted" | "completed"; createdAt: string; acceptedAt?: string; completedAt?: string; result?: string };
 export type GoalActivityHistoryRecord = { id: string; planTitle: string; activityTitle: string; result: string; completedAt: string; archivedAt: string; reusedInActivityId?: string };
 export type Request = { id: string; expId: string; title: string; date: string; note: string; at: string };
 export type ProviderApp = { id: string; business: string; category: string; contact: string; description: string; status: "pending" | "approved" | "rejected"; at: string };
@@ -23,6 +24,8 @@ export type State = {
   goalActivityRecords: Record<string, Record<string, GoalActivityRecord>>;
   /** Completed results from earlier plans, retained for review and explicit reuse. */
   goalActivityHistory: Record<string, GoalActivityHistoryRecord[]>;
+  /** AI next-action proposals and player decisions, stored locally per ambition. */
+  goalNextActions: Record<string, GoalNextAction[]>;
   schemaVersion: number;
   requests: Request[];
   apps: ProviderApp[];
@@ -44,7 +47,7 @@ export type State = {
 const initial: State = {
   user: null, role: "explorer", xp: 0,
   attrs: { Mindset: 0, Presence: 0, Discipline: 0, Network: 0 },
-  wallet: 100000, budgetCompleted: [], goals: [], goalSteps: {}, goalActivityRecords: {}, goalActivityHistory: {}, schemaVersion: 2, requests: [], apps: [],
+  wallet: 100000, budgetCompleted: [], goals: [], goalSteps: {}, goalActivityRecords: {}, goalActivityHistory: {}, goalNextActions: {}, schemaVersion: 2, requests: [], apps: [],
   missions: { m1: false, m2: false, m3: false },
   stage: 0, stageNotes: [], streak: 0, dailyDone: [], toured: [], readiness: 0, readinessByGoal: {}, aiJourneys: {}, badges: [],
 };
@@ -75,7 +78,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<State>;
-        setS({ ...initial, ...parsed, schemaVersion: 2, goalActivityRecords: parsed.goalActivityRecords ?? {}, goalActivityHistory: parsed.goalActivityHistory ?? {}, aiJourneys: parsed.aiJourneys ?? {} });
+        setS({ ...initial, ...parsed, schemaVersion: 2, goalActivityRecords: parsed.goalActivityRecords ?? {}, goalActivityHistory: parsed.goalActivityHistory ?? {}, goalNextActions: parsed.goalNextActions ?? {}, aiJourneys: parsed.aiJourneys ?? {} });
       }
     } catch {}
     setReady(true);
