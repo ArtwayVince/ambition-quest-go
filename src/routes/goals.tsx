@@ -175,6 +175,7 @@ function Goals() {
                   <p className="text-sm font-semibold">{nextActivity.title}</p>
                   <p className="text-sm text-muted-foreground">{nextActivity.guidance}</p>
                   <p className="mt-1 text-xs text-muted-foreground">This is the same recommended next step shown in your guided journey. If your latest result revealed a more urgent obstacle or important unknown, address that responsibly and update your plan before continuing.</p>
+                </>
               ) : (
                 <p className="text-sm text-muted-foreground">All current guided activities have recorded results. Review what those results actually establish, revisit unresolved requirements and risks, and verify important real-world facts before treating the ambition as ready. Saving is only one possible part of preparation.</p>
               )}
