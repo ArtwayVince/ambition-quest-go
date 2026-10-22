@@ -7,6 +7,28 @@ const InputSchema = z.object({
   completedActivityResults: z.array(z.string().trim().max(500)).max(5).default([]),
 });
 
+const NextActionInputSchema = z.object({
+  title: z.string().trim().min(2).max(160),
+  activityTitle: z.string().trim().min(2).max(160),
+  activityGuidance: z.string().trim().max(700).default(""),
+  result: z.string().trim().min(2).max(500),
+  planner: z.object({
+    requirements: z.array(z.string().max(300)).max(6).default([]),
+    resources: z.array(z.string().max(250)).max(6).default([]),
+    uncertainties: z.array(z.string().max(250)).max(6).default([]),
+    risks: z.array(z.string().max(250)).max(6).default([]),
+    firstAction: z.string().max(400).default(""),
+  }).optional(),
+  previousSuggestion: z.string().trim().max(400).default(""),
+  clarification: z.string().trim().max(1000).default(""),
+});
+const NextActionResultSchema = z.object({
+  category: z.enum(["progress", "clarify", "revise", "help"]),
+  title: z.string().trim().min(4).max(120),
+  recommendation: z.string().trim().min(10).max(400),
+  rationale: z.string().trim().min(10).max(300),
+  followUpQuestion: z.string().trim().max(500).optional(),
+});
 const ClarificationInputSchema = z.object({
   title: z.string().trim().min(2).max(160),
   context: z.string().trim().max(1200).default(""),
@@ -51,6 +73,7 @@ const JourneyDraftSchema = z.object({
 });
 
 export type AIJourneyDraft = z.infer<typeof JourneyDraftSchema>;
+export type AINextActionDraft = z.infer<typeof NextActionResultSchema>;
 export type AmbitionClarificationResult = z.infer<typeof ClarificationResultSchema>;
 export type ClarificationTurn = z.infer<typeof ClarificationInputSchema>["turns"][number];
 
