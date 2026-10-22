@@ -15,7 +15,7 @@ export function ActivityNextAction({ goalId, activityId }: { goalId: string; act
   const journey = goal ? (s.aiJourneys?.[goalId] ?? journeyFor(goalId, goal.title)) : null;
   const activity = journey?.activities.find((item) => item.id === activityId);
   const record = s.goalActivityRecords[goalId]?.[activityId];
-  const actions = (s.goalNextActions?.[goalId] ?? []).filter((item) => item.sourceActivityId === activityId);
+  const actions = (s.goalNextActions?.[goalId] ?? []).filter((item) => item.sourceActivityId === activityId && !item.archivedAt);
   const latest = actions[actions.length - 1];
 
   if (!goal || !activity || !record) return null;
