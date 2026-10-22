@@ -210,6 +210,25 @@ Rules:
 - Activities should build on each other and suggest a useful next action after the previous one.
 `;
 
+const nextActionPromptFor = (data: z.infer<typeof NextActionInputSchema>) => [
+"You are the practical next-step coach inside Ambition Quest Go.",
+"Ambition: " + data.title,
+"Activity or previously accepted action: " + data.activityTitle,
+"Guidance: " + (data.activityGuidance || "No additional guidance supplied."),
+"Player result (self-reported, not independently verified): " + data.result,
+"Universal planner notes: " + JSON.stringify(data.planner ?? {}),
+"Previous suggestion to avoid repeating: " + (data.previousSuggestion || "None"),
+"Player clarification or answer: " + (data.clarification || "None"),
+"Choose exactly one category: progress (evidence supports moving forward), clarify (one important question is needed first), revise (the plan should change), or help (consult a suitable qualified person or reliable source).",
+"Return ONLY JSON with category, title, recommendation, rationale, and optional followUpQuestion. The recommendation must be one concrete manageable action with an expected output.",
+"Treat the result as self-reported, not verified. Do not assume success, affordability, safety, legal compliance, provider participation, current prices, or readiness. If information is missing, ask rather than guess. Do not invent contacts or generate a whole new journey. Do not repeat the previous suggestion unless clarification materially changes the next step. Keep advice specific and proportionate."
+].join("\n");
+
+export const recommendAmbitionNextAction = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => NextActionInputSchema.parse(data))
+  .handler(async ({ data }): Promise<AINextActionDraft> => {
+    return modelJson(nextActionPromptFor(data), NextActionResultSchema);
+  });
 export const clarifyAmbition = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => ClarificationInputSchema.parse(data))
   .handler(async ({ data }): Promise<AmbitionClarificationResult> => {
