@@ -39,6 +39,8 @@ export type State = {
   readiness: number;
   /** Best practice score recorded separately for each ambition. */
   readinessByGoal: Record<string, number>;
+  /** Prevent repeat XP for a completed readiness quiz, tracked per ambition. */
+  readinessRewardedByGoal: Record<string, boolean>;
   /** AI-generated activity plans, stored locally per ambition. */
   aiJourneys: Record<string, GoalJourney>;
   badges: string[];
@@ -49,13 +51,17 @@ const initial: State = {
   attrs: { Mindset: 0, Presence: 0, Discipline: 0, Network: 0 },
   wallet: 100000, budgetCompleted: [], goals: [], goalSteps: {}, goalActivityRecords: {}, goalActivityHistory: {}, goalNextActions: {}, schemaVersion: 2, requests: [], apps: [],
   missions: { m1: false, m2: false, m3: false },
-  stage: 0, stageNotes: [], streak: 0, dailyDone: [], toured: [], readiness: 0, readinessByGoal: {}, aiJourneys: {}, badges: [],
+  stage: 0, stageNotes: [], streak: 0, dailyDone: [], toured: [], readiness: 0, readinessByGoal: {}, readinessRewardedByGoal: {}, aiJourneys: {}, badges: [],
 };
 
 export const XP_PER_LEVEL = 100;
 export const STAGE_NOTE_MIN_LENGTH = 20;
 export const shouldAwardScenarioXp = (completed: number[], scenarioIndex: number) =>
   !completed.includes(scenarioIndex);
+export const shouldAwardReadinessXp = (rewardedByGoal: Record<string, boolean>, goalId: string) =>
+  !rewardedByGoal[goalId];
+export const hasCompletedDailyChallenge = (dailyDone: string[], date: string) =>
+  dailyDone.some((entry) => entry.startsWith(`${date}|`));
 export const isMeaningfulReflection = (note: string) =>
   note.trim().length >= STAGE_NOTE_MIN_LENGTH;
 export const levelOf = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1;
@@ -78,7 +84,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<State>;
-        setS({ ...initial, ...parsed, schemaVersion: 2, goalActivityRecords: parsed.goalActivityRecords ?? {}, goalActivityHistory: parsed.goalActivityHistory ?? {}, goalNextActions: parsed.goalNextActions ?? {}, aiJourneys: parsed.aiJourneys ?? {} });
+        const priorReadiness = parsed.readinessByGoal ?? {};
+        setS({
+          ...initial,
+          ...parsed,
+          schemaVersion: 3,
+          goalActivityRecords: parsed.goalActivityRecords ?? {},
+          goalActivityHistory: parsed.goalActivityHistory ?? {},
+          goalNextActions: parsed.goalNextActions ?? {},
+          aiJourneys: parsed.aiJourneys ?? {},
+          readinessRewardedByGoal: parsed.readinessRewardedByGoal ?? Object.fromEntries(
+            Object.keys(priorReadiness).map((goalId) => [goalId, true]),
+          ),
+        });
       }
     } catch {}
     setReady(true);
