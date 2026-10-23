@@ -212,57 +212,57 @@ export function AIAmbitionCoach() {
     // Yield briefly so the shared spinner/status panel can render before local plan updates.
     await new Promise<void>((resolve) => window.setTimeout(resolve, 50));
     try {
-    const appliedAt = new Date().toISOString();
-    const planId = Date.now().toString();
-    const journey: GoalJourney = {
-      planner: draft.planner,
-      activities: draft.activities.map((activity, index) => ({
-        id: `${selectedGoal.id}-ai-${planId}-${index + 1}`,
-        title: activity.title,
-        guidance: activity.guidance,
-        why: activity.why,
-        resultPrompt: activity.resultPrompt,
-        milestoneId: `${selectedGoal.id}-ai-milestone-${planId}-${index + 1}`,
-      })),
-      milestones: draft.activities.map((activity, index) => ({
-        id: `${selectedGoal.id}-ai-milestone-${planId}-${index + 1}`,
-        title: activity.milestoneTitle,
-        description: activity.milestoneDescription,
-        activityId: `${selectedGoal.id}-ai-${planId}-${index + 1}`,
-      })),
-    };
-    set((previous) => {
-      const oldJourney = previous.aiJourneys?.[selectedGoal.id] ?? journeyFor(selectedGoal.id, selectedGoal.title);
-      const oldRecords = previous.goalActivityRecords[selectedGoal.id] ?? {};
-      const oldTitles = new Map(oldJourney.activities.map((activity) => [activity.id, activity.title]));
-      const archived = Object.entries(oldRecords)
-        .filter(([, record]) => typeof record.result === "string" && record.result.trim())
-        .map(([activityId, record], index) => ({
-          id: `${planId}-${index}-${activityId}`,
-          planTitle: "Previous guided plan",
-          activityTitle: oldTitles.get(activityId) ?? "Earlier guided activity",
-          result: record.result,
-          completedAt: record.completedAt,
-          archivedAt: appliedAt,
-        }));
-      const goalActivityHistory = { ...(previous.goalActivityHistory ?? {}) };
-      goalActivityHistory[selectedGoal.id] = [...(goalActivityHistory[selectedGoal.id] ?? []), ...archived];
-      const goalActivityRecords = { ...previous.goalActivityRecords };
-      delete goalActivityRecords[selectedGoal.id];
-      const goalNextActions = { ...(previous.goalNextActions ?? {}) };
-      goalNextActions[selectedGoal.id] = (goalNextActions[selectedGoal.id] ?? []).map((action) =>
-        action.archivedAt ? action : { ...action, archivedAt: appliedAt },
-      );
-      return {
-        ...previous,
-        aiJourneys: { ...(previous.aiJourneys ?? {}), [selectedGoal.id]: journey },
-        goalActivityRecords,
-        goalActivityHistory,
-        goalNextActions,
+      const appliedAt = new Date().toISOString();
+      const planId = Date.now().toString();
+      const journey: GoalJourney = {
+        planner: draft.planner,
+        activities: draft.activities.map((activity, index) => ({
+          id: `${selectedGoal.id}-ai-${planId}-${index + 1}`,
+          title: activity.title,
+          guidance: activity.guidance,
+          why: activity.why,
+          resultPrompt: activity.resultPrompt,
+          milestoneId: `${selectedGoal.id}-ai-milestone-${planId}-${index + 1}`,
+        })),
+        milestones: draft.activities.map((activity, index) => ({
+          id: `${selectedGoal.id}-ai-milestone-${planId}-${index + 1}`,
+          title: activity.milestoneTitle,
+          description: activity.milestoneDescription,
+          activityId: `${selectedGoal.id}-ai-${planId}-${index + 1}`,
+        })),
       };
-    });
-    setDraft(null);
-    toast.success("New journey applied. Previous activity results are preserved for review.");
+      set((previous) => {
+        const oldJourney = previous.aiJourneys?.[selectedGoal.id] ?? journeyFor(selectedGoal.id, selectedGoal.title);
+        const oldRecords = previous.goalActivityRecords[selectedGoal.id] ?? {};
+        const oldTitles = new Map(oldJourney.activities.map((activity) => [activity.id, activity.title]));
+        const archived = Object.entries(oldRecords)
+          .filter(([, record]) => typeof record.result === "string" && record.result.trim())
+          .map(([activityId, record], index) => ({
+            id: `${planId}-${index}-${activityId}`,
+            planTitle: "Previous guided plan",
+            activityTitle: oldTitles.get(activityId) ?? "Earlier guided activity",
+            result: record.result,
+            completedAt: record.completedAt,
+            archivedAt: appliedAt,
+          }));
+        const goalActivityHistory = { ...(previous.goalActivityHistory ?? {}) };
+        goalActivityHistory[selectedGoal.id] = [...(goalActivityHistory[selectedGoal.id] ?? []), ...archived];
+        const goalActivityRecords = { ...previous.goalActivityRecords };
+        delete goalActivityRecords[selectedGoal.id];
+        const goalNextActions = { ...(previous.goalNextActions ?? {}) };
+        goalNextActions[selectedGoal.id] = (goalNextActions[selectedGoal.id] ?? []).map((action) =>
+          action.archivedAt ? action : { ...action, archivedAt: appliedAt },
+        );
+        return {
+          ...previous,
+          aiJourneys: { ...(previous.aiJourneys ?? {}), [selectedGoal.id]: journey },
+          goalActivityRecords,
+          goalActivityHistory,
+          goalNextActions,
+        };
+      });
+      setDraft(null);
+      toast.success("New journey applied. Previous activity results are preserved for review.");
     } finally {
       setBusy(false);
     }
