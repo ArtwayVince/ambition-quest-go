@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Shell, Card, Btn, meta } from "@/components/Shell";
-import { useStore, type Goal } from "@/lib/store";
+import { useStore, shouldAwardReadinessXp, type Goal } from "@/lib/store";
 import { readinessFor } from "@/lib/journeys";
 
 export const Route = createFileRoute("/readiness")({
@@ -15,6 +15,7 @@ function Readiness() {
   const [i, setI] = useState(0);
   const [score, setScore] = useState(0);
   const [pick, setPick] = useState<number | null>(null);
+  const rewardActionInFlight = useRef<string | null>(null);
   const selectedGoal: Goal | undefined =
     s.goals.find((goal) => goal.id === selectedGoalId) ?? s.goals[0];
   const questions = readinessFor(selectedGoal?.id ?? "", selectedGoal?.title ?? "your ambition");
@@ -122,8 +123,22 @@ function Readiness() {
                 <Btn onClick={() => {
                   const next = i + 1;
                   if (next >= questions.length) {
-                    set((p) => ({ ...p, readiness: Math.max(p.readiness, score), readinessByGoal: { ...(p.readinessByGoal ?? {}), [selectedGoal?.id ?? "__general__"]: score } }));
-                    gain(25, { Presence: 10 });
+                    const goalKey = selectedGoal?.id ?? "__general__";
+                    const shouldReward = shouldAwardReadinessXp(s.readinessRewardedByGoal ?? {}, goalKey)
+                      && rewardActionInFlight.current !== goalKey;
+                    if (shouldReward) rewardActionInFlight.current = goalKey;
+                    set((p) => {
+                      const alreadyRewarded = !shouldAwardReadinessXp(p.readinessRewardedByGoal ?? {}, goalKey);
+                      return {
+                        ...p,
+                        readiness: Math.max(p.readiness, score),
+                        readinessByGoal: { ...(p.readinessByGoal ?? {}), [goalKey]: score },
+                        readinessRewardedByGoal: alreadyRewarded
+                          ? (p.readinessRewardedByGoal ?? {})
+                          : { ...(p.readinessRewardedByGoal ?? {}), [goalKey]: true },
+                      };
+                    });
+                    if (shouldReward) gain(25, { Presence: 10 });
                   }
                   setI(next);
                   setPick(null);

@@ -5,6 +5,8 @@ import {
   isMeaningfulReflection,
   STAGE_NOTE_MIN_LENGTH,
   shouldAwardScenarioXp,
+  shouldAwardReadinessXp,
+  hasCompletedDailyChallenge,
 } from "@/lib/store";
 
 describe("JET OFF rules", () => {
@@ -26,5 +28,17 @@ describe("JET OFF rules", () => {
     expect(shouldAwardScenarioXp([], 0)).toBe(true);
     expect(shouldAwardScenarioXp([0], 0)).toBe(false);
     expect(shouldAwardScenarioXp([0], 1)).toBe(true);
+  });
+
+  it("awards readiness XP only once per ambition", () => {
+    expect(shouldAwardReadinessXp({}, "jet")).toBe(true);
+    expect(shouldAwardReadinessXp({ jet: true }, "jet")).toBe(false);
+    expect(shouldAwardReadinessXp({ jet: true }, "house")).toBe(true);
+  });
+
+  it("detects a daily challenge already completed on the same date", () => {
+    expect(hasCompletedDailyChallenge(["2026-10-23|Plan the next step"], "2026-10-23")).toBe(true);
+    expect(hasCompletedDailyChallenge(["2026-10-22|Plan the next step"], "2026-10-23")).toBe(false);
+    expect(hasCompletedDailyChallenge([], "2026-10-23")).toBe(false);
   });
 });
