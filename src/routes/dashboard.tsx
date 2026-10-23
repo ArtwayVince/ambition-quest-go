@@ -77,7 +77,11 @@ function Dashboard() {
 
   const completeDaily = () => {
     const date = today();
-    if (claimed || dailyActionInFlight.current === date || hasCompletedDailyChallenge(s.dailyDone, date)) {
+    if (
+      claimed ||
+      dailyActionInFlight.current === date ||
+      hasCompletedDailyChallenge(s.dailyDone, date)
+    ) {
       return;
     }
     dailyActionInFlight.current = date;
