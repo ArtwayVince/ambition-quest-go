@@ -205,8 +205,13 @@ export function AIAmbitionCoach() {
     }
   };
 
-  const applyJourney = () => {
+  const applyJourney = async () => {
     if (!draft || !selectedGoal || draftGoalId !== selectedGoal.id || !briefConfirmed) return;
+    setBusyMessage("Applying your tailored journey…");
+    setBusy(true);
+    // Yield briefly so the shared spinner/status panel can render before local plan updates.
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 50));
+    try {
     const appliedAt = new Date().toISOString();
     const planId = Date.now().toString();
     const journey: GoalJourney = {
@@ -258,6 +263,9 @@ export function AIAmbitionCoach() {
     });
     setDraft(null);
     toast.success("New journey applied. Previous activity results are preserved for review.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -274,6 +282,7 @@ export function AIAmbitionCoach() {
           <select
             id="ai-coach-goal"
             value={selectedGoal?.id ?? ""}
+            disabled={busy}
             onChange={(event) => {
               setSelectedGoalId(event.target.value);
               setDraft(null);
@@ -286,6 +295,7 @@ export function AIAmbitionCoach() {
           <textarea
             id="ai-coach-context"
             value={context}
+            disabled={busy}
             onChange={(event) => setContext(event.target.value)}
             maxLength={1200}
             rows={3}
@@ -424,7 +434,7 @@ export function AIAmbitionCoach() {
           <p className="text-xs text-muted-foreground">
             Applying replaces the displayed activity plan for this ambition, but does not delete its existing self-reported records. AI-generated content is a suggestion, not verification of facts or outcomes.
           </p>
-          <Btn disabled={busy} onClick={applyJourney}>Apply this journey</Btn>
+          <Btn disabled={busy} onClick={applyJourney}>{busy ? "Applying your journey…" : "Apply this journey"}</Btn>
         </div>
       )}
     </Card>
