@@ -295,12 +295,11 @@ export function AIAmbitionCoach() {
           <p className="mt-1 text-xs text-muted-foreground">{context.length}/1200 characters. Avoid entering private or sensitive information.</p>
 
           {busy && (
-            <div role="status" aria-live="polite" className="fixed bottom-4 left-1/2 z-50 flex w-[min(32rem,calc(100vw-2rem))] -translate-x-1/2 items-start gap-3 rounded-xl border-2 border-primary bg-background p-4 shadow-xl">
-              <span aria-hidden="true" className="mt-0.5 inline-block h-5 w-5 shrink-0 animate-spin rounded-full border-[3px] border-primary/30 border-t-primary" />
+            <div role="status" aria-live="polite" className="mt-3 flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3">
+              <span aria-hidden="true" className="mt-0.5 inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
               <div>
-                <p className="text-sm font-bold text-primary">AI Coach is working</p>
-                <p className="mt-0.5 text-sm font-semibold">{busyMessage}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Please keep this page open. Your result will appear here when the request finishes.</p>
+                <p className="text-sm font-semibold text-primary">{busyMessage}</p>
+                <p className="mt-1 text-xs text-muted-foreground">Please keep this page open while the coach is working. You’ll see the result here when the request finishes.</p>
               </div>
             </div>
           )}
