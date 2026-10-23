@@ -9,6 +9,7 @@ import {
   today,
   isMeaningfulReflection,
   STAGE_NOTE_MIN_LENGTH,
+  hasCompletedDailyChallenge,
   type Attr,
 } from "@/lib/store";
 import { PATH_STAGES, DAILY_CHALLENGES } from "@/lib/data";
@@ -27,6 +28,7 @@ function Dashboard() {
   const { s, set, gain, badge } = useStore();
   const [stageNote, setStageNote] = useState("");
   const stageActionInFlight = useRef(false);
+  const dailyActionInFlight = useRef<string | null>(null);
   const lvl = levelOf(s.xp);
   const into = s.xp % XP_PER_LEVEL;
   const doneToday = s.dailyDone.filter((d) => d.startsWith(today()));
@@ -74,13 +76,20 @@ function Dashboard() {
   };
 
   const completeDaily = () => {
+    const date = today();
+    if (claimed || dailyActionInFlight.current === date || hasCompletedDailyChallenge(s.dailyDone, date)) {
+      return;
+    }
+    dailyActionInFlight.current = date;
     const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
     const streak = s.lastDay === y ? s.streak + 1 : s.lastDay === today() ? s.streak : 1;
     set((p) => ({
       ...p,
-      dailyDone: [...p.dailyDone, `${today()}|${daily}`],
-      streak,
-      lastDay: today(),
+      dailyDone: hasCompletedDailyChallenge(p.dailyDone, date)
+        ? p.dailyDone
+        : [...p.dailyDone, `${date}|${daily}`],
+      streak: hasCompletedDailyChallenge(p.dailyDone, date) ? p.streak : streak,
+      lastDay: hasCompletedDailyChallenge(p.dailyDone, date) ? p.lastDay : date,
     }));
     gain(20, { Discipline: 5 });
     STREAK_BADGES.forEach((n) => streak >= n && badge(`${n}-day streak`));
