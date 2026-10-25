@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import heroAsset from "@/assets/hero.jpg.asset.json";
 const hero = heroAsset.url;
 import { Btn, meta, NavigationMenu } from "@/components/Shell";
+import { useStore } from "@/lib/store";
+import { journeyFor } from "@/lib/journeys";
 
 export const Route = createFileRoute("/")({
   head: () =>
@@ -36,6 +38,40 @@ const SLIDES = [
 
 function Landing() {
   const [i, setI] = useState(0);
+  const { s } = useStore();
+  const activeGoal = s.goals[0];
+  const journey = activeGoal
+    ? (s.aiJourneys?.[activeGoal.id] ?? journeyFor(activeGoal.id, activeGoal.title))
+    : null;
+  const records = activeGoal ? (s.goalActivityRecords[activeGoal.id] ?? {}) : {};
+  const nextActivity = journey?.activities.find((activity) => !records[activity.id]);
+  const latestNextAction = activeGoal
+    ? (s.goalNextActions?.[activeGoal.id] ?? [])
+        .filter((action) => !action.archivedAt)
+        .slice()
+        .reverse()[0]
+    : undefined;
+  const acceptedNextAction =
+    latestNextAction?.status === "accepted" ? latestNextAction : undefined;
+  let meaningfulStepHash: string | undefined;
+  let meaningfulStepDescription =
+    "Define an ambition first, then get a practical next step tailored to your journey.";
+
+  if (activeGoal) {
+    if (acceptedNextAction) {
+      meaningfulStepHash = `activity-${activeGoal.id}-${acceptedNextAction.sourceActivityId}`;
+      meaningfulStepDescription = "Continue the next action you accepted for your ambition.";
+    } else if (nextActivity) {
+      meaningfulStepHash = `activity-${activeGoal.id}-${nextActivity.id}`;
+      meaningfulStepDescription =
+        "Go straight to the next activity in your guided ambition journey.";
+    } else {
+      meaningfulStepHash = `meaningful-step-${activeGoal.id}`;
+      meaningfulStepDescription =
+        "Review your completed activities and decide what needs attention next.";
+    }
+  }
+
   useEffect(() => {
     const t = setInterval(() => setI((x) => (x + 1) % SLIDES.length), 4500);
     return () => clearInterval(t);
@@ -44,7 +80,9 @@ function Landing() {
     <div className="min-h-screen bg-background text-foreground">
       <section className="relative h-[88vh] overflow-hidden">
         <div className="absolute left-4 top-4 z-20">
-          <NavigationMenu className="h-11 w-11 border border-border bg-background/80 text-foreground backdrop-blur hover:bg-secondary" />
+          <NavigationMenu
+            className="h-11 w-11 border border-border bg-background/80 text-foreground backdrop-blur hover:bg-secondary"
+          />
         </div>
         <img
           src={hero}
@@ -53,19 +91,25 @@ function Landing() {
           height={832}
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent"
+        />
         <div className="relative mx-auto flex h-full max-w-3xl flex-col justify-end px-5 pb-12">
           <p className="font-display text-2xl font-extrabold">
             JET<span className="text-primary">OFF</span>
           </p>
-          <p className="mt-2 inline-flex w-fit rounded-full border border-primary/40 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
+          <p
+            className="mt-2 inline-flex w-fit rounded-full border border-primary/40 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary"
+          >
             Your dream. Your journey. Your world.
           </p>
           {(() => {
             const sl = SLIDES[i]!;
             return (
               <div key={i} className="mt-6 animate-in fade-in slide-in-from-right-6 duration-500">
-                <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">
+                <span
+                  className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground"
+                >
                   {sl.badge}
                 </span>
                 <p className="mt-3 text-xs uppercase tracking-widest text-primary">{sl.tag}</p>
@@ -82,7 +126,9 @@ function Landing() {
                 key={k}
                 aria-label={`Slide ${k + 1}`}
                 onClick={() => setI(k)}
-                className={`h-1.5 rounded-full transition-all ${k === i ? "w-8 bg-primary" : "w-3 bg-muted"}`}
+                className={`h-1.5 rounded-full transition-all ${
+                  k === i ? "w-8 bg-primary" : "w-3 bg-muted"
+                }`}
               />
             ))}
           </div>
@@ -107,30 +153,34 @@ function Landing() {
       <section className="mx-auto grid max-w-3xl gap-4 px-5 pb-10 sm:grid-cols-3">
         {(
           [
-            [
-              "Define your ambition",
-              "Describe what you want and where you are starting from.",
-              "/goals",
-            ],
-            [
-              "Take a meaningful step",
-              "Learn, practise and build confidence through missions.",
-              "/play",
-            ],
-            [
-              "Explore possibilities",
-              "Discover experiences that may help turn plans into reality.",
-              "/explore",
-            ],
+            {
+              title: "Define your ambition",
+              description: "Describe what you want and where you are starting from.",
+              to: "/goals",
+              hash: undefined,
+            },
+            {
+              title: "Take a meaningful step",
+              description: meaningfulStepDescription,
+              to: activeGoal ? "/dashboard" : "/goals",
+              hash: meaningfulStepHash,
+            },
+            {
+              title: "Explore possibilities",
+              description: "Discover experiences that may help turn plans into reality.",
+              to: "/explore",
+              hash: undefined,
+            },
           ] as const
-        ).map(([t, d, to]) => (
+        ).map(({ title, description, to, hash }) => (
           <Link
-            key={t}
+            key={title}
             to={to}
+            hash={hash}
             className="rounded-2xl border border-border bg-card p-5 transition hover:border-primary"
           >
-            <h2 className="text-xl font-bold">{t}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{d}</p>
+            <h2 className="text-xl font-bold">{title}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
           </Link>
         ))}
       </section>
