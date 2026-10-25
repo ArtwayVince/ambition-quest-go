@@ -28,10 +28,8 @@ jobs:
       - name: Install dependencies from lockfile
         run: bun install --frozen-lockfile
 
-      - name: Diagnose formatting
-        run: |
-          bunx prettier --write src/routes/index.tsx
-          git diff -- src/routes/index.tsx
+      - name: Check formatting of Phase 1 files
+        run: bunx prettier --check src/routes/index.tsx src/routes/dashboard.tsx src/routes/auth.tsx src/components/Shell.tsx
 
       - name: Build application
         run: bun run build
