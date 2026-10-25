@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Shell, Card, Btn, meta } from "@/components/Shell";
@@ -26,6 +26,7 @@ const STREAK_BADGES = [3, 7, 30];
 
 function Dashboard() {
   const { s, set, gain, badge } = useStore();
+  const location = useLocation();
   const [stageNote, setStageNote] = useState("");
   const stageActionInFlight = useRef(false);
   const dailyActionInFlight = useRef<string | null>(null);
@@ -41,6 +42,29 @@ function Dashboard() {
   useEffect(() => {
     stageActionInFlight.current = false;
   }, [s.stage]);
+
+  // Deep links from the welcome page can arrive before the guided journey has
+  // finished rendering. Retry the anchor scroll after the dashboard paints.
+  useEffect(() => {
+    const hash = location.hash.replace(/^#/, "");
+    if (!hash) return;
+
+    let retryTimer: number | undefined;
+    const scrollToTarget = () => {
+      const target = document.getElementById(decodeURIComponent(hash));
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (retryTimer !== undefined) window.clearTimeout(retryTimer);
+      }
+    };
+
+    const frame = window.requestAnimationFrame(scrollToTarget);
+    retryTimer = window.setTimeout(scrollToTarget, 250);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      if (retryTimer !== undefined) window.clearTimeout(retryTimer);
+    };
+  }, [location.hash, s.aiJourneys, s.goalActivityRecords, s.goalNextActions]);
 
   const completeStage = () => {
     if (stageActionInFlight.current) return;
