@@ -143,31 +143,32 @@ function Landing() {
       <section className="mx-auto grid max-w-3xl gap-4 px-5 pb-10 sm:grid-cols-3">
         {(
           [
-            [
-              "Define your ambition",
-              "Describe what you want and where you are starting from.",
-              "/goals",
-            ],
-            [
-              "Take a meaningful step",
-              meaningfulStepDescription,
-              activeGoal ? "/dashboard" : "/goals",
-            ],
-            [
-              "Explore possibilities",
-              "Discover experiences that may help turn plans into reality.",
-              "/explore",
-            ],
+            {
+              title: "Define your ambition",
+              description: "Describe what you want and where you are starting from.",
+              to: "/goals",
+            },
+            {
+              title: "Take a meaningful step",
+              description: meaningfulStepDescription,
+              to: activeGoal ? "/dashboard" : "/goals",
+              hash: meaningfulStepHash,
+            },
+            {
+              title: "Explore possibilities",
+              description: "Discover experiences that may help turn plans into reality.",
+              to: "/explore",
+            },
           ] as const
-        ).map(([t, d, to]) => (
+        ).map(({ title, description, to, hash }) => (
           <Link
-            key={t}
+            key={title}
             to={to}
-            hash={t === "Take a meaningful step" ? meaningfulStepHash : undefined}
+            hash={hash}
             className="rounded-2xl border border-border bg-card p-5 transition hover:border-primary"
           >
-            <h2 className="text-xl font-bold">{t}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{d}</p>
+            <h2 className="text-xl font-bold">{title}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
           </Link>
         ))}
       </section>
