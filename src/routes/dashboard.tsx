@@ -28,6 +28,7 @@ function Dashboard() {
   const { s, set, gain, badge } = useStore();
   const location = useLocation();
   const [stageNote, setStageNote] = useState("");
+  const [journeyGoalId, setJourneyGoalId] = useState("");
   const stageActionInFlight = useRef(false);
   const dailyActionInFlight = useRef<string | null>(null);
   const lvl = levelOf(s.xp);
@@ -35,13 +36,17 @@ function Dashboard() {
   const doneToday = s.dailyDone.filter((d) => d.startsWith(today()));
   const daily = DAILY_CHALLENGES[new Date().getDate() % DAILY_CHALLENGES.length];
   const claimed = doneToday.length > 0;
+  const journeyGoal = s.goals.find((goal) => goal.id === journeyGoalId) ?? s.goals[0];
+  const journeyProgress = journeyGoal
+    ? s.journeyProgressByGoal?.[journeyGoal.id] ?? { stage: 0, notes: [] }
+    : { stage: 0, notes: [] };
   const journeyStages = PATH_STAGES.map((stage, index) =>
-    index === PATH_STAGES.length - 1 && s.goals[0]?.id !== "jet" ? "Achieve" : stage,
+    index === PATH_STAGES.length - 1 && journeyGoal?.id !== "jet" ? "Achieve" : stage,
   );
 
   useEffect(() => {
     stageActionInFlight.current = false;
-  }, [s.stage]);
+  }, [journeyGoal?.id, journeyProgress.stage]);
 
   // Deep links from the welcome page can arrive before the guided journey has
   // finished rendering. Retry the anchor scroll after the dashboard paints.
@@ -78,22 +83,33 @@ function Dashboard() {
       );
       return;
     }
-    if (s.stage >= PATH_STAGES.length - 1) return;
-    if (s.stageNotes.some((entry) => entry.stage === s.stage)) {
+    if (!journeyGoal) {
+      toast.error("Choose an ambition before recording journey progress");
+      return;
+    }
+    if (journeyProgress.stage >= PATH_STAGES.length - 1) return;
+    if (journeyProgress.notes.some((entry) => entry.stage === journeyProgress.stage)) {
       toast.error("This stage has already been recorded");
       return;
     }
 
     stageActionInFlight.current = true;
-    const completedStage = s.stage;
-    set((p) => ({
-      ...p,
-      stage: p.stage + 1,
-      stageNotes: [
-        ...p.stageNotes,
-        { stage: completedStage, note: stageNote.trim(), at: new Date().toISOString() },
-      ],
-    }));
+    const goalId = journeyGoal.id;
+    const completedStage = journeyProgress.stage;
+    const reflection = { stage: completedStage, note: stageNote.trim(), at: new Date().toISOString() };
+    set((p) => {
+      const current = p.journeyProgressByGoal?.[goalId] ?? { stage: 0, notes: [] };
+      if (current.stage !== completedStage || current.notes.some((entry) => entry.stage === completedStage)) {
+        return p;
+      }
+      return {
+        ...p,
+        journeyProgressByGoal: {
+          ...(p.journeyProgressByGoal ?? {}),
+          [goalId]: { stage: current.stage + 1, notes: [...current.notes, reflection] },
+        },
+      };
+    });
     gain(15, { Mindset: 5 });
     setStageNote("");
     toast.success("Reflection recorded. +15 XP");
@@ -381,23 +397,49 @@ function Dashboard() {
       <Card className="mt-4">
         <h2 className="font-bold">Your journey path</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Move forward by recording what you actually did or learned at each stage.
+          Each ambition has its own stages and reflections. Progress here applies only to the selected ambition.
         </p>
+        {s.goals.length > 0 && (
+          <div className="mt-3">
+            <label htmlFor="journey-ambition" className="block text-sm font-semibold">
+              Ambition to track
+            </label>
+            <select
+              id="journey-ambition"
+              value={journeyGoal?.id ?? ""}
+              onChange={(event) => {
+                setJourneyGoalId(event.target.value);
+                setStageNote("");
+                stageActionInFlight.current = false;
+              }}
+              className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-3 text-sm"
+            >
+              {s.goals.map((goal) => (
+                <option key={goal.id} value={goal.id}>{goal.title}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        {!journeyGoal ? (
+          <p className="mt-3 text-sm text-muted-foreground">Define an ambition to start its journey path.</p>
+        ) : (
+          <>
+        <p className="mt-3 text-sm font-semibold">{journeyGoal.title} · Stage {Math.min(journeyProgress.stage + 1, PATH_STAGES.length)} of {PATH_STAGES.length}</p>
         <ol className="mt-3 grid grid-cols-5 gap-2 text-center text-[10px]">
           {journeyStages.map((stage, k) => (
             <li
               key={stage}
-              className={`rounded-lg p-2 ${k <= s.stage ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+              className={`rounded-lg p-2 ${k <= journeyProgress.stage ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
             >
               <div className="font-bold">{k + 1}</div>
               {stage}
             </li>
           ))}
         </ol>
-        {s.stage < PATH_STAGES.length - 1 ? (
+        {journeyProgress.stage < PATH_STAGES.length - 1 ? (
           <div className="mt-3 space-y-2">
             <label htmlFor="stage-reflection" className="block text-sm font-semibold">
-              Reflection on “{journeyStages[s.stage]}”
+              Reflection on “{journeyStages[journeyProgress.stage]}”
             </label>
             <textarea
               id="stage-reflection"
@@ -412,17 +454,31 @@ function Dashboard() {
               Self-reported prototype checkpoint—not independent proof of a visit or outcome.
             </p>
             <Btn
-              disabled={!s.goals.length || !isMeaningfulReflection(stageNote)}
+              disabled={!journeyGoal || !isMeaningfulReflection(stageNote)}
               onClick={completeStage}
             >
               Record reflection &amp; continue (+15 XP)
             </Btn>
           </div>
         ) : (
-          <p className="mt-3 text-sm text-muted-foreground">
-            You have reached the final stage shown for this journey. Your real-world outcome still
-            depends on your goal, circumstances and any provider requirements.
-          </p>
+          <div className="mt-3 space-y-2">
+            <p className="text-sm text-muted-foreground">
+              You have reached the final stage shown for this ambition. Your real-world outcome still
+              depends on your circumstances and any provider requirements.
+            </p>
+            {journeyProgress.notes.length > 0 && (
+              <div className="rounded-lg bg-muted p-3">
+                <p className="text-sm font-semibold">Recorded reflections</p>
+                {journeyProgress.notes.map((entry) => (
+                  <p key={entry.stage} className="mt-2 text-sm">
+                    <span className="font-semibold">{journeyStages[entry.stage]}:</span> {entry.note}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+          </>
         )}
       </Card>
 
