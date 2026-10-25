@@ -12,6 +12,7 @@ const NextActionInputSchema = z.object({
   activityTitle: z.string().trim().min(2).max(160),
   activityGuidance: z.string().trim().max(700).default(""),
   result: z.string().trim().min(2).max(500),
+  ambitionBrief: z.string().trim().max(1000).default(""),
   planner: z.object({
     requirements: z.array(z.string().max(300)).max(6).default([]),
     resources: z.array(z.string().max(250)).max(6).default([]),
@@ -213,6 +214,7 @@ Rules:
 const nextActionPromptFor = (data: z.infer<typeof NextActionInputSchema>) => [
 "You are the practical next-step coach inside Ambition Quest Go.",
 "Ambition: " + data.title,
+"Confirmed ambition brief (the player-approved meaning; use this as the primary intent): " + (data.ambitionBrief || "No saved confirmed brief available; do not infer a meaning beyond the title, activity, and recorded result."),
 "Activity or previously accepted action: " + data.activityTitle,
 "Guidance: " + (data.activityGuidance || "No additional guidance supplied."),
 "Player result (self-reported, not independently verified): " + data.result,
@@ -221,7 +223,7 @@ const nextActionPromptFor = (data: z.infer<typeof NextActionInputSchema>) => [
 "Player clarification or answer: " + (data.clarification || "None"),
 "Choose exactly one category: progress (evidence supports moving forward), clarify (one important question is needed first), revise (the plan should change), or help (consult a suitable qualified person or reliable source).",
 "Return ONLY JSON with category, title, recommendation, rationale, and optional followUpQuestion. The recommendation must be one concrete manageable action with an expected output.",
-"Treat the result as self-reported, not verified. Do not assume success, affordability, safety, legal compliance, provider participation, current prices, or readiness. If information is missing, ask rather than guess. Do not invent contacts or generate a whole new journey. Do not repeat the previous suggestion unless clarification materially changes the next step. Keep advice specific and proportionate."
+"Keep every recommendation aligned with the confirmed ambition brief when one is available. Do not force an unfamiliar ambition into a predefined category or replace the user’s stated intent with a generic goal template. Treat the result as self-reported, not verified. Do not assume success, affordability, safety, legal compliance, provider participation, current prices, or readiness. If information is missing, ask rather than guess. Do not invent contacts or generate a whole new journey. Do not repeat the previous suggestion unless clarification materially changes the next step. Keep advice specific and proportionate."
 ].join("\n");
 
 export const recommendAmbitionNextAction = createServerFn({ method: "POST" })
