@@ -51,8 +51,7 @@ function Landing() {
         .slice()
         .reverse()[0]
     : undefined;
-  const acceptedNextAction =
-    latestNextAction?.status === "accepted" ? latestNextAction : undefined;
+  const acceptedNextAction = latestNextAction?.status === "accepted" ? latestNextAction : undefined;
   let meaningfulStepHash: string | undefined;
   let meaningfulStepDescription =
     "Define an ambition first, then get a practical next step tailored to your journey.";
@@ -80,9 +79,7 @@ function Landing() {
     <div className="min-h-screen bg-background text-foreground">
       <section className="relative h-[88vh] overflow-hidden">
         <div className="absolute left-4 top-4 z-20">
-          <NavigationMenu
-            className="h-11 w-11 border border-border bg-background/80 text-foreground backdrop-blur hover:bg-secondary"
-          />
+          <NavigationMenu className="h-11 w-11 border border-border bg-background/80 text-foreground backdrop-blur hover:bg-secondary" />
         </div>
         <img
           src={hero}
@@ -91,28 +88,19 @@ function Landing() {
           height={832}
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent"
-        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
         <div className="relative mx-auto flex h-full max-w-3xl flex-col justify-end px-5 pb-12">
           <p className="font-display text-2xl font-extrabold">
             JET<span className="text-primary">OFF</span>
           </p>
-          <p
-            className="mt-2 inline-flex w-fit rounded-full border border-primary/40 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary"
-          >
+          <p className="mt-2 inline-flex w-fit rounded-full border border-primary/40 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
             Your dream. Your journey. Your world.
           </p>
           {(() => {
             const sl = SLIDES[i]!;
             return (
-              <div
-                key={i}
-                className="mt-6 animate-in fade-in slide-in-from-right-6 duration-500"
-              >
-                <span
-                  className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground"
-                >
+              <div key={i} className="mt-6 animate-in fade-in slide-in-from-right-6 duration-500">
+                <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">
                   {sl.badge}
                 </span>
                 <p className="mt-3 text-xs uppercase tracking-widest text-primary">{sl.tag}</p>
