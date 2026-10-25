@@ -35,7 +35,78 @@ export const GOAL_TEMPLATES: GoalTemplate[] = [
   { id: "skill", title: "Acquire a practical skill", target: 150_000, milestones: ["Pick a skill", "Attend a class", "Practise 10 times"], actions: ["Browse Learn & Discover"] },
 ];
 
-export const PATH_STAGES = ["Dream", "Discover", "Learn", "Plan", "Save", "Prepare", "Practise", "Visit", "Reflect", "Jet Off"];
+export const PATH_STAGES = ["Dream", "Discover", "Learn", "Plan", "Save", "Prepare", "Practise", "Visit", "Reflect", "Achieve"] as const;
+
+export type JourneyStageSet = { stages: readonly string[]; prompts: readonly string[] };
+
+const DEFAULT_JOURNEY_STAGES = ["Dream", "Discover", "Learn", "Plan", "Save", "Prepare", "Practise", "Take action", "Reflect", "Achieve"] as const;
+const DEFAULT_JOURNEY_PROMPTS = [
+  "What do you hope to achieve, and why does it matter to you?",
+  "What did you discover about this ambition?",
+  "What useful knowledge did you gain?",
+  "What part of your plan became clearer?",
+  "What did you learn about the resources or costs involved?",
+  "What did you do to prepare?",
+  "What did you practise or try?",
+  "What concrete step did you take?",
+  "What did you learn from your progress so far?",
+  "What milestone have you reached, or what remains before the outcome is achieved?",
+] as const;
+
+export const JOURNEY_STAGES_BY_GOAL: Record<string, JourneyStageSet> = {
+  jet: { stages: ["Dream", "Explore", "Learn", "Plan", "Save", "Prepare", "Practise", "Book", "Get ready", "Jet off"], prompts: [
+    "What makes this journey meaningful to you?", "What did you learn about private-jet travel options?",
+    "What did you learn about chartering, routes, or requirements?", "What became clearer in your travel plan?",
+    "What did you learn about the likely cost and your savings plan?", "What arrangements or documents did you identify?",
+    "How did you build confidence for the experience?", "What did you learn about booking and provider verification?",
+    "What remains to be checked before departure?", "Have you taken the journey or reached another meaningful milestone? What remains?",
+  ] },
+  house: { stages: ["Envision", "Explore locations", "Learn ownership", "Plan purchase", "Build deposit", "Check affordability", "Assess properties", "Verify documents", "Review decision", "Secure your home"], prompts: [
+    "What does owning a home mean to you?", "What did you learn about suitable locations?",
+    "What did you learn about ownership, financing, or property types?", "What part of your purchase plan improved?",
+    "What did you learn about building your deposit?", "What did you learn about affordability and ongoing costs?",
+    "What did you learn while comparing properties?", "What documents or legal checks need attention?",
+    "What evidence or advice is informing your decision?", "Have you secured a home or reached a milestone? What remains?",
+  ] },
+  school: { stages: ["Choose your goal", "Explore schools", "Check requirements", "Plan your studies", "Budget and fund", "Prepare documents", "Build readiness", "Apply", "Confirm admission", "Begin studies"], prompts: [
+    "What do you hope this education will help you achieve?", "What did you learn about possible schools or programmes?",
+    "What entry requirements did you discover?", "What became clearer about your study plan and timeline?",
+    "What did you learn about fees, funding, or support?", "Which documents did you prepare or identify?",
+    "How are you preparing academically or personally?", "What did you learn from preparing or submitting an application?",
+    "What is the status of your admission and what needs follow-up?", "Have you begun your studies or reached another milestone? What remains?",
+  ] },
+  agri: { stages: ["Define the vision", "Explore farming", "Learn the basics", "Plan the project", "Budget and fund", "Prepare resources", "Test methods", "Establish the farm", "Review results", "Grow the project"], prompts: [
+    "What do you want your agricultural project to achieve?", "What did you learn about crops, livestock, markets, or location?",
+    "What farming knowledge did you gain?", "What part of your farm plan became clearer?",
+    "What did you learn about startup costs and funding?", "What land, tools, inputs, or support will you need?",
+    "What did you test or learn before committing more resources?", "What concrete step did you take toward establishing the project?",
+    "What do your early results teach you?", "What milestone have you reached, and what is needed for sustainable growth?",
+  ] },
+  biz: { stages: ["Define the idea", "Research the market", "Learn the business", "Build the plan", "Arrange funding", "Prepare to launch", "Test the offer", "Launch the business", "Review performance", "Build for growth"], prompts: [
+    "What problem or opportunity do you want your business to address?", "What did you discover about customers and competitors?",
+    "What did you learn about running this kind of business?", "What part of your business plan improved?",
+    "What did you learn about startup costs and funding options?", "What did you prepare before launch?",
+    "What feedback did you get from testing your product or service?", "What did you learn from launching or making your first sale?",
+    "What do your early results tell you?", "What milestone have you reached, and what is your next growth priority?",
+  ] },
+  skill: { stages: ["Choose a skill", "Explore options", "Learn foundations", "Plan learning", "Arrange resources", "Prepare to practise", "Practise regularly", "Build a project", "Assess progress", "Demonstrate skill"], prompts: [
+    "Why did you choose this skill and what do you want to do with it?", "What did you discover about learning options?",
+    "What foundational knowledge did you gain?", "What did you decide about your learning plan?",
+    "What resources or support did you identify?", "How did you prepare a place, time, or routine to practise?",
+    "What did practice teach you, including mistakes?", "What did you create or complete using the skill?",
+    "What strengths and gaps did you notice when assessing your progress?", "How have you demonstrated competence, and what would you like to improve next?",
+  ] },
+};
+
+export function journeyStagesForGoal(goalId: string, goalTitle: string): JourneyStageSet {
+  const known = JOURNEY_STAGES_BY_GOAL[goalId];
+  if (known) return known;
+  const title = goalTitle.trim() || "your ambition";
+  return {
+    stages: DEFAULT_JOURNEY_STAGES,
+    prompts: DEFAULT_JOURNEY_PROMPTS.map((prompt) => prompt.replace("this ambition", title).replace("your ambition", title)),
+  };
+}
 
 export const TOUR_STOPS = [
   { id: "gate", name: "Entrance Gate", x: 12, y: 80, info: "Approach slowly. Security may ask for your name, purpose of visit, and booking reference.", protocol: "Wait to be waved through. Do not photograph security posts." },
