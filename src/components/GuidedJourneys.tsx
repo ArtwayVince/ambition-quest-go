@@ -125,9 +125,14 @@ export function GuidedJourneys() {
                 <p className="mt-2 text-sm text-muted-foreground">Why now: {completedCount === 0 ? "This is the first activity in your current journey and gives you a concrete place to begin." : "This is the first activity in your current journey without a recorded result. Review what you have learned so far and adapt if your findings reveal a more urgent issue."}</p>
                 <div className="mt-3">
                   <Btn onClick={() => {
-                    setOpenedActivity({ goalId: goal.id, activityId: nextActivity.id });
-                    setOpenedActivityResult(activityDrafts[`${goal.id}:${nextActivity.id}`] ?? "");
-                  }}> {openedActivityForGoal ? "Close recommended activity ↑" : "Open recommended activity →"}</Btn>
+                    if (openedActivityForGoal) {
+                      setOpenedActivity(null);
+                      setOpenedActivityResult("");
+                    } else {
+                      setOpenedActivity({ goalId: goal.id, activityId: nextActivity.id });
+                      setOpenedActivityResult(activityDrafts[`${goal.id}:${nextActivity.id}`] ?? "");
+                    }
+                  }}>{openedActivityForGoal ? "Close recommended activity ↑" : "Open recommended activity →"}</Btn>
                 </div>
                 {openedActivityForGoal && (
                   <div className="mt-3 space-y-3 rounded-xl border border-primary/30 bg-background p-3">
