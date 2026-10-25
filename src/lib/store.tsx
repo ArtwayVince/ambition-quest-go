@@ -4,6 +4,7 @@ import type { GoalJourney } from "@/lib/journeys";
 export type Role = "explorer" | "provider" | "admin";
 export type Attr = "Mindset" | "Presence" | "Discipline" | "Network";
 export type Goal = { id: string; title: string; target: number; saved: number; log: { amt: number; at: string }[] };
+export type JourneyProgress = { stage: number; notes: { stage: number; note: string; at: string }[] };
 export type GoalActivityRecord = { result: string; completedAt: string; reusedFromHistoryId?: string };
 export type GoalNextAction = { id: string; sourceActivityId: string; sourceActionId?: string; sourceActivityTitle: string; sourceResult: string; category: "progress" | "clarify" | "revise" | "help"; title: string; recommendation: string; rationale: string; followUpQuestion?: string; status: "proposed" | "accepted" | "completed"; createdAt: string; acceptedAt?: string; completedAt?: string; result?: string; archivedAt?: string };
 export type GoalActivityHistoryRecord = { id: string; planTitle: string; activityTitle: string; result: string; completedAt: string; archivedAt: string; reusedInActivityId?: string };
@@ -30,6 +31,9 @@ export type State = {
   requests: Request[];
   apps: ProviderApp[];
   missions: { m1: boolean; m2: boolean; m3: boolean; m3Option?: "A" | "B"; aspiration?: string; reflection?: string; photo?: string };
+  /** Journey stages and reflections tracked independently for each ambition. */
+  journeyProgressByGoal: Record<string, JourneyProgress>;
+  /** Legacy global journey fields retained for migration compatibility. */
   stage: number;
   stageNotes: { stage: number; note: string; at: string }[];
   streak: number;
@@ -49,9 +53,9 @@ export type State = {
 const initial: State = {
   user: null, role: "explorer", xp: 0,
   attrs: { Mindset: 0, Presence: 0, Discipline: 0, Network: 0 },
-  wallet: 100000, budgetCompleted: [], goals: [], goalSteps: {}, goalActivityRecords: {}, goalActivityHistory: {}, goalNextActions: {}, schemaVersion: 3, requests: [], apps: [],
+  wallet: 100000, budgetCompleted: [], goals: [], goalSteps: {}, goalActivityRecords: {}, goalActivityHistory: {}, goalNextActions: {}, schemaVersion: 4, requests: [], apps: [],
   missions: { m1: false, m2: false, m3: false },
-  stage: 0, stageNotes: [], streak: 0, dailyDone: [], toured: [], readiness: 0, readinessByGoal: {}, readinessRewardedByGoal: {}, aiJourneys: {}, badges: [],
+  stage: 0, stageNotes: [], journeyProgressByGoal: {}, streak: 0, dailyDone: [], toured: [], readiness: 0, readinessByGoal: {}, readinessRewardedByGoal: {}, aiJourneys: {}, badges: [],
 };
 
 export const XP_PER_LEVEL = 100;
@@ -85,10 +89,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<State>;
         const priorReadiness = parsed.readinessByGoal ?? {};
+        const legacyJourney = { stage: parsed.stage ?? 0, notes: parsed.stageNotes ?? [] };
+        const journeyProgressByGoal = parsed.journeyProgressByGoal ?? (
+          parsed.goals?.length && (legacyJourney.stage > 0 || legacyJourney.notes.length > 0)
+            ? { [parsed.goals[0].id]: legacyJourney }
+            : {}
+        );
         setS({
           ...initial,
           ...parsed,
-          schemaVersion: 3,
+          schemaVersion: 4,
+          journeyProgressByGoal,
           goalActivityRecords: parsed.goalActivityRecords ?? {},
           goalActivityHistory: parsed.goalActivityHistory ?? {},
           goalNextActions: parsed.goalNextActions ?? {},
