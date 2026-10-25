@@ -106,7 +106,10 @@ function Landing() {
           {(() => {
             const sl = SLIDES[i]!;
             return (
-              <div key={i} className="mt-6 animate-in fade-in slide-in-from-right-6 duration-500">
+              <div
+                key={i}
+                className="mt-6 animate-in fade-in slide-in-from-right-6 duration-500"
+              >
                 <span
                   className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground"
                 >
