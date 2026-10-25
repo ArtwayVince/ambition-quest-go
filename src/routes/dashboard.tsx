@@ -12,7 +12,7 @@ import {
   hasCompletedDailyChallenge,
   type Attr,
 } from "@/lib/store";
-import { PATH_STAGES, DAILY_CHALLENGES } from "@/lib/data";
+import { journeyStagesForGoal, DAILY_CHALLENGES } from "@/lib/data";
 import { GuidedJourneys } from "@/components/GuidedJourneys";
 import { AIAmbitionCoach } from "@/components/AIAmbitionCoach";
 import { journeyFor } from "@/lib/journeys";
@@ -40,9 +40,11 @@ function Dashboard() {
   const journeyProgress = journeyGoal
     ? s.journeyProgressByGoal?.[journeyGoal.id] ?? { stage: 0, notes: [] }
     : { stage: 0, notes: [] };
-  const journeyStages = PATH_STAGES.map((stage, index) =>
-    index === PATH_STAGES.length - 1 && journeyGoal?.id !== "jet" ? "Achieve" : stage,
-  );
+  const journeyDefinition = journeyGoal
+    ? journeyStagesForGoal(journeyGoal.id, journeyGoal.title)
+    : { stages: [], prompts: [] };
+  const journeyStages = journeyDefinition.stages;
+  const journeyPrompts = journeyDefinition.prompts;
 
   useEffect(() => {
     stageActionInFlight.current = false;
@@ -87,7 +89,7 @@ function Dashboard() {
       toast.error("Choose an ambition before recording journey progress");
       return;
     }
-    if (journeyProgress.stage >= PATH_STAGES.length - 1) return;
+    if (journeyProgress.stage >= journeyStages.length - 1) return;
     if (journeyProgress.notes.some((entry) => entry.stage === journeyProgress.stage)) {
       toast.error("This stage has already been recorded");
       return;
@@ -435,8 +437,8 @@ function Dashboard() {
         ) : (
           <>
         <p className="mt-3 text-sm font-semibold">
-          {journeyGoal.title} · Stage {Math.min(journeyProgress.stage + 1, PATH_STAGES.length)} of{" "}
-          {PATH_STAGES.length}
+          {journeyGoal.title} · Stage {Math.min(journeyProgress.stage + 1, journeyStages.length)} of{" "}
+          {journeyStages.length}
         </p>
         <ol className="mt-3 grid grid-cols-5 gap-2 text-center text-[10px]">
           {journeyStages.map((stage, k) => (
@@ -449,7 +451,7 @@ function Dashboard() {
             </li>
           ))}
         </ol>
-        {journeyProgress.stage < PATH_STAGES.length - 1 ? (
+        {journeyProgress.stage < journeyStages.length - 1 ? (
           <div className="mt-3 space-y-2">
             <label htmlFor="stage-reflection" className="block text-sm font-semibold">
               Reflection on “{journeyStages[journeyProgress.stage]}”
@@ -460,7 +462,7 @@ function Dashboard() {
               onChange={(event) => setStageNote(event.target.value)}
               maxLength={500}
               rows={3}
-              placeholder="Describe the practical step you took or what you learned (at least 20 characters)."
+              placeholder={journeyPrompts[journeyProgress.stage] ?? "Describe what you did or learned at this stage (at least 20 characters)." }
               className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
             />
             <p className="text-xs text-muted-foreground">
