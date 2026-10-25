@@ -5,24 +5,27 @@ import { Btn } from "@/components/Shell";
 import { useStore } from "@/lib/store";
 import { journeyFor, milestoneIsComplete } from "@/lib/journeys";
 import { ActivityNextAction } from "@/components/ActivityNextAction";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export function GuidedJourneys() {
   const { s, set, gain } = useStore();
   const [activityDrafts, setActivityDrafts] = useState<Record<string, string>>({});
+  const [openedActivity, setOpenedActivity] = useState<{ goalId: string; activityId: string } | null>(null);
+  const [openedActivityResult, setOpenedActivityResult] = useState("");
   const activityActionInFlight = useRef(new Set<string>());
 
-  const completeActivity = (goalId: string, activityId: string) => {
+  const completeActivity = (goalId: string, activityId: string, suppliedResult?: string): boolean => {
     const key = `${goalId}:${activityId}`;
-    const result = (activityDrafts[key] ?? "").trim();
+    const result = (suppliedResult ?? activityDrafts[key] ?? "").trim();
     if (result.length < 10) {
       toast.error("Record at least 10 characters about what you did or learned");
-      return;
+      return false;
     }
     if (s.goalActivityRecords[goalId]?.[activityId]) {
       toast.error("This activity already has a recorded result");
-      return;
+      return false;
     }
-    if (activityActionInFlight.current.has(key)) return;
+    if (activityActionInFlight.current.has(key)) return false;
 
     activityActionInFlight.current.add(key);
     const record = { result, completedAt: new Date().toISOString() };
@@ -42,6 +45,7 @@ export function GuidedJourneys() {
     gain(15, { Mindset: 5 });
     setActivityDrafts((drafts) => ({ ...drafts, [key]: "" }));
     toast.success("Activity result recorded. +15 XP");
+    return true;
   };
 
   return (
@@ -56,6 +60,9 @@ export function GuidedJourneys() {
         const latestNextAction = (s.goalNextActions?.[goal.id] ?? []).filter((action) => !action.archivedAt).slice().reverse()[0];
         const acceptedNextAction = latestNextAction?.status === "accepted" ? latestNextAction : undefined;
         const legacyCount = (s.goalSteps[goal.id] ?? []).length;
+        const openedActivityForGoal = openedActivity?.goalId === goal.id
+          ? journey.activities.find((activity) => activity.id === openedActivity.activityId)
+          : undefined;
 
         return (
           <div
@@ -108,9 +115,7 @@ export function GuidedJourneys() {
                 <p className="mt-1 text-sm">{acceptedNextAction.recommendation}</p>
                 <p className="mt-2 text-xs text-muted-foreground">You chose this action. Return to its source activity below to record what happened before deciding what comes next.</p>
                 <div className="mt-3">
-                  <Link to="/dashboard" hash={`activity-${goal.id}-${acceptedNextAction.sourceActivityId}`}>
-                    <Btn>Continue accepted action →</Btn>
-                  </Link>
+                  <Btn onClick={() => document.getElementById(`activity-${goal.id}-${acceptedNextAction.sourceActivityId}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}>Continue accepted action →</Btn>
                 </div>
               </div>
             ) : nextActivity ? (
@@ -120,9 +125,10 @@ export function GuidedJourneys() {
                 <p className="mt-1 text-sm">{nextActivity.guidance}</p>
                 <p className="mt-2 text-sm text-muted-foreground">Why now: {completedCount === 0 ? "This is the first activity in your current journey and gives you a concrete place to begin." : "This is the first activity in your current journey without a recorded result. Review what you have learned so far and adapt if your findings reveal a more urgent issue."}</p>
                 <div className="mt-3">
-                  <Link to="/dashboard" hash={`activity-${goal.id}-${nextActivity.id}`}>
-                    <Btn>Go to recommended step →</Btn>
-                  </Link>
+                  <Btn onClick={() => {
+                    setOpenedActivity({ goalId: goal.id, activityId: nextActivity.id });
+                    setOpenedActivityResult(activityDrafts[`${goal.id}:${nextActivity.id}`] ?? "");
+                  }}>Open recommended activity →</Btn>
                 </div>
               </div>
             ) : (
@@ -131,6 +137,62 @@ export function GuidedJourneys() {
                 <p className="mt-1 text-sm">Review the recorded results, revisit any unresolved questions or risks, and verify outstanding real-world requirements before treating the ambition as ready. If new information changes the plan, update the journey rather than repeating completed activities.</p>
               </div>
             )}
+            <Dialog
+              open={Boolean(openedActivityForGoal)}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setOpenedActivity(null);
+                  setOpenedActivityResult("");
+                }
+              }}
+            >
+              <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+                {openedActivityForGoal && (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle>{openedActivityForGoal.title}</DialogTitle>
+                      <DialogDescription>Recommended activity for: {goal.title}</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                      <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
+                        <p className="text-sm font-semibold">What to do</p>
+                        <p className="mt-1 text-sm">{openedActivityForGoal.guidance}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">Why it matters</p>
+                        <p className="mt-1 text-sm text-muted-foreground">{openedActivityForGoal.why}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor={`recommended-result-${goal.id}-${openedActivityForGoal.id}`} className="block text-sm font-semibold">Record what you did or learned</label>
+                        <textarea
+                          id={`recommended-result-${goal.id}-${openedActivityForGoal.id}`}
+                          value={openedActivityResult}
+                          onChange={(event) => setOpenedActivityResult(event.target.value)}
+                          maxLength={500}
+                          rows={4}
+                          placeholder={openedActivityForGoal.resultPrompt}
+                          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
+                        />
+                        <p className="text-xs text-muted-foreground">At least 10 characters. You can close this window and return when you have completed the activity.</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Btn onClick={() => {
+                          if (completeActivity(goal.id, openedActivityForGoal.id, openedActivityResult)) {
+                            setOpenedActivity(null);
+                            setOpenedActivityResult("");
+                          }
+                        }}>Record activity result</Btn>
+                        <Btn variant="ghost" onClick={() => {
+                          setActivityDrafts((drafts) => ({ ...drafts, [`${goal.id}:${openedActivityForGoal.id}`]: openedActivityResult }));
+                          setOpenedActivity(null);
+                          setOpenedActivityResult("");
+                        }}>Save draft & close</Btn>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </DialogContent>
+            </Dialog>
             <div className="mt-3 space-y-3">
               {journey.activities.map((activity, index) => {
                 const key = `${goal.id}:${activity.id}`;
