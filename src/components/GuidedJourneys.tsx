@@ -118,10 +118,15 @@ export function GuidedJourneys() {
                 <p className="mt-1 text-sm">{nextActivity.guidance}</p>
                 <p className="mt-2 text-sm text-muted-foreground">Why now: {completedCount === 0 ? "This is the first activity in your current journey and gives you a concrete place to begin." : "This is the first activity in your current journey without a recorded result. Review what you have learned so far and adapt if your findings reveal a more urgent issue."}</p>
                 <div className="mt-3">
-                  <Link to="/dashboard" hash={`activity-${goal.id}-${nextActivity.id}`}>
-                    <Btn>Go to recommended step →</Btn>
+                  <Link
+                    to="/dashboard"
+                    hash={`activity-${goal.id}-${nextActivity.id}`}
+                    className="inline-flex rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    Go to recommended step →
                   </Link>
                 </div>
+              </div>
             ) : (
               <div className="mt-3 rounded-xl border border-success/30 bg-success/5 p-3">
                 <p className="text-sm font-semibold text-success">All guided activities have recorded results.</p>
