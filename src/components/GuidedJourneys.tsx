@@ -9,22 +9,20 @@ import { ActivityNextAction } from "@/components/ActivityNextAction";
 export function GuidedJourneys() {
   const { s, set, gain } = useStore();
   const [activityDrafts, setActivityDrafts] = useState<Record<string, string>>({});
-  const [openedActivity, setOpenedActivity] = useState<{ goalId: string; activityId: string } | null>(null);
-  const [openedActivityResult, setOpenedActivityResult] = useState("");
   const activityActionInFlight = useRef(new Set<string>());
 
-  const completeActivity = (goalId: string, activityId: string, suppliedResult?: string): boolean => {
+  const completeActivity = (goalId: string, activityId: string) => {
     const key = `${goalId}:${activityId}`;
-    const result = (suppliedResult ?? activityDrafts[key] ?? "").trim();
+    const result = (activityDrafts[key] ?? "").trim();
     if (result.length < 10) {
       toast.error("Record at least 10 characters about what you did or learned");
-      return false;
+      return;
     }
     if (s.goalActivityRecords[goalId]?.[activityId]) {
       toast.error("This activity already has a recorded result");
-      return false;
+      return;
     }
-    if (activityActionInFlight.current.has(key)) return false;
+    if (activityActionInFlight.current.has(key)) return;
 
     activityActionInFlight.current.add(key);
     const record = { result, completedAt: new Date().toISOString() };
@@ -44,7 +42,6 @@ export function GuidedJourneys() {
     gain(15, { Mindset: 5 });
     setActivityDrafts((drafts) => ({ ...drafts, [key]: "" }));
     toast.success("Activity result recorded. +15 XP");
-    return true;
   };
 
   return (
@@ -59,9 +56,6 @@ export function GuidedJourneys() {
         const latestNextAction = (s.goalNextActions?.[goal.id] ?? []).filter((action) => !action.archivedAt).slice().reverse()[0];
         const acceptedNextAction = latestNextAction?.status === "accepted" ? latestNextAction : undefined;
         const legacyCount = (s.goalSteps[goal.id] ?? []).length;
-        const openedActivityForGoal = openedActivity?.goalId === goal.id
-          ? journey.activities.find((activity) => activity.id === openedActivity.activityId)
-          : undefined;
 
         return (
           <div
@@ -124,55 +118,10 @@ export function GuidedJourneys() {
                 <p className="mt-1 text-sm">{nextActivity.guidance}</p>
                 <p className="mt-2 text-sm text-muted-foreground">Why now: {completedCount === 0 ? "This is the first activity in your current journey and gives you a concrete place to begin." : "This is the first activity in your current journey without a recorded result. Review what you have learned so far and adapt if your findings reveal a more urgent issue."}</p>
                 <div className="mt-3">
-                  <Btn onClick={() => {
-                    if (openedActivityForGoal) {
-                      setOpenedActivity(null);
-                      setOpenedActivityResult("");
-                    } else {
-                      setOpenedActivity({ goalId: goal.id, activityId: nextActivity.id });
-                      setOpenedActivityResult(activityDrafts[`${goal.id}:${nextActivity.id}`] ?? "");
-                    }
-                  }}>{openedActivityForGoal ? "Close recommended activity ↑" : "Open recommended activity →"}</Btn>
+                  <Link to="/dashboard" hash={`activity-${goal.id}-${nextActivity.id}`}>
+                    <Btn>Go to recommended step →</Btn>
+                  </Link>
                 </div>
-                {openedActivityForGoal && (
-                  <div className="mt-3 space-y-3 rounded-xl border border-primary/30 bg-background p-3">
-                    <div>
-                      <p className="font-semibold">{openedActivityForGoal.title}</p>
-                      <p className="mt-1 text-sm">{openedActivityForGoal.guidance}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">Why it matters</p>
-                      <p className="mt-1 text-sm text-muted-foreground">{openedActivityForGoal.why}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor={`recommended-result-${goal.id}-${openedActivityForGoal.id}`} className="block text-sm font-semibold">Record what you did or learned</label>
-                      <textarea
-                        id={`recommended-result-${goal.id}-${openedActivityForGoal.id}`}
-                        value={openedActivityResult}
-                        onChange={(event) => setOpenedActivityResult(event.target.value)}
-                        maxLength={500}
-                        rows={4}
-                        placeholder={openedActivityForGoal.resultPrompt}
-                        className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
-                      />
-                      <p className="text-xs text-muted-foreground">At least 10 characters. You can leave this open and return when you have completed the activity.</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Btn onClick={() => {
-                        if (completeActivity(goal.id, openedActivityForGoal.id, openedActivityResult)) {
-                          setOpenedActivity(null);
-                          setOpenedActivityResult("");
-                        }
-                      }}>Record activity result</Btn>
-                      <Btn variant="ghost" onClick={() => {
-                        setActivityDrafts((drafts) => ({ ...drafts, [`${goal.id}:${openedActivityForGoal.id}`]: openedActivityResult }));
-                        setOpenedActivity(null);
-                        setOpenedActivityResult("");
-                      }}>Save draft & close</Btn>
-                    </div>
-                  </div>
-                )}
-              </div>
             ) : (
               <div className="mt-3 rounded-xl border border-success/30 bg-success/5 p-3">
                 <p className="text-sm font-semibold text-success">All guided activities have recorded results.</p>
