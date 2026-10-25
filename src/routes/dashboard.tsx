@@ -49,16 +49,17 @@ function Dashboard() {
     const hash = location.hash.replace(/^#/, "");
     if (!hash) return;
 
-    function scrollToTarget() {
+    let retryTimer: number | undefined;
+    const scrollToTarget = () => {
       const target = document.getElementById(decodeURIComponent(hash));
       if (target) {
         target.scrollIntoView({ behavior: "smooth", block: "start" });
         if (retryTimer !== undefined) window.clearTimeout(retryTimer);
       }
-    }
+    };
 
-    const retryTimer = window.setTimeout(scrollToTarget, 250);
     const frame = window.requestAnimationFrame(scrollToTarget);
+    retryTimer = window.setTimeout(scrollToTarget, 250);
     return () => {
       window.cancelAnimationFrame(frame);
       if (retryTimer !== undefined) window.clearTimeout(retryTimer);
