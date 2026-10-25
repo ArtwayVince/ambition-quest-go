@@ -12,7 +12,7 @@ import {
   hasCompletedDailyChallenge,
   type Attr,
 } from "@/lib/store";
-import { PATH_STAGES, DAILY_CHALLENGES } from "@/lib/data";
+import { journeyStagesForGoal, DAILY_CHALLENGES } from "@/lib/data";
 import { GuidedJourneys } from "@/components/GuidedJourneys";
 import { AIAmbitionCoach } from "@/components/AIAmbitionCoach";
 import { journeyFor } from "@/lib/journeys";
@@ -38,11 +38,13 @@ function Dashboard() {
   const claimed = doneToday.length > 0;
   const journeyGoal = s.goals.find((goal) => goal.id === journeyGoalId) ?? s.goals[0];
   const journeyProgress = journeyGoal
-    ? s.journeyProgressByGoal?.[journeyGoal.id] ?? { stage: 0, notes: [] }
+    ? (s.journeyProgressByGoal?.[journeyGoal.id] ?? { stage: 0, notes: [] })
     : { stage: 0, notes: [] };
-  const journeyStages = PATH_STAGES.map((stage, index) =>
-    index === PATH_STAGES.length - 1 && journeyGoal?.id !== "jet" ? "Achieve" : stage,
-  );
+  const journeyDefinition = journeyGoal
+    ? journeyStagesForGoal(journeyGoal.id, journeyGoal.title)
+    : { stages: [], prompts: [] };
+  const journeyStages = journeyDefinition.stages;
+  const journeyPrompts = journeyDefinition.prompts;
 
   useEffect(() => {
     stageActionInFlight.current = false;
@@ -54,17 +56,16 @@ function Dashboard() {
     const hash = location.hash.replace(/^#/, "");
     if (!hash) return;
 
-    let retryTimer: number | undefined;
     const scrollToTarget = () => {
       const target = document.getElementById(decodeURIComponent(hash));
       if (target) {
         target.scrollIntoView({ behavior: "smooth", block: "start" });
-        if (retryTimer !== undefined) window.clearTimeout(retryTimer);
+        window.clearTimeout(retryTimer);
       }
     };
 
+    const retryTimer = window.setTimeout(scrollToTarget, 250);
     const frame = window.requestAnimationFrame(scrollToTarget);
-    retryTimer = window.setTimeout(scrollToTarget, 250);
     return () => {
       window.cancelAnimationFrame(frame);
       if (retryTimer !== undefined) window.clearTimeout(retryTimer);
@@ -87,7 +88,7 @@ function Dashboard() {
       toast.error("Choose an ambition before recording journey progress");
       return;
     }
-    if (journeyProgress.stage >= PATH_STAGES.length - 1) return;
+    if (journeyProgress.stage >= journeyStages.length - 1) return;
     if (journeyProgress.notes.some((entry) => entry.stage === journeyProgress.stage)) {
       toast.error("This stage has already been recorded");
       return;
@@ -431,66 +432,72 @@ function Dashboard() {
           </div>
         )}
         {!journeyGoal ? (
-          <p className="mt-3 text-sm text-muted-foreground">Define an ambition to start its journey path.</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Define an ambition to start its journey path.
+          </p>
         ) : (
           <>
-        <p className="mt-3 text-sm font-semibold">
-          {journeyGoal.title} · Stage {Math.min(journeyProgress.stage + 1, PATH_STAGES.length)} of{" "}
-          {PATH_STAGES.length}
-        </p>
-        <ol className="mt-3 grid grid-cols-5 gap-2 text-center text-[10px]">
-          {journeyStages.map((stage, k) => (
-            <li
-              key={stage}
-              className={`rounded-lg p-2 ${k <= journeyProgress.stage ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-            >
-              <div className="font-bold">{k + 1}</div>
-              {stage}
-            </li>
-          ))}
-        </ol>
-        {journeyProgress.stage < PATH_STAGES.length - 1 ? (
-          <div className="mt-3 space-y-2">
-            <label htmlFor="stage-reflection" className="block text-sm font-semibold">
-              Reflection on “{journeyStages[journeyProgress.stage]}”
-            </label>
-            <textarea
-              id="stage-reflection"
-              value={stageNote}
-              onChange={(event) => setStageNote(event.target.value)}
-              maxLength={500}
-              rows={3}
-              placeholder="Describe the practical step you took or what you learned (at least 20 characters)."
-              className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              Self-reported prototype checkpoint—not independent proof of a visit or outcome.
+            <p className="mt-3 text-sm font-semibold">
+              {journeyGoal.title} · Stage{" "}
+              {Math.min(journeyProgress.stage + 1, journeyStages.length)} of {journeyStages.length}
             </p>
-            <Btn
-              disabled={!journeyGoal || !isMeaningfulReflection(stageNote)}
-              onClick={completeStage}
-            >
-              Record reflection &amp; continue (+15 XP)
-            </Btn>
-          </div>
-        ) : (
-          <div className="mt-3 space-y-2">
-            <p className="text-sm text-muted-foreground">
-              You have reached the final stage shown for this ambition. Your real-world outcome still
-              depends on your circumstances and any provider requirements.
-            </p>
-            {journeyProgress.notes.length > 0 && (
-              <div className="rounded-lg bg-muted p-3">
-                <p className="text-sm font-semibold">Recorded reflections</p>
-                {journeyProgress.notes.map((entry) => (
-                  <p key={entry.stage} className="mt-2 text-sm">
-                    <span className="font-semibold">{journeyStages[entry.stage]}:</span> {entry.note}
-                  </p>
-                ))}
+            <ol className="mt-3 grid grid-cols-5 gap-2 text-center text-[10px]">
+              {journeyStages.map((stage, k) => (
+                <li
+                  key={stage}
+                  className={`rounded-lg p-2 ${k <= journeyProgress.stage ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                >
+                  <div className="font-bold">{k + 1}</div>
+                  {stage}
+                </li>
+              ))}
+            </ol>
+            {journeyProgress.stage < journeyStages.length - 1 ? (
+              <div className="mt-3 space-y-2">
+                <label htmlFor="stage-reflection" className="block text-sm font-semibold">
+                  Reflection on “{journeyStages[journeyProgress.stage]}”
+                </label>
+                <textarea
+                  id="stage-reflection"
+                  value={stageNote}
+                  onChange={(event) => setStageNote(event.target.value)}
+                  maxLength={500}
+                  rows={3}
+                  placeholder={
+                    journeyPrompts[journeyProgress.stage] ??
+                    "Describe what you did or learned at this stage (at least 20 characters)."
+                  }
+                  className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Self-reported prototype checkpoint—not independent proof of a visit or outcome.
+                </p>
+                <Btn
+                  disabled={!journeyGoal || !isMeaningfulReflection(stageNote)}
+                  onClick={completeStage}
+                >
+                  Record reflection &amp; continue (+15 XP)
+                </Btn>
+              </div>
+            ) : (
+              <div className="mt-3 space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  You have reached the final stage shown for this ambition. Your real-world outcome
+                  still depends on your circumstances and any provider requirements.
+                </p>
+                {journeyProgress.notes.length > 0 && (
+                  <div className="rounded-lg bg-muted p-3">
+                    <p className="text-sm font-semibold">Recorded reflections</p>
+                    {journeyProgress.notes.map((entry) => (
+                      <p key={entry.stage} className="mt-2 text-sm">
+                        <span className="font-semibold">{journeyStages[entry.stage]}:</span>{" "}
+                        {entry.note}
+                      </p>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
           </>
         )}
       </Card>
