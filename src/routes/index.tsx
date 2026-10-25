@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import heroAsset from "@/assets/hero.jpg.asset.json";
 const hero = heroAsset.url;
 import { Btn, meta, NavigationMenu } from "@/components/Shell";
+import { useStore } from "@/lib/store";
+import { journeyFor } from "@/lib/journeys";
 
 export const Route = createFileRoute("/")({
   head: () =>
@@ -36,6 +38,29 @@ const SLIDES = [
 
 function Landing() {
   const [i, setI] = useState(0);
+  const { s } = useStore();
+  const activeGoal = s.goals[0];
+  const journey = activeGoal
+    ? (s.aiJourneys?.[activeGoal.id] ?? journeyFor(activeGoal.id, activeGoal.title))
+    : null;
+  const records = activeGoal ? (s.goalActivityRecords[activeGoal.id] ?? {}) : {};
+  const nextActivity = journey?.activities.find((activity) => !records[activity.id]);
+  const latestNextAction = activeGoal
+    ? (s.goalNextActions?.[activeGoal.id] ?? [])
+        .filter((action) => !action.archivedAt)
+        .slice()
+        .reverse()[0]
+    : undefined;
+  const acceptedNextAction =
+    latestNextAction?.status === "accepted" ? latestNextAction : undefined;
+  const meaningfulStepHash = activeGoal
+    ? acceptedNextAction
+      ? `activity-${activeGoal.id}-${acceptedNextAction.sourceActivityId}`
+      : nextActivity
+        ? `activity-${activeGoal.id}-${nextActivity.id}`
+        : `meaningful-step-${activeGoal.id}`
+    : undefined;
+
   useEffect(() => {
     const t = setInterval(() => setI((x) => (x + 1) % SLIDES.length), 4500);
     return () => clearInterval(t);
@@ -114,8 +139,14 @@ function Landing() {
             ],
             [
               "Take a meaningful step",
-              "Learn, practise and build confidence through missions.",
-              "/play",
+              activeGoal
+                ? acceptedNextAction
+                  ? "Continue the next action you accepted for your ambition."
+                  : nextActivity
+                    ? "Go straight to the next activity in your guided ambition journey."
+                    : "Review your completed activities and decide what needs attention next."
+                : "Define an ambition first, then get a practical next step tailored to your journey.",
+              activeGoal ? "/dashboard" : "/goals",
             ],
             [
               "Explore possibilities",
@@ -127,6 +158,7 @@ function Landing() {
           <Link
             key={t}
             to={to}
+            hash={t === "Take a meaningful step" ? meaningfulStepHash : undefined}
             className="rounded-2xl border border-border bg-card p-5 transition hover:border-primary"
           >
             <h2 className="text-xl font-bold">{t}</h2>
