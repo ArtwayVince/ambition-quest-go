@@ -436,63 +436,66 @@ function Dashboard() {
           <p className="mt-3 text-sm text-muted-foreground">Define an ambition to start its journey path.</p>
         ) : (
           <>
-        <p className="mt-3 text-sm font-semibold">
-          {journeyGoal.title} · Stage {Math.min(journeyProgress.stage + 1, journeyStages.length)} of{" "}
-          {journeyStages.length}
-        </p>
-        <ol className="mt-3 grid grid-cols-5 gap-2 text-center text-[10px]">
-          {journeyStages.map((stage, k) => (
-            <li
-              key={stage}
-              className={`rounded-lg p-2 ${k <= journeyProgress.stage ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-            >
-              <div className="font-bold">{k + 1}</div>
-              {stage}
-            </li>
-          ))}
-        </ol>
-        {journeyProgress.stage < journeyStages.length - 1 ? (
-          <div className="mt-3 space-y-2">
-            <label htmlFor="stage-reflection" className="block text-sm font-semibold">
-              Reflection on “{journeyStages[journeyProgress.stage]}”
-            </label>
-            <textarea
-              id="stage-reflection"
-              value={stageNote}
-              onChange={(event) => setStageNote(event.target.value)}
-              maxLength={500}
-              rows={3}
-              placeholder={journeyPrompts[journeyProgress.stage] ?? "Describe what you did or learned at this stage (at least 20 characters)." }
-              className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              Self-reported prototype checkpoint—not independent proof of a visit or outcome.
+            <p className="mt-3 text-sm font-semibold">
+              {journeyGoal.title} · Stage {Math.min(journeyProgress.stage + 1, journeyStages.length)} of{" "}
+              {journeyStages.length}
             </p>
-            <Btn
-              disabled={!journeyGoal || !isMeaningfulReflection(stageNote)}
-              onClick={completeStage}
-            >
-              Record reflection &amp; continue (+15 XP)
-            </Btn>
-          </div>
-        ) : (
-          <div className="mt-3 space-y-2">
-            <p className="text-sm text-muted-foreground">
-              You have reached the final stage shown for this ambition. Your real-world outcome still
-              depends on your circumstances and any provider requirements.
-            </p>
-            {journeyProgress.notes.length > 0 && (
-              <div className="rounded-lg bg-muted p-3">
-                <p className="text-sm font-semibold">Recorded reflections</p>
-                {journeyProgress.notes.map((entry) => (
-                  <p key={entry.stage} className="mt-2 text-sm">
-                    <span className="font-semibold">{journeyStages[entry.stage]}:</span> {entry.note}
-                  </p>
-                ))}
+            <ol className="mt-3 grid grid-cols-5 gap-2 text-center text-[10px]">
+              {journeyStages.map((stage, k) => (
+                <li
+                  key={stage}
+                  className={`rounded-lg p-2 ${k <= journeyProgress.stage ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                >
+                  <div className="font-bold">{k + 1}</div>
+                  {stage}
+                </li>
+              ))}
+            </ol>
+            {journeyProgress.stage < journeyStages.length - 1 ? (
+              <div className="mt-3 space-y-2">
+                <label htmlFor="stage-reflection" className="block text-sm font-semibold">
+                  Reflection on “{journeyStages[journeyProgress.stage]}”
+                </label>
+                <textarea
+                  id="stage-reflection"
+                  value={stageNote}
+                  onChange={(event) => setStageNote(event.target.value)}
+                  maxLength={500}
+                  rows={3}
+                  placeholder={
+                    journeyPrompts[journeyProgress.stage] ??
+                    "Describe what you did or learned at this stage (at least 20 characters)."
+                  }
+                  className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Self-reported prototype checkpoint—not independent proof of a visit or outcome.
+                </p>
+                <Btn
+                  disabled={!journeyGoal || !isMeaningfulReflection(stageNote)}
+                  onClick={completeStage}
+                >
+                  Record reflection &amp; continue (+15 XP)
+                </Btn>
+              </div>
+            ) : (
+              <div className="mt-3 space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  You have reached the final stage shown for this ambition. Your real-world outcome still
+                  depends on your circumstances and any provider requirements.
+                </p>
+                {journeyProgress.notes.length > 0 && (
+                  <div className="rounded-lg bg-muted p-3">
+                    <p className="text-sm font-semibold">Recorded reflections</p>
+                    {journeyProgress.notes.map((entry) => (
+                      <p key={entry.stage} className="mt-2 text-sm">
+                        <span className="font-semibold">{journeyStages[entry.stage]}:</span> {entry.note}
+                      </p>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
           </>
         )}
       </Card>
