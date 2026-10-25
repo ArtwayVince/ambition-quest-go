@@ -1,9 +1,8 @@
 name: Temporary branch formatter
 
 on:
-  push:
-    branches:
-      - feat/tailored-ambition-journey-stages
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
