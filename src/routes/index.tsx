@@ -53,13 +53,24 @@ function Landing() {
     : undefined;
   const acceptedNextAction =
     latestNextAction?.status === "accepted" ? latestNextAction : undefined;
-  const meaningfulStepHash = activeGoal
-    ? acceptedNextAction
-      ? `activity-${activeGoal.id}-${acceptedNextAction.sourceActivityId}`
-      : nextActivity
-        ? `activity-${activeGoal.id}-${nextActivity.id}`
-        : `meaningful-step-${activeGoal.id}`
-    : undefined;
+  let meaningfulStepHash: string | undefined;
+  let meaningfulStepDescription =
+    "Define an ambition first, then get a practical next step tailored to your journey.";
+
+  if (activeGoal) {
+    if (acceptedNextAction) {
+      meaningfulStepHash = `activity-${activeGoal.id}-${acceptedNextAction.sourceActivityId}`;
+      meaningfulStepDescription = "Continue the next action you accepted for your ambition.";
+    } else if (nextActivity) {
+      meaningfulStepHash = `activity-${activeGoal.id}-${nextActivity.id}`;
+      meaningfulStepDescription =
+        "Go straight to the next activity in your guided ambition journey.";
+    } else {
+      meaningfulStepHash = `meaningful-step-${activeGoal.id}`;
+      meaningfulStepDescription =
+        "Review your completed activities and decide what needs attention next.";
+    }
+  }
 
   useEffect(() => {
     const t = setInterval(() => setI((x) => (x + 1) % SLIDES.length), 4500);
@@ -139,13 +150,7 @@ function Landing() {
             ],
             [
               "Take a meaningful step",
-              activeGoal
-                ? acceptedNextAction
-                  ? "Continue the next action you accepted for your ambition."
-                  : nextActivity
-                    ? "Go straight to the next activity in your guided ambition journey."
-                    : "Review your completed activities and decide what needs attention next."
-                : "Define an ambition first, then get a practical next step tailored to your journey.",
+              meaningfulStepDescription,
               activeGoal ? "/dashboard" : "/goals",
             ],
             [
