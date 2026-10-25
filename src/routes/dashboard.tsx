@@ -38,7 +38,7 @@ function Dashboard() {
   const claimed = doneToday.length > 0;
   const journeyGoal = s.goals.find((goal) => goal.id === journeyGoalId) ?? s.goals[0];
   const journeyProgress = journeyGoal
-    ? s.journeyProgressByGoal?.[journeyGoal.id] ?? { stage: 0, notes: [] }
+    ? (s.journeyProgressByGoal?.[journeyGoal.id] ?? { stage: 0, notes: [] })
     : { stage: 0, notes: [] };
   const journeyDefinition = journeyGoal
     ? journeyStagesForGoal(journeyGoal.id, journeyGoal.title)
@@ -433,12 +433,14 @@ function Dashboard() {
           </div>
         )}
         {!journeyGoal ? (
-          <p className="mt-3 text-sm text-muted-foreground">Define an ambition to start its journey path.</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Define an ambition to start its journey path.
+          </p>
         ) : (
           <>
             <p className="mt-3 text-sm font-semibold">
-              {journeyGoal.title} · Stage {Math.min(journeyProgress.stage + 1, journeyStages.length)} of{" "}
-              {journeyStages.length}
+              {journeyGoal.title} · Stage{" "}
+              {Math.min(journeyProgress.stage + 1, journeyStages.length)} of {journeyStages.length}
             </p>
             <ol className="mt-3 grid grid-cols-5 gap-2 text-center text-[10px]">
               {journeyStages.map((stage, k) => (
@@ -481,15 +483,16 @@ function Dashboard() {
             ) : (
               <div className="mt-3 space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  You have reached the final stage shown for this ambition. Your real-world outcome still
-                  depends on your circumstances and any provider requirements.
+                  You have reached the final stage shown for this ambition. Your real-world outcome
+                  still depends on your circumstances and any provider requirements.
                 </p>
                 {journeyProgress.notes.length > 0 && (
                   <div className="rounded-lg bg-muted p-3">
                     <p className="text-sm font-semibold">Recorded reflections</p>
                     {journeyProgress.notes.map((entry) => (
                       <p key={entry.stage} className="mt-2 text-sm">
-                        <span className="font-semibold">{journeyStages[entry.stage]}:</span> {entry.note}
+                        <span className="font-semibold">{journeyStages[entry.stage]}:</span>{" "}
+                        {entry.note}
                       </p>
                     ))}
                   </div>
