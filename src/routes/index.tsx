@@ -147,6 +147,7 @@ function Landing() {
               title: "Define your ambition",
               description: "Describe what you want and where you are starting from.",
               to: "/goals",
+              hash: undefined,
             },
             {
               title: "Take a meaningful step",
@@ -158,6 +159,7 @@ function Landing() {
               title: "Explore possibilities",
               description: "Discover experiences that may help turn plans into reality.",
               to: "/explore",
+              hash: undefined,
             },
           ] as const
         ).map(({ title, description, to, hash }) => (
