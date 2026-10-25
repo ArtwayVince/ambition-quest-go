@@ -26,9 +26,22 @@ export function ActivityNextAction({ goalId, activityId }: { goalId: string; act
       const sourceIsActionFollowup = Boolean(completedAction) || Boolean(latest?.sourceActionId) || latest?.status === "completed";
       const sourceTitle = completedAction?.title ?? (latest?.status === "completed" ? latest.title : sourceIsActionFollowup ? latest!.sourceActivityTitle : activity.title);
       const sourceResult = completedAction?.result ?? (latest?.status === "completed" ? (latest.result ?? "") : sourceIsActionFollowup ? latest!.sourceResult : record.result);
+      let ambitionBrief = "";
+      try {
+        const saved = window.localStorage.getItem(`aqg-clarifier:${goalId}`);
+        if (saved) {
+          const session = JSON.parse(saved) as { clarifiedBrief?: unknown; briefConfirmed?: unknown };
+          if (session.briefConfirmed === true && typeof session.clarifiedBrief === "string") {
+            ambitionBrief = session.clarifiedBrief.trim().slice(0, 1000);
+          }
+        }
+      } catch {
+        // Continue with the recorded activity and planner if browser storage is unavailable.
+      }
       const draft = await recommendAmbitionNextAction({
         data: {
           title: goal.title,
+          ambitionBrief,
           activityTitle: sourceTitle,
           activityGuidance: completedAction?.recommendation ?? (sourceIsActionFollowup ? latest!.recommendation : activity.guidance),
           result: sourceResult,
