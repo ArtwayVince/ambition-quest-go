@@ -96,10 +96,17 @@ function Dashboard() {
     stageActionInFlight.current = true;
     const goalId = journeyGoal.id;
     const completedStage = journeyProgress.stage;
-    const reflection = { stage: completedStage, note: stageNote.trim(), at: new Date().toISOString() };
+    const reflection = {
+      stage: completedStage,
+      note: stageNote.trim(),
+      at: new Date().toISOString(),
+    };
     set((p) => {
       const current = p.journeyProgressByGoal?.[goalId] ?? { stage: 0, notes: [] };
-      if (current.stage !== completedStage || current.notes.some((entry) => entry.stage === completedStage)) {
+      if (
+        current.stage !== completedStage ||
+        current.notes.some((entry) => entry.stage === completedStage)
+      ) {
         return p;
       }
       return {
@@ -397,7 +404,8 @@ function Dashboard() {
       <Card className="mt-4">
         <h2 className="font-bold">Your journey path</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Each ambition has its own stages and reflections. Progress here applies only to the selected ambition.
+          Each ambition has its own stages and reflections. Progress here applies only to the
+          selected ambition.
         </p>
         {s.goals.length > 0 && (
           <div className="mt-3">
@@ -415,7 +423,9 @@ function Dashboard() {
               className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-3 text-sm"
             >
               {s.goals.map((goal) => (
-                <option key={goal.id} value={goal.id}>{goal.title}</option>
+                <option key={goal.id} value={goal.id}>
+                  {goal.title}
+                </option>
               ))}
             </select>
           </div>
@@ -424,7 +434,10 @@ function Dashboard() {
           <p className="mt-3 text-sm text-muted-foreground">Define an ambition to start its journey path.</p>
         ) : (
           <>
-        <p className="mt-3 text-sm font-semibold">{journeyGoal.title} · Stage {Math.min(journeyProgress.stage + 1, PATH_STAGES.length)} of {PATH_STAGES.length}</p>
+        <p className="mt-3 text-sm font-semibold">
+          {journeyGoal.title} · Stage {Math.min(journeyProgress.stage + 1, PATH_STAGES.length)} of{" "}
+          {PATH_STAGES.length}
+        </p>
         <ol className="mt-3 grid grid-cols-5 gap-2 text-center text-[10px]">
           {journeyStages.map((stage, k) => (
             <li
