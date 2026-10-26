@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Btn, Card } from "@/components/Shell";
 import { useStore } from "@/lib/store";
@@ -29,6 +29,13 @@ export function AIAmbitionCoach() {
   const [hydratedGoalId, setHydratedGoalId] = useState("");
   const selectedGoal = s.goals.find((goal) => goal.id === selectedGoalId) ?? s.goals[0];
   const [busyMessage, setBusyMessage] = useState("Understanding your ambition…");
+  const journeyReviewRef = useRef<HTMLDivElement>(null);
+  const applyJourneyRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!draft || draftGoalId !== selectedGoal?.id) return;
+    journeyReviewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [draft, draftGoalId, selectedGoal?.id]);
 
   useEffect(() => {
     if (!busy || typeof window === "undefined") return;
@@ -385,7 +392,12 @@ export function AIAmbitionCoach() {
       )}
 
       {draft && draftGoalId === selectedGoal?.id && (
-        <div className="mt-4 space-y-3">
+        <div ref={journeyReviewRef} id="tailored-journey-review" className="mt-4 scroll-mt-24 space-y-3">
+          <div className="rounded-xl border border-success/30 bg-success/5 p-3">
+            <p className="font-semibold">Your tailored journey is ready to review</p>
+            <p className="mt-1 text-sm text-muted-foreground">Review the plan below. When you reach the end, use Apply this journey to replace the current activity plan.</p>
+            <Btn variant="ghost" onClick={() => applyJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })}>Go to Apply button ↓</Btn>
+          </div>
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
             <p className="font-semibold">Universal plan overview</p>
             <p className="mt-1 text-sm">{draft.summary}</p>
@@ -434,7 +446,10 @@ export function AIAmbitionCoach() {
           <p className="text-xs text-muted-foreground">
             Applying replaces the displayed activity plan for this ambition, but does not delete its existing self-reported records. AI-generated content is a suggestion, not verification of facts or outcomes.
           </p>
-          <Btn disabled={busy} onClick={applyJourney}>{busy ? "Applying your journey…" : "Apply this journey"}</Btn>
+          <div ref={applyJourneyRef} className="scroll-mt-24 rounded-xl border border-primary/30 p-3">
+            <p className="mb-2 text-sm font-semibold">Ready to use this plan?</p>
+            <Btn disabled={busy} onClick={applyJourney}>{busy ? "Applying your journey…" : "Apply this journey"}</Btn>
+          </div>
         </div>
       )}
     </Card>
