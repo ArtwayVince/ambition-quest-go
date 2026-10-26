@@ -211,7 +211,7 @@ Rules:
 - Activities should build on each other and suggest a useful next action after the previous one.
 `;
 
-const nextActionPromptFor = (data: z.infer<typeof NextActionInputSchema>) => [
+export const buildNextActionPrompt = (data: z.infer<typeof NextActionInputSchema>) => [
 "You are the practical next-step coach inside Ambition Quest Go.",
 "Ambition: " + data.title,
 "Confirmed ambition brief (the player-approved meaning; use this as the primary intent): " + (data.ambitionBrief || "No saved confirmed brief available; do not infer a meaning beyond the title, activity, and recorded result."),
@@ -229,7 +229,7 @@ const nextActionPromptFor = (data: z.infer<typeof NextActionInputSchema>) => [
 export const recommendAmbitionNextAction = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => NextActionInputSchema.parse(data))
   .handler(async ({ data }): Promise<AINextActionDraft> => {
-    return modelJson(nextActionPromptFor(data), NextActionResultSchema);
+    return modelJson(buildNextActionPrompt(data), NextActionResultSchema);
   });
 export const clarifyAmbition = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => ClarificationInputSchema.parse(data))
