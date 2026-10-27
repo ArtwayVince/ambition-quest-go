@@ -440,8 +440,8 @@ function Dashboard() {
         </p>
       </Card>
 
-      <Card id="journey-path" className="mt-4">
-        <h2 className="font-bold">Your journey path</h2>
+      <Card className="mt-4">
+        <h2 id="journey-path" className="font-bold">Your journey path</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Each ambition has its own stages and reflections. Progress here applies only to the
           selected ambition.
