@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
 import { EXPERIENCES } from "@/lib/data";
-import { useStore } from "@/lib/store";
+import { useStore, isValidPreferredDate, localDateString } from "@/lib/store";
 
 export const Route = createFileRoute("/experiences/$id")({
   loader: ({ params }) => {
@@ -36,10 +36,10 @@ function Detail() {
       <Card className="mt-4">
         <h2 className="font-bold">Request verified details</h2>
         <div className="mt-2 space-y-2">
-          <input type="date" value={date} onChange={(x) => setDate(x.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-2" />
+          <input type="date" min={localDateString()} value={date} onChange={(x) => setDate(x.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-2" />
           <textarea maxLength={500} placeholder="Questions for the provider (optional)" value={note} onChange={(x) => setNote(x.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-2" />
           <Btn onClick={() => {
-            if (!date) { toast.error("Pick a preferred date"); return; }
+            if (!isValidPreferredDate(date)) { toast.error("Choose today or a future preferred date"); return; }
             set((p) => ({ ...p, requests: [...p.requests, { id: crypto.randomUUID(), expId: e.id, title: e.title, date, note, at: new Date().toISOString() }] }));
             gain(10, { Network: 5 });
             toast.success("Request saved on this device. No provider has been notified.");
