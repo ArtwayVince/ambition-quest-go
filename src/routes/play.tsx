@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
 import { useStore, shouldAwardScenarioXp, type Attr } from "@/lib/store";
 import { BUDGET_SCENARIOS, naira } from "@/lib/data";
-import { journeyFor } from "@/lib/journeys";
+import { journeyFor, readinessFor } from "@/lib/journeys";
 
 export const Route = createFileRoute("/play")({
   head: () => meta("Play", "Budget trade-off simulator with ₦100,000 practice currency and the 3-step pilot mission chain."),
@@ -24,9 +24,11 @@ function Play() {
     ? (s.aiJourneys?.[missionGoal.id] ?? journeyFor(missionGoal.id, missionGoal.title))
     : null;
   const missionRecords = missionGoal ? (s.goalActivityRecords[missionGoal.id] ?? {}) : {};
+  const completedMissionActivityCount = missionJourney?.activities.filter((activity) => Boolean(missionRecords[activity.id])).length ?? 0;
   const nextMissionActivity = missionJourney?.activities.find((activity) => !missionRecords[activity.id]);
-  const missionActivityDone = Object.keys(missionRecords).length > 0;
+  const missionActivityDone = completedMissionActivityCount > 0;
   const missionReadinessDone = missionGoal ? s.readinessByGoal?.[missionGoal.id] !== undefined : false;
+  const readinessQuestionCount = readinessFor(missionGoal?.id ?? "", missionGoal?.title ?? "your ambition").length;
 
   useEffect(() => {
     decisionLocked.current = false;
@@ -129,7 +131,7 @@ function Play() {
               <div className="flex-1">
                 <h3 className="font-bold">Record a practical result</h3>
                 <p className="mt-1 text-sm text-muted-foreground">Mission 2 · Complete one guided activity and save what happened or what you learned.</p>
-                <p className="mt-2 text-sm">{missionActivityDone ? `You have ${Object.keys(missionRecords).length} activity result(s) recorded for this ambition.` : "No guided activity result is recorded for this ambition yet."}</p>
+                <p className="mt-2 text-sm">{missionActivityDone ? `You have ${completedMissionActivityCount} current guided activity result(s) recorded for this ambition.` : "No guided activity result is recorded for this ambition yet."}</p>
                 <p className="mt-2 text-xs font-semibold">{missionActivityDone ? "Complete ✓" : "In progress"}</p>
                 {nextMissionActivity ? (
                   <div className="mt-3"><Link to="/dashboard" hash={"activity-" + missionGoal!.id + "-" + nextMissionActivity.id}><Btn>{missionActivityDone ? "Continue guided journey →" : "Start first activity →"}</Btn></Link></div>
@@ -145,7 +147,7 @@ function Play() {
               <div className="flex-1">
                 <h3 className="font-bold">Test your preparation</h3>
                 <p className="mt-1 text-sm text-muted-foreground">Mission 3 · Practise decisions relevant to this ambition and review the explanations.</p>
-                <p className="mt-2 text-sm">{missionReadinessDone ? `Practice result recorded: ${s.readinessByGoal?.[missionGoal!.id]}/${missionJourney?.activities.length ? 4 : 4}.` : "Readiness practice has not been completed for this ambition yet."}</p>
+                <p className="mt-2 text-sm">{missionReadinessDone ? `Practice result recorded: ${s.readinessByGoal?.[missionGoal!.id]}/${readinessQuestionCount}.` : "Readiness practice has not been completed for this ambition yet."}</p>
                 <p className="mt-2 text-xs font-semibold">{missionReadinessDone ? "Complete ✓" : "In progress"}</p>
                 <div className="mt-3"><Link to="/readiness" search={{ goal: missionGoal!.id }}>
                     <Btn>{missionReadinessDone ? "Practise again" : "Start readiness practice →"}</Btn>
