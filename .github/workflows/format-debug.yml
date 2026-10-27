@@ -1,0 +1,17 @@
+name: Temporary formatting diagnostics
+on:
+  pull_request:
+    paths:
+      - "src/routes/dashboard.tsx"
+      - ".github/workflows/format-debug.yml"
+jobs:
+  format-diagnostics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Show Prettier's expected dashboard formatting
+        run: |
+          bunx prettier src/routes/dashboard.tsx > /tmp/dashboard-formatted.tsx
+          diff -u src/routes/dashboard.tsx /tmp/dashboard-formatted.tsx || true
