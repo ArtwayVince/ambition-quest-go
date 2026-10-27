@@ -433,12 +433,22 @@ function Dashboard() {
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {dailyIndex === 0 ? (
-            <Link
-              to="/goals"
-              className="inline-flex rounded-xl bg-sunset px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            >
-              Record savings →
-            </Link>
+            dailyGoal ? (
+              <Link
+                to="/goals"
+                hash={`record-savings-${dailyGoal.id}`}
+                className="inline-flex rounded-xl bg-sunset px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                Record savings →
+              </Link>
+            ) : (
+              <Link
+                to="/goals"
+                className="inline-flex rounded-xl bg-sunset px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                Set up an ambition →
+              </Link>
+            )
           ) : dailyIndex === 1 ? (
             dailyGoal && dailyNextActivity ? (
               <Link
