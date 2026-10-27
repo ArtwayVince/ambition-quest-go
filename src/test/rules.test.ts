@@ -6,6 +6,7 @@ import {
   STAGE_NOTE_MIN_LENGTH,
   shouldAwardScenarioXp,
   shouldAwardReadinessXp,
+  bestReadinessScore,
   hasCompletedDailyChallenge,
 } from "@/lib/store";
 
@@ -28,6 +29,14 @@ describe("JET OFF rules", () => {
     expect(shouldAwardScenarioXp([], 0)).toBe(true);
     expect(shouldAwardScenarioXp([0], 0)).toBe(false);
     expect(shouldAwardScenarioXp([0], 1)).toBe(true);
+  });
+
+  it("preserves the best readiness score for each ambition", () => {
+    expect(bestReadinessScore(undefined, 0)).toBe(0);
+    expect(bestReadinessScore(undefined, 2)).toBe(2);
+    expect(bestReadinessScore(3, 1)).toBe(3);
+    expect(bestReadinessScore(1, 3)).toBe(3);
+    expect(bestReadinessScore(2, 2)).toBe(2);
   });
 
   it("awards readiness XP only once per ambition", () => {
