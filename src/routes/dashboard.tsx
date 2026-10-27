@@ -428,8 +428,8 @@ function Dashboard() {
         </div>
         <p className="mt-2 text-sm">{daily}</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Earn XP by recording this action in your ambition journey first.
-          Your confirmation alone is not enough.
+          Earn XP by recording this action in your ambition journey first. Your confirmation alone
+          is not enough.
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {dailyIndex === 0 ? (
@@ -461,7 +461,9 @@ function Dashboard() {
       </Card>
 
       <Card className="mt-4">
-        <h2 id="journey-path" className="font-bold">Your journey path</h2>
+        <h2 id="journey-path" className="font-bold">
+          Your journey path
+        </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Each ambition has its own stages and reflections. Progress here applies only to the
           selected ambition.
