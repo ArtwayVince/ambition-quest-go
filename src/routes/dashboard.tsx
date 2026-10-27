@@ -49,6 +49,16 @@ function Dashboard() {
   );
   const dailyEvidence =
     [savingsRecordedToday, activityRecordedToday, reflectionRecordedToday][dailyIndex] ?? false;
+  const dailyButtonLabel = claimed
+    ? "Done for today ✓"
+    : dailyEvidence
+      ? "Claim reward (+20 XP)"
+      : "Record the action first";
+  const dailyStatus = claimed
+    ? "Today's reward claimed"
+    : dailyEvidence
+      ? "Your action is recorded; reward ready"
+      : "Waiting for today's action record";
   const dailyGoal = s.goals[0];
   const dailyJourney = dailyGoal
     ? (s.aiJourneys?.[dailyGoal.id] ?? journeyFor(dailyGoal.id, dailyGoal.title))
@@ -418,8 +428,8 @@ function Dashboard() {
         </div>
         <p className="mt-2 text-sm">{daily}</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Earn XP by recording the action in your ambition journey first. Your confirmation alone is not
-          enough.
+          Earn XP by recording this action in your ambition journey first.
+          Your confirmation alone is not enough.
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {dailyIndex === 0 ? (
@@ -442,20 +452,11 @@ function Dashboard() {
             </Link>
           )}
           <Btn disabled={claimed || !dailyEvidence} onClick={completeDaily}>
-            {claimed
-              ? "Done for today ✓"
-              : dailyEvidence
-                ? "Claim reward (+20 XP)"
-                : "Record the action first"}
+            {dailyButtonLabel}
           </Btn>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          Total XP: {s.xp} ·{" "}
-          {claimed
-            ? "Today's reward claimed"
-            : dailyEvidence
-              ? "Your action is recorded; reward ready"
-              : "Waiting for today's action record"}
+          Total XP: {s.xp} · {dailyStatus}
         </p>
       </Card>
 
@@ -569,12 +570,12 @@ function Dashboard() {
           <div className="mt-3 space-y-2">
             <p className="text-sm font-semibold">{s.goals[0].title}</p>
             <p className="text-sm">
-              {Object.keys(s.goalActivityRecords[s.goals[0].id] ?? {}).length > 0 ? "✅" : "⬜"} Record a
-              result from one guided activity
+              {Object.keys(s.goalActivityRecords[s.goals[0].id] ?? {}).length > 0 ? "✅" : "⬜"}
+              Record a result from one guided activity
             </p>
             <p className="text-sm">
-              {s.readinessByGoal?.[s.goals[0].id] !== undefined ? "✅" : "⬜"} Complete readiness
-              practice for this ambition
+              {s.readinessByGoal?.[s.goals[0].id] !== undefined ? "✅" : "⬜"}
+              Complete readiness practice for this ambition
             </p>
           </div>
         ) : (
