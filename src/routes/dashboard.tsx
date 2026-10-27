@@ -47,13 +47,16 @@ function Dashboard() {
   const reflectionRecordedToday = Object.values(s.journeyProgressByGoal ?? {}).some((progress) =>
     progress.notes.some((entry) => entry.at.slice(0, 10) === today()),
   );
-  const dailyEvidence = [savingsRecordedToday, activityRecordedToday, reflectionRecordedToday][dailyIndex] ?? false;
+  const dailyEvidence =
+    [savingsRecordedToday, activityRecordedToday, reflectionRecordedToday][dailyIndex] ?? false;
   const dailyGoal = s.goals[0];
   const dailyJourney = dailyGoal
     ? (s.aiJourneys?.[dailyGoal.id] ?? journeyFor(dailyGoal.id, dailyGoal.title))
     : null;
   const dailyNextActivity = dailyGoal
-    ? dailyJourney?.activities.find((activity) => !s.goalActivityRecords[dailyGoal.id]?.[activity.id])
+    ? dailyJourney?.activities.find(
+        (activity) => !s.goalActivityRecords[dailyGoal.id]?.[activity.id],
+      )
     : undefined;
   const journeyGoal = s.goals.find((goal) => goal.id === journeyGoalId) ?? s.goals[0];
   const journeyProgress = journeyGoal
@@ -419,24 +422,39 @@ function Dashboard() {
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {dailyIndex === 0 ? (
-            <Link to="/goals"><Btn variant="ghost">Record savings →</Btn></Link>
+            <Link to="/goals">
+              <Btn variant="ghost">Record savings →</Btn>
+            </Link>
           ) : dailyIndex === 1 ? (
             dailyGoal && dailyNextActivity ? (
               <Link to="/dashboard" hash={"activity-" + dailyGoal.id + "-" + dailyNextActivity.id}>
                 <Btn variant="ghost">Record an activity →</Btn>
               </Link>
             ) : (
-              <Link to="/goals"><Btn variant="ghost">Review activities →</Btn></Link>
+              <Link to="/goals">
+                <Btn variant="ghost">Review activities →</Btn>
+              </Link>
             )
           ) : (
-            <Link to="/dashboard" hash="journey-path"><Btn variant="ghost">Write a reflection →</Btn></Link>
+            <Link to="/dashboard" hash="journey-path">
+              <Btn variant="ghost">Write a reflection →</Btn>
+            </Link>
           )}
           <Btn disabled={claimed || !dailyEvidence} onClick={completeDaily}>
-            {claimed ? "Done for today ✓" : dailyEvidence ? "Claim reward (+20 XP)" : "Record the action first"}
+            {claimed
+              ? "Done for today ✓"
+              : dailyEvidence
+                ? "Claim reward (+20 XP)"
+                : "Record the action first"}
           </Btn>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          Total XP: {s.xp} · {claimed ? "Today's reward claimed" : dailyEvidence ? "Your action is recorded; reward ready" : "Waiting for today's action record"}
+          Total XP: {s.xp} ·{" "}
+          {claimed
+            ? "Today's reward claimed"
+            : dailyEvidence
+              ? "Your action is recorded; reward ready"
+              : "Waiting for today's action record"}
         </p>
       </Card>
 
