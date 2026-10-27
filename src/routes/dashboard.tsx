@@ -418,7 +418,8 @@ function Dashboard() {
         </div>
         <p className="mt-2 text-sm">{daily}</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Earn XP by recording the action in your ambition journey first. Your confirmation alone is not enough.
+          Earn XP by recording the action in your ambition journey first. Your confirmation alone is not
+          enough.
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {dailyIndex === 0 ? (
@@ -561,19 +562,30 @@ function Dashboard() {
       <Card className="mt-4">
         <h2 className="font-bold">Ambition missions</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Missions now follow real progress in your current ambition—not the old resort-only pilot chain.
+          Missions now follow real progress in your current ambition—not the old resort-only pilot
+          chain.
         </p>
         {s.goals.length > 0 ? (
           <div className="mt-3 space-y-2">
             <p className="text-sm font-semibold">{s.goals[0].title}</p>
-            <p className="text-sm">{Object.keys(s.goalActivityRecords[s.goals[0].id] ?? {}).length > 0 ? "✅" : "⬜"} Record a result from one guided activity</p>
-            <p className="text-sm">{s.readinessByGoal?.[s.goals[0].id] !== undefined ? "✅" : "⬜"} Complete readiness practice for this ambition</p>
+            <p className="text-sm">
+              {Object.keys(s.goalActivityRecords[s.goals[0].id] ?? {}).length > 0 ? "✅" : "⬜"} Record a
+              result from one guided activity
+            </p>
+            <p className="text-sm">
+              {s.readinessByGoal?.[s.goals[0].id] !== undefined ? "✅" : "⬜"} Complete readiness
+              practice for this ambition
+            </p>
           </div>
         ) : (
-          <p className="mt-3 text-sm text-muted-foreground">Define an ambition to unlock missions connected to your own journey.</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Define an ambition to unlock missions connected to your own journey.
+          </p>
         )}
         <div className="mt-3">
-          <Link to="/play" hash="mission-board"><Btn>Open ambition mission board →</Btn></Link>
+          <Link to="/play" hash="mission-board">
+            <Btn>Open ambition mission board →</Btn>
+          </Link>
         </div>
       </Card>
 
