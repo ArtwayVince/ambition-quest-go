@@ -134,11 +134,9 @@ export const READINESS = [
 ];
 
 export const DAILY_CHALLENGES = [
-  "Save any amount today — even ₦100 counts",
-  "Learn one fact about your goal",
-  "Complete one readiness scenario",
-  "Explore one tour stop",
-  "Write one sentence about why your goal matters",
+  "Record a real saving toward one of your ambitions",
+  "Record the result of one guided activity",
+  "Write a meaningful journey reflection",
 ];
 
 export const naira = (n: number) => "₦" + n.toLocaleString("en-NG");
