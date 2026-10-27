@@ -42,10 +42,10 @@ function Detail() {
             if (!date) { toast.error("Pick a preferred date"); return; }
             set((p) => ({ ...p, requests: [...p.requests, { id: crypto.randomUUID(), expId: e.id, title: e.title, date, note, at: new Date().toISOString() }] }));
             gain(10, { Network: 5 });
-            toast.success("Request sent — see My requests");
+            toast.success("Request saved on this device. No provider has been notified.");
           }}>Send request</Btn>
         </div>
-        <div className="mt-3"><Notice>Request for verified details only, not a booking. No payment is taken.</Notice></div>
+        <div className="mt-3"><Notice>This request is saved only in this browser for the prototype. No provider is notified, no availability is confirmed, and no booking or payment is made.</Notice></div>
       </Card>
     </Shell>
   );
