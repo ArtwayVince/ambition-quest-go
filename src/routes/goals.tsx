@@ -284,7 +284,9 @@ function Goals() {
                 View this ambition’s action plan →
               </Link>
             </div>
-            <div className="mt-3 flex gap-2">
+            <div id={`record-savings-${g.id}`} className="mt-3 scroll-mt-4 rounded-xl border border-primary/20 p-3">
+              <p className="mb-2 text-sm font-semibold">Record savings toward this ambition</p>
+              <div className="flex gap-2">
               <input
                 inputMode="numeric"
                 type="number"
@@ -297,6 +299,7 @@ function Goals() {
                 className="w-32 rounded-xl border border-input bg-background px-3 py-2"
               />
               <Btn onClick={() => log(g.id)}>Log saving</Btn>
+              </div>
             </div>
             {savedNotice[g.id] && (
               <p role="status" aria-live="polite" className="mt-2 rounded-lg border border-success/30 bg-success/5 p-3 text-sm font-semibold text-success">
