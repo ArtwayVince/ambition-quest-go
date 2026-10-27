@@ -408,18 +408,20 @@ function Dashboard() {
         </div>
       </Card>
 
-      <Card className="mt-4">
-        <h2 className="font-bold">Readiness practice</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Practise decisions for a specific ambition. Your results are tracked separately for each
-          ambition and do not certify real-world readiness.
-        </p>
-        <div className="mt-3">
-          <Link to="/readiness">
-            <Btn variant="ghost">Choose an ambition to practise</Btn>
-          </Link>
-        </div>
-      </Card>
+      {!s.goals.length && (
+        <Card className="mt-4">
+          <h2 className="font-bold">Readiness practice</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            You can practise general planning decisions now, then define an ambition for more
+            tailored scenarios and separate progress tracking.
+          </p>
+          <div className="mt-3">
+            <Link to="/readiness">
+              <Btn variant="ghost">Try general readiness practice</Btn>
+            </Link>
+          </div>
+        </Card>
+      )}
 
       <Card className="mt-4">
         <div className="flex items-center justify-between gap-3">
