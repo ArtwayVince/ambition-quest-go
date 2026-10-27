@@ -34,8 +34,27 @@ function Dashboard() {
   const lvl = levelOf(s.xp);
   const into = s.xp % XP_PER_LEVEL;
   const doneToday = s.dailyDone.filter((d) => d.startsWith(today()));
-  const daily = DAILY_CHALLENGES[new Date().getDate() % DAILY_CHALLENGES.length];
+  const dailyIndex = new Date().getDate() % DAILY_CHALLENGES.length;
+  const daily = DAILY_CHALLENGES[dailyIndex];
   const claimed = doneToday.length > 0;
+  // Daily rewards require a real action recorded today, rather than a free-standing checkbox.
+  const savingsRecordedToday = s.goals.some((goal) =>
+    goal.log.some((entry) => entry.at.slice(0, 10) === today()),
+  );
+  const activityRecordedToday = Object.values(s.goalActivityRecords ?? {}).some((records) =>
+    Object.values(records).some((record) => record.completedAt.slice(0, 10) === today()),
+  );
+  const reflectionRecordedToday = Object.values(s.journeyProgressByGoal ?? {}).some((progress) =>
+    progress.notes.some((entry) => entry.at.slice(0, 10) === today()),
+  );
+  const dailyEvidence = [savingsRecordedToday, activityRecordedToday, reflectionRecordedToday][dailyIndex] ?? false;
+  const dailyGoal = s.goals[0];
+  const dailyJourney = dailyGoal
+    ? (s.aiJourneys?.[dailyGoal.id] ?? journeyFor(dailyGoal.id, dailyGoal.title))
+    : null;
+  const dailyNextActivity = dailyGoal
+    ? dailyJourney?.activities.find((activity) => !s.goalActivityRecords[dailyGoal.id]?.[activity.id])
+    : undefined;
   const journeyGoal = s.goals.find((goal) => goal.id === journeyGoalId) ?? s.goals[0];
   const journeyProgress = journeyGoal
     ? (s.journeyProgressByGoal?.[journeyGoal.id] ?? { stage: 0, notes: [] })
@@ -145,7 +164,7 @@ function Dashboard() {
     }));
     gain(20, { Discipline: 5 });
     STREAK_BADGES.forEach((n) => streak >= n && badge(`${n}-day streak`));
-    toast.success(`Challenge done! Streak: ${streak} 🔥`);
+    toast.success(`Daily challenge complete — +20 XP earned! Streak: ${streak} 🔥`);
   };
 
   return (
@@ -390,19 +409,38 @@ function Dashboard() {
       </Card>
 
       <Card className="mt-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <h2 className="font-bold">Daily challenge</h2>
           <span className="text-sm">🔥 {s.streak} day streak</span>
         </div>
         <p className="mt-2 text-sm">{daily}</p>
-        <div className="mt-3">
-          <Btn disabled={claimed} onClick={completeDaily}>
-            {claimed ? "Done for today ✓" : "Mark complete (+20 XP)"}
+        <p className="mt-1 text-xs text-muted-foreground">
+          Earn XP by recording the action in your ambition journey first. Your confirmation alone is not enough.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {dailyIndex === 0 ? (
+            <Link to="/goals"><Btn variant="ghost">Record savings →</Btn></Link>
+          ) : dailyIndex === 1 ? (
+            dailyGoal && dailyNextActivity ? (
+              <Link to="/dashboard" hash={"activity-" + dailyGoal.id + "-" + dailyNextActivity.id}>
+                <Btn variant="ghost">Record an activity →</Btn>
+              </Link>
+            ) : (
+              <Link to="/goals"><Btn variant="ghost">Review activities →</Btn></Link>
+            )
+          ) : (
+            <Link to="/dashboard" hash="journey-path"><Btn variant="ghost">Write a reflection →</Btn></Link>
+          )}
+          <Btn disabled={claimed || !dailyEvidence} onClick={completeDaily}>
+            {claimed ? "Done for today ✓" : dailyEvidence ? "Claim reward (+20 XP)" : "Record the action first"}
           </Btn>
         </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Total XP: {s.xp} · {claimed ? "Today's reward claimed" : dailyEvidence ? "Your action is recorded; reward ready" : "Waiting for today's action record"}
+        </p>
       </Card>
 
-      <Card className="mt-4">
+      <Card id="journey-path" className="mt-4">
         <h2 className="font-bold">Your journey path</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Each ambition has its own stages and reflections. Progress here applies only to the
@@ -503,20 +541,21 @@ function Dashboard() {
       </Card>
 
       <Card className="mt-4">
-        <h2 className="font-bold">Pilot missions</h2>
-        {[
-          ["m1", "Mission 1 — The Aspiration"],
-          ["m2", "Mission 2 — Know Before You Go"],
-          ["m3", "Mission 3 — The Real Visit"],
-        ].map(([k, l]) => (
-          <p key={k} className="mt-2 text-sm">
-            {s.missions[k as "m1"] ? "✅" : "⬜"} {l}
-          </p>
-        ))}
+        <h2 className="font-bold">Ambition missions</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Missions now follow real progress in your current ambition—not the old resort-only pilot chain.
+        </p>
+        {s.goals.length > 0 ? (
+          <div className="mt-3 space-y-2">
+            <p className="text-sm font-semibold">{s.goals[0].title}</p>
+            <p className="text-sm">{Object.keys(s.goalActivityRecords[s.goals[0].id] ?? {}).length > 0 ? "✅" : "⬜"} Record a result from one guided activity</p>
+            <p className="text-sm">{s.readinessByGoal?.[s.goals[0].id] !== undefined ? "✅" : "⬜"} Complete readiness practice for this ambition</p>
+          </div>
+        ) : (
+          <p className="mt-3 text-sm text-muted-foreground">Define an ambition to unlock missions connected to your own journey.</p>
+        )}
         <div className="mt-3">
-          <Link to="/play">
-            <Btn>Continue missions</Btn>
-          </Link>
+          <Link to="/play"><Btn>Open ambition mission board →</Btn></Link>
         </div>
       </Card>
 
