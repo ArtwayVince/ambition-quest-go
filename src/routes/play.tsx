@@ -12,7 +12,7 @@ export const Route = createFileRoute("/play")({
 });
 
 function Play() {
-  const { s, set, gain, badge } = useStore();
+  const { s, set, gain } = useStore();
   const [q, setQ] = useState(0);
   const [fb, setFb] = useState("");
   const decisionLocked = useRef(false);
