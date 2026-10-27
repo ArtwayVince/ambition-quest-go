@@ -8,6 +8,8 @@ import {
   shouldAwardReadinessXp,
   bestReadinessScore,
   hasCompletedDailyChallenge,
+  isValidPreferredDate,
+  localDateString,
 } from "@/lib/store";
 
 describe("JET OFF rules", () => {
@@ -43,6 +45,17 @@ describe("JET OFF rules", () => {
     expect(shouldAwardReadinessXp({}, "jet")).toBe(true);
     expect(shouldAwardReadinessXp({ jet: true }, "jet")).toBe(false);
     expect(shouldAwardReadinessXp({ jet: true }, "house")).toBe(true);
+  });
+
+  it("accepts experience dates today or later and rejects past dates", () => {
+    expect(isValidPreferredDate("2026-10-27", "2026-10-27")).toBe(true);
+    expect(isValidPreferredDate("2026-10-28", "2026-10-27")).toBe(true);
+    expect(isValidPreferredDate("2026-10-26", "2026-10-27")).toBe(false);
+    expect(isValidPreferredDate("", "2026-10-27")).toBe(false);
+  });
+
+  it("formats date-input values using the local calendar", () => {
+    expect(localDateString(new Date(2026, 9, 7, 12))).toBe("2026-10-07");
   });
 
   it("detects a daily challenge already completed on the same date", () => {

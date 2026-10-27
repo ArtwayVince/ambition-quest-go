@@ -140,6 +140,18 @@ export function useStore() {
 
 export const today = () => new Date().toISOString().slice(0, 10);
 
+/** Format a date using the device's local calendar, as required by date inputs. */
+export const localDateString = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+/** Preferred experience dates must be today or later, using the local calendar. */
+export const isValidPreferredDate = (date: string, todayDate = localDateString()) =>
+  Boolean(date) && date >= todayDate;
+
 /** Encouraging, non-punitive coaching for a saving entry. */
 export function coach(saved: number, target: number, amt: number) {
   const pct = target ? (saved / target) * 100 : 0;
