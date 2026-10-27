@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useLocation } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { Shell, Card, Btn, meta } from "@/components/Shell";
 import { useStore, shouldAwardReadinessXp, type Goal } from "@/lib/store";
@@ -11,13 +11,15 @@ export const Route = createFileRoute("/readiness")({
 
 function Readiness() {
   const { s, set, gain } = useStore();
+  const location = useLocation();
+  const requestedGoalId = typeof location.search.goal === "string" ? location.search.goal : "";
   const [selectedGoalId, setSelectedGoalId] = useState("");
   const [i, setI] = useState(0);
   const [score, setScore] = useState(0);
   const [pick, setPick] = useState<number | null>(null);
   const rewardActionInFlight = useRef<string | null>(null);
   const selectedGoal: Goal | undefined =
-    s.goals.find((goal) => goal.id === selectedGoalId) ?? s.goals[0];
+    s.goals.find((goal) => goal.id === (selectedGoalId || requestedGoalId)) ?? s.goals[0];
   const questions = readinessFor(selectedGoal?.id ?? "", selectedGoal?.title ?? "your ambition");
   const done = i >= questions.length;
   const q = questions[Math.min(i, questions.length - 1)]!;

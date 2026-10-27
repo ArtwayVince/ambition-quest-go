@@ -147,7 +147,9 @@ function Play() {
                 <p className="mt-1 text-sm text-muted-foreground">Mission 3 · Practise decisions relevant to this ambition and review the explanations.</p>
                 <p className="mt-2 text-sm">{missionReadinessDone ? `Practice result recorded: ${s.readinessByGoal?.[missionGoal!.id]}/${missionJourney?.activities.length ? 4 : 4}.` : "Readiness practice has not been completed for this ambition yet."}</p>
                 <p className="mt-2 text-xs font-semibold">{missionReadinessDone ? "Complete ✓" : "In progress"}</p>
-                <div className="mt-3"><Link to="/readiness"><Btn>{missionReadinessDone ? "Practise again" : "Start readiness practice →"}</Btn></Link></div>
+                <div className="mt-3"><Link to="/readiness" search={{ goal: missionGoal!.id }}>
+                    <Btn>{missionReadinessDone ? "Practise again" : "Start readiness practice →"}</Btn>
+                  </Link></div>
               </div>
             </div>
           </Card>
