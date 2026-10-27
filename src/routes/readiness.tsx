@@ -1,7 +1,7 @@
 import { createFileRoute, useLocation } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { Shell, Card, Btn, meta } from "@/components/Shell";
-import { useStore, shouldAwardReadinessXp, type Goal } from "@/lib/store";
+import { useStore, shouldAwardReadinessXp, bestReadinessScore, type Goal } from "@/lib/store";
 import { readinessFor } from "@/lib/journeys";
 
 export const Route = createFileRoute("/readiness")({
@@ -134,7 +134,10 @@ function Readiness() {
                       return {
                         ...p,
                         readiness: Math.max(p.readiness, score),
-                        readinessByGoal: { ...(p.readinessByGoal ?? {}), [goalKey]: score },
+                        readinessByGoal: {
+                          ...(p.readinessByGoal ?? {}),
+                          [goalKey]: bestReadinessScore(p.readinessByGoal?.[goalKey], score),
+                        },
                         readinessRewardedByGoal: alreadyRewarded
                           ? (p.readinessRewardedByGoal ?? {})
                           : { ...(p.readinessRewardedByGoal ?? {}), [goalKey]: true },
