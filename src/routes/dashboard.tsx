@@ -555,7 +555,7 @@ function Dashboard() {
           <p className="mt-3 text-sm text-muted-foreground">Define an ambition to unlock missions connected to your own journey.</p>
         )}
         <div className="mt-3">
-          <Link to="/play"><Btn>Open ambition mission board →</Btn></Link>
+          <Link to="/play" hash="mission-board"><Btn>Open ambition mission board →</Btn></Link>
         </div>
       </Card>
 
