@@ -64,6 +64,9 @@ export const shouldAwardScenarioXp = (completed: number[], scenarioIndex: number
   !completed.includes(scenarioIndex);
 export const shouldAwardReadinessXp = (rewardedByGoal: Record<string, boolean>, goalId: string) =>
   !rewardedByGoal[goalId];
+/** Keep the best score for an ambition while allowing a first score of zero. */
+export const bestReadinessScore = (previous: number | undefined, current: number) =>
+  previous === undefined ? current : Math.max(previous, current);
 export const hasCompletedDailyChallenge = (dailyDone: string[], date: string) =>
   dailyDone.some((entry) => entry.startsWith(`${date}|`));
 export const isMeaningfulReflection = (note: string) =>
