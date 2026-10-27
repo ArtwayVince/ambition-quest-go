@@ -433,22 +433,36 @@ function Dashboard() {
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {dailyIndex === 0 ? (
-            <Link to="/goals">
-              <Btn variant="ghost">Record savings →</Btn>
+            <Link
+              to="/goals"
+              className="inline-flex rounded-xl bg-sunset px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              Record savings →
             </Link>
           ) : dailyIndex === 1 ? (
             dailyGoal && dailyNextActivity ? (
-              <Link to="/dashboard" hash={"activity-" + dailyGoal.id + "-" + dailyNextActivity.id}>
-                <Btn variant="ghost">Record an activity →</Btn>
+              <Link
+                to="/dashboard"
+                hash={"activity-" + dailyGoal.id + "-" + dailyNextActivity.id}
+                className="inline-flex rounded-xl bg-sunset px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                Record an activity →
               </Link>
             ) : (
-              <Link to="/goals">
-                <Btn variant="ghost">Review activities →</Btn>
+              <Link
+                to="/goals"
+                className="inline-flex rounded-xl bg-sunset px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                Review activities →
               </Link>
             )
           ) : (
-            <Link to="/dashboard" hash="journey-path">
-              <Btn variant="ghost">Write a reflection →</Btn>
+            <Link
+              to="/dashboard"
+              hash="journey-path"
+              className="inline-flex rounded-xl bg-sunset px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              Write a reflection →
             </Link>
           )}
           <Btn disabled={claimed || !dailyEvidence} onClick={completeDaily}>
