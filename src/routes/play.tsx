@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
 import { useStore, shouldAwardScenarioXp, type Attr } from "@/lib/store";
 import { BUDGET_SCENARIOS, naira } from "@/lib/data";
+import { journeyFor } from "@/lib/journeys";
 
 export const Route = createFileRoute("/play")({
   head: () => meta("Play", "Budget trade-off simulator with ₦100,000 practice currency and the 3-step pilot mission chain."),
@@ -11,16 +12,21 @@ export const Route = createFileRoute("/play")({
 });
 
 function Play() {
-  const { s, set, gain, badge } = useStore();
+  const { s, set, gain } = useStore();
   const [q, setQ] = useState(0);
   const [fb, setFb] = useState("");
   const decisionLocked = useRef(false);
-  const [asp, setAsp] = useState(s.missions.aspiration ?? "");
-  const [refl, setRefl] = useState("");
-  const [opt, setOpt] = useState<"A" | "B">("B");
-  const [photo, setPhoto] = useState<string>();
+  const [selectedGoalId, setSelectedGoalId] = useState("");
   const scenarioIndex = q % BUDGET_SCENARIOS.length;
   const sc = BUDGET_SCENARIOS[scenarioIndex]!;
+  const missionGoal = s.goals.find((goal) => goal.id === selectedGoalId) ?? s.goals[0];
+  const missionJourney = missionGoal
+    ? (s.aiJourneys?.[missionGoal.id] ?? journeyFor(missionGoal.id, missionGoal.title))
+    : null;
+  const missionRecords = missionGoal ? (s.goalActivityRecords[missionGoal.id] ?? {}) : {};
+  const nextMissionActivity = missionJourney?.activities.find((activity) => !missionRecords[activity.id]);
+  const missionActivityDone = Object.keys(missionRecords).length > 0;
+  const missionReadinessDone = missionGoal ? s.readinessByGoal?.[missionGoal.id] !== undefined : false;
 
   useEffect(() => {
     decisionLocked.current = false;
@@ -55,15 +61,6 @@ function Play() {
     setFb(`${c.feedback}${costText}${rewardText}`);
   };
 
-  const m = s.missions;
-  const finishM3 = () => {
-    if (!refl.trim() || !photo) { toast.error("Add a photo and a short reflection"); return; }
-    set((p) => ({ ...p, missions: { ...p.missions, m3: true, m3Option: opt, reflection: refl, photo } }));
-    gain(100, { Presence: 20, Network: 10, Mindset: 10 }); // guaranteed level-up
-    badge("Pilot Graduate");
-    toast.success("Level Up! Mission chain complete 🎉");
-  };
-
   return (
     <Shell>
       <h1 className="text-3xl font-extrabold">Play</h1>
@@ -96,47 +93,72 @@ function Play() {
         <button className="mt-3 text-xs text-muted-foreground underline" onClick={() => set((p) => ({ ...p, wallet: 100000 }))}>Restart with ₦100,000</button>
       </Card>
 
-      <h2 className="mt-8 text-xl font-bold">Pilot mission chain</h2>
-      <Card className="mt-3">
-        <h3 className="font-bold">{m.m1 ? "✅" : "1."} The Aspiration</h3>
-        <p className="text-sm text-muted-foreground">In one sentence, what experience or goal do you aspire to?</p>
-        <textarea disabled={m.m1} maxLength={280} value={asp} onChange={(e) => setAsp(e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-2" />
-        {!m.m1 && <Btn onClick={() => { if (!asp.trim()) return; set((p) => ({ ...p, missions: { ...p.missions, m1: true, aspiration: asp } })); gain(30, { Mindset: 15 }); }}>Commit</Btn>}
-      </Card>
-
-      <Card className={`mt-3 ${!m.m1 ? "opacity-50" : ""}`}>
-        <h3 className="font-bold">{m.m2 ? "✅" : "2."} Know Before You Go</h3>
-        <p className="text-sm text-muted-foreground">Explore the resort tour through reception and pass the readiness check (3+/4).</p>
-        <p className="mt-2 text-xs">Tour stops: {s.toured.length}/4 required · Readiness best: {s.readiness}/4</p>
-        <div className="mt-2 flex gap-2">
-          <Link to="/tour"><Btn variant="ghost">Open tour</Btn></Link>
-          <Link to="/readiness"><Btn variant="ghost">Readiness coach</Btn></Link>
-          {!m.m2 && <Btn disabled={!m.m1 || s.toured.length < 4 || s.readiness < 3} onClick={() => { set((p) => ({ ...p, missions: { ...p.missions, m2: true } })); gain(40, { Presence: 10, Discipline: 5 }); }}>Complete</Btn>}
-        </div>
-      </Card>
-
-      <Card className={`mt-3 ${!m.m2 ? "opacity-50" : ""}`}>
-        <h3 className="font-bold">{m.m3 ? "✅" : "3."} The Real Visit</h3>
-        {m.m3 ? (
-          <div className="mt-2 text-sm">
-            {m.photo && <img src={m.photo} alt="Your visit" className="mb-2 max-h-48 rounded-xl" />}
-            <p>Option {m.m3Option}: “{m.reflection}”</p>
-          </div>
-        ) : (
-          <fieldset disabled={!m.m2} className="mt-2 space-y-2 text-sm">
-            <label className="flex gap-2"><input type="radio" checked={opt === "A"} onChange={() => setOpt("A")} /> Option A — request a resort visit (see Explore)</label>
-            <label className="flex gap-2"><input type="radio" checked={opt === "B"} onChange={() => setOpt("B")} /> Option B — free alternative (a public park, library or local business visit)</label>
-            <input type="file" accept="image/*" onChange={(e) => {
-              const f = e.target.files?.[0]; if (!f) return;
-              if (f.size > 3e6) { toast.error("Image must be under 3MB"); return; }
-              const r = new FileReader(); r.onload = () => setPhoto(r.result as string); r.readAsDataURL(f);
-            }} />
-            {photo && <img src={photo} alt="Preview" className="max-h-32 rounded-xl" />}
-            <textarea maxLength={500} placeholder="What did you learn?" value={refl} onChange={(e) => setRefl(e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-2" />
-            <Btn onClick={finishM3}>Submit & Level Up</Btn>
-          </fieldset>
-        )}
-      </Card>
+      <h2 id="mission-board" className="mt-8 scroll-mt-4 text-xl font-bold">Ambition mission board</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        These missions are based on progress already recorded in your current ambition. Completing the real action in the app updates the board automatically; there are no separate mission checkboxes.
+      </p>
+      {s.goals.length > 0 ? (
+        <>
+          <Card className="mt-3">
+            <label htmlFor="mission-ambition" className="block text-sm font-semibold">Mission focus</label>
+            <select
+              id="mission-ambition"
+              value={missionGoal?.id ?? ""}
+              onChange={(event) => setSelectedGoalId(event.target.value)}
+              className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-3 text-sm"
+            >
+              {s.goals.map((goal) => <option key={goal.id} value={goal.id}>{goal.title}</option>)}
+            </select>
+            <p className="mt-2 text-xs text-muted-foreground">Mission status is calculated separately for the ambition you select.</p>
+          </Card>
+          <Card className="mt-3">
+            <div className="flex items-start gap-3">
+              <span className="text-xl">{missionGoal ? "🎯" : "1."}</span>
+              <div className="flex-1">
+                <h3 className="font-bold">{missionGoal?.title ?? "Choose an ambition"}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Mission 1 · Establish your direction</p>
+                <p className="mt-2 text-sm">Your ambition is on record. Use its guided journey to turn it into practical steps.</p>
+                <p className="mt-2 text-xs font-semibold text-success">Complete ✓</p>
+                <div className="mt-3"><Link to="/goals"><Btn variant="ghost">Review ambition and savings →</Btn></Link></div>
+              </div>
+            </div>
+          </Card>
+          <Card className="mt-3">
+            <div className="flex items-start gap-3">
+              <span className="text-xl">{missionActivityDone ? "✅" : "2."}</span>
+              <div className="flex-1">
+                <h3 className="font-bold">Record a practical result</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Mission 2 · Complete one guided activity and save what happened or what you learned.</p>
+                <p className="mt-2 text-sm">{missionActivityDone ? `You have ${Object.keys(missionRecords).length} activity result(s) recorded for this ambition.` : "No guided activity result is recorded for this ambition yet."}</p>
+                <p className="mt-2 text-xs font-semibold">{missionActivityDone ? "Complete ✓" : "In progress"}</p>
+                {nextMissionActivity ? (
+                  <div className="mt-3"><Link to="/dashboard" hash={"activity-" + missionGoal!.id + "-" + nextMissionActivity.id}><Btn>{missionActivityDone ? "Continue guided journey →" : "Start first activity →"}</Btn></Link></div>
+                ) : (
+                  <div className="mt-3"><Link to="/goals"><Btn variant="ghost">Review recorded activities →</Btn></Link></div>
+                )}
+              </div>
+            </div>
+          </Card>
+          <Card className="mt-3">
+            <div className="flex items-start gap-3">
+              <span className="text-xl">{missionReadinessDone ? "✅" : "3."}</span>
+              <div className="flex-1">
+                <h3 className="font-bold">Test your preparation</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Mission 3 · Practise decisions relevant to this ambition and review the explanations.</p>
+                <p className="mt-2 text-sm">{missionReadinessDone ? `Practice result recorded: ${s.readinessByGoal?.[missionGoal!.id]}/${missionJourney?.activities.length ? 4 : 4}.` : "Readiness practice has not been completed for this ambition yet."}</p>
+                <p className="mt-2 text-xs font-semibold">{missionReadinessDone ? "Complete ✓" : "In progress"}</p>
+                <div className="mt-3"><Link to="/readiness"><Btn>{missionReadinessDone ? "Practise again" : "Start readiness practice →"}</Btn></Link></div>
+              </div>
+            </div>
+          </Card>
+        </>
+      ) : (
+        <Card className="mt-3">
+          <h3 className="font-bold">Mission 1 · Establish your direction</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Start by adding an ambition. Your mission board will then track guided activity results and readiness practice for that ambition.</p>
+          <div className="mt-3"><Link to="/goals"><Btn>Define my ambition →</Btn></Link></div>
+        </Card>
+      )}
     </Shell>
   );
 }
