@@ -28,6 +28,11 @@ jobs:
       - name: Install dependencies from lockfile
         run: bun install --frozen-lockfile
 
+      - name: Temporary formatting diagnostics
+        run: |
+          bunx prettier src/routes/dashboard.tsx > /tmp/dashboard-formatted.tsx
+          diff -u src/routes/dashboard.tsx /tmp/dashboard-formatted.tsx || true
+
       - name: Check formatting of Phase 1 files
         run: bunx prettier --check src/routes/index.tsx src/routes/dashboard.tsx src/routes/auth.tsx src/components/Shell.tsx
 
