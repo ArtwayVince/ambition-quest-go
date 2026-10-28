@@ -18,6 +18,7 @@ function Bookings() {
         <Card key={r.id} className="mt-3">
           <p className="font-bold">{r.title}</p>
           <p className="text-xs text-muted-foreground">Preferred {r.date} · saved locally · provider not notified</p>
+          {r.goalTitle && <p className="mt-1 text-sm"><b>Linked ambition:</b> {r.goalTitle}</p>}
           {r.note && <p className="mt-1 text-sm">{r.note}</p>}
           <div className="mt-2"><Btn variant="ghost" onClick={() => set((p) => ({ ...p, requests: p.requests.filter((x) => x.id !== r.id) }))}>Withdraw</Btn></div>
         </Card>
