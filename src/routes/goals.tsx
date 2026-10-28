@@ -211,6 +211,31 @@ function Goals() {
             </div>
             <p className="text-sm text-muted-foreground">{naira(g.saved)} of {naira(g.target)} · {pct.toFixed(pct < 1 ? 2 : 0)}%</p>
             <div className="mt-2 h-2 rounded-full bg-muted"><div className="h-full rounded-full bg-sunset" style={{ width: `${Math.max(pct, g.saved ? 1 : 0)}%` }} /></div>
+            <section className="mt-4 rounded-xl border border-primary/20 p-3">
+              <p className="text-sm font-semibold">Experiences for this ambition</p>
+              <p className="mt-1 text-xs text-muted-foreground">These suggestions are selected for their relevance to this ambition. Explore remains available separately for anything you want to discover.</p>
+              {(() => {
+                const matchedExperiences = experiencesForAmbition(g.id, g.title);
+                return matchedExperiences.length > 0 ? (
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {matchedExperiences.map((experience) => (
+                      <Link key={experience.id} to="/experiences/$id" params={{ id: experience.id }} className="rounded-lg border border-border p-3 transition hover:border-primary">
+                        <p className="text-sm font-semibold">{experience.title}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{experience.summary}</p>
+                        <p className="mt-2 text-xs">{experience.verified ? "Provider verified" : "Provider verification pending"} · {experience.price}</p>
+                        <span className="mt-2 inline-flex text-xs font-semibold text-primary underline">View experience →</span>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-3 rounded-lg bg-muted/40 p-3">
+                    <p className="text-sm">There are no currently listed experiences that directly match this ambition.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">We will not label an unrelated venue as progress toward your goal. You can still browse Explore independently, or continue with your self-directed journey.</p>
+                    <Link to="/explore" className="mt-2 inline-flex text-sm font-semibold text-primary underline">Browse all Explore experiences →</Link>
+                  </div>
+                );
+              })()}
+            </section>
             <div id={`journey-milestones-${g.id}`} className="mt-4 scroll-mt-4">
               <p className="text-sm font-semibold">Journey milestones</p>
               <p className="mt-1 text-xs text-muted-foreground">Each milestone is reached only when its related activity has a saved result.</p>
@@ -284,31 +309,6 @@ function Goals() {
                 </div>
               </section>
             )}
-            <section className="mt-4 rounded-xl border border-primary/20 p-3">
-              <p className="text-sm font-semibold">Experiences for this ambition</p>
-              <p className="mt-1 text-xs text-muted-foreground">These suggestions are selected for their relevance to this ambition. Explore remains available separately for anything you want to discover.</p>
-              {(() => {
-                const matchedExperiences = experiencesForAmbition(g.id, g.title);
-                return matchedExperiences.length > 0 ? (
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                    {matchedExperiences.map((experience) => (
-                      <Link key={experience.id} to="/experiences/$id" params={{ id: experience.id }} className="rounded-lg border border-border p-3 transition hover:border-primary">
-                        <p className="text-sm font-semibold">{experience.title}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">{experience.summary}</p>
-                        <p className="mt-2 text-xs">{experience.verified ? "Provider verified" : "Provider verification pending"} · {experience.price}</p>
-                        <span className="mt-2 inline-flex text-xs font-semibold text-primary underline">View experience →</span>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="mt-3 rounded-lg bg-muted/40 p-3">
-                    <p className="text-sm">There are no currently listed experiences that directly match this ambition.</p>
-                    <p className="mt-1 text-xs text-muted-foreground">We will not label an unrelated venue as progress toward your goal. You can still browse Explore independently, or continue with your self-directed journey.</p>
-                    <Link to="/explore" className="mt-2 inline-flex text-sm font-semibold text-primary underline">Browse all Explore experiences →</Link>
-                  </div>
-                );
-              })()}
-            </section>
             <div className="mt-4">
               <p className="text-sm font-semibold">Savings milestones</p>
               <p className="mt-1 text-xs text-muted-foreground">Savings are tracked separately from learning and preparation. The initial target is illustrative and should be reviewed against real costs.</p>
