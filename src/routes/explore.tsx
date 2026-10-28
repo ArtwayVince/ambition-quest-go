@@ -11,6 +11,10 @@ export const Route = createFileRoute("/explore")({
 
 function Explore() {
   const [cat, setCat] = useState<Category | "All">("All");
+  const { s } = useStore();
+  const activeGoal = s.goals[0];
+  const goalText = activeGoal?.title.toLowerCase() ?? "";
+  const suggestedCategory: Category | undefined = /farm|agri|crop|livestock/.test(goalText) ? "Grow & Achieve" : /business|entrepreneur|company|enterprise/.test(goalText) ? "Grow & Achieve" : /skill|learn|school|education|study|course/.test(goalText) ? "Learn & Discover" : /soap|make|build|create|product/.test(goalText) ? "Create & Build" : /jet|travel|resort|holiday|experience|enjoy/.test(goalText) ? "Experience & Enjoyment" : undefined;
   const list = EXPERIENCES.filter((e) => cat === "All" || e.category === cat);
   return (
     <Shell>
