@@ -160,7 +160,8 @@ function Landing() {
             },
             {
               title: "Meet the wider world",
-              description: "Explore experiences and businesses that may become part of your journey.",
+              description:
+                "Explore experiences and businesses that may become part of your journey.",
               to: "/explore",
               hash: undefined,
             },
