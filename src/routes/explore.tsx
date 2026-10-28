@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Shell, Card, Notice, meta } from "@/components/Shell";
 import { CATEGORIES, EXPERIENCES, type Category } from "@/lib/data";
+import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/explore")({
   head: () => meta("Explore", "Curated real-world experiences from registered providers across four categories."),
@@ -19,7 +20,7 @@ function Explore() {
         <p className="font-display text-2xl font-extrabold">Yuby Resort Tour →</p>
         <p className="text-sm">Gate, reception protocols, dress codes & facilities.</p>
       </Link>
-      <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+      {activeGoal && <Card className="mt-4 border-primary/40"><p className="text-xs font-semibold uppercase tracking-wider text-primary">Connect an experience to your ambition</p><p className="mt-1 font-bold">{activeGoal.title}</p><p className="mt-1 text-sm text-muted-foreground">{suggestedCategory ? `Start by exploring ${suggestedCategory.toLowerCase()} experiences that may support this journey.` : "Choose an experience that helps you learn, test an idea, or take a practical step toward this ambition."} Each listing is still subject to provider verification.</p><button className="mt-2 text-sm font-semibold text-primary underline" onClick={() => setCat(suggestedCategory ?? "All")}>{suggestedCategory ? `Show ${suggestedCategory}` : "Browse all experiences"}</button></Card>}\n      <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
         {(["All", ...CATEGORIES] as const).map((c) => (
           <button key={c} onClick={() => setCat(c)} className={`shrink-0 rounded-full border px-3 py-1 text-xs ${cat === c ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{c}</button>
         ))}
