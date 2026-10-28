@@ -8,7 +8,7 @@ export type JourneyProgress = { stage: number; notes: { stage: number; note: str
 export type GoalActivityRecord = { result: string; completedAt: string; reusedFromHistoryId?: string };
 export type GoalNextAction = { id: string; sourceActivityId: string; sourceActionId?: string; sourceActivityTitle: string; sourceResult: string; category: "progress" | "clarify" | "revise" | "help"; title: string; recommendation: string; rationale: string; followUpQuestion?: string; status: "proposed" | "accepted" | "completed"; createdAt: string; acceptedAt?: string; completedAt?: string; result?: string; archivedAt?: string };
 export type GoalActivityHistoryRecord = { id: string; planTitle: string; activityTitle: string; result: string; completedAt: string; archivedAt: string; reusedInActivityId?: string };
-export type Request = { id: string; expId: string; title: string; date: string; note: string; at: string };
+export type Request = { id: string; expId: string; title: string; date: string; note: string; at: string; goalId?: string; goalTitle?: string };
 export type ProviderApp = { id: string; business: string; category: string; contact: string; description: string; status: "pending" | "approved" | "rejected"; at: string };
 
 export type State = {
