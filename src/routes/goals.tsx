@@ -15,15 +15,22 @@ export const Route = createFileRoute("/goals")({
 function experiencesForAmbition(goalId: string, goalTitle: string) {
   const title = goalTitle.toLowerCase();
   let ids: string[] = [];
-  if (goalId === "agri" || /farm|agri|crop|livestock|poultry|fish farm/.test(title)) {
+
+  // Private-jet preparation should show aviation-relevant opportunities only.
+  // No aviation experience is listed yet, so do not mislabel a resort or limo ride.
+  if (goalId === "jet" || /private.?jet|charter flight|aviation/.test(title)) {
+    ids = [];
+  } else if (goalId === "agri" || /farm|agri|crop|livestock|poultry|fish farm/.test(title)) {
     ids = ["agri-visit"];
   } else if (goalId === "biz" || /start a business|entrepreneur|business idea|small business/.test(title)) {
     ids = ["biz-mentor"];
     if (/product|manufactur|soap|make|craft/.test(title)) ids.push("soap-workshop");
   } else if (goalId === "skill" || /practical skill|learn a skill|learn|training/.test(title)) {
     ids = ["soap-workshop", "baking-class", "photo-walk"];
-  } else if (/resort|holiday|leisure|travel|trip|experience|horse riding/.test(title)) {
-    ids = ["yuby-day-visit", "yuby-horse-riding", "kefiano-limo"];
+  } else if (/resort|holiday|leisure|vacation|horse riding/.test(title)) {
+    ids = ["yuby-day-visit", "yuby-horse-riding"];
+  } else if (/limousine|chauffeured ride|city ride/.test(title)) {
+    ids = ["kefiano-limo"];
   }
   return EXPERIENCES.filter((experience) => ids.includes(experience.id));
 }
