@@ -4,13 +4,36 @@ import { toast } from "sonner";
 import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
 import { ActivityNextAction } from "@/components/ActivityNextAction";
 import { useStore, coach, type GoalActivityHistoryRecord } from "@/lib/store";
-import { GOAL_TEMPLATES, naira } from "@/lib/data";
+import { EXPERIENCES, GOAL_TEMPLATES, naira } from "@/lib/data";
 import { journeyFor, milestoneIsComplete } from "@/lib/journeys";
 
 export const Route = createFileRoute("/goals")({
   head: () => meta("Goals", "Choose a long-term ambition and track self-reported savings with encouraging coaching."),
   component: Goals,
 });
+
+function experiencesForAmbition(goalId: string, goalTitle: string) {
+  const title = goalTitle.toLowerCase();
+  let ids: string[] = [];
+
+  // Private-jet preparation should show aviation-relevant opportunities only.
+  // No aviation experience is listed yet, so do not mislabel a resort or limo ride.
+  if (goalId === "jet" || /private.?jet|charter flight|aviation/.test(title)) {
+    ids = [];
+  } else if (goalId === "agri" || /farm|agri|crop|livestock|poultry|fish farm/.test(title)) {
+    ids = ["agri-visit"];
+  } else if (goalId === "biz" || /start a business|entrepreneur|business idea|small business/.test(title)) {
+    ids = ["biz-mentor"];
+    if (/product|manufactur|soap|make|craft/.test(title)) ids.push("soap-workshop");
+  } else if (goalId === "skill" || /practical skill|learn a skill|learn|training/.test(title)) {
+    ids = ["soap-workshop", "baking-class", "photo-walk"];
+  } else if (/resort|holiday|leisure|vacation|horse riding/.test(title)) {
+    ids = ["yuby-day-visit", "yuby-horse-riding"];
+  } else if (/limousine|chauffeured ride|city ride/.test(title)) {
+    ids = ["kefiano-limo"];
+  }
+  return EXPERIENCES.filter((experience) => ids.includes(experience.id));
+}
 
 function Goals() {
   const { s, set, gain } = useStore();
@@ -261,6 +284,31 @@ function Goals() {
                 </div>
               </section>
             )}
+            <section className="mt-4 rounded-xl border border-primary/20 p-3">
+              <p className="text-sm font-semibold">Experiences for this ambition</p>
+              <p className="mt-1 text-xs text-muted-foreground">These suggestions are selected for their relevance to this ambition. Explore remains available separately for anything you want to discover.</p>
+              {(() => {
+                const matchedExperiences = experiencesForAmbition(g.id, g.title);
+                return matchedExperiences.length > 0 ? (
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {matchedExperiences.map((experience) => (
+                      <Link key={experience.id} to="/experiences/$id" params={{ id: experience.id }} className="rounded-lg border border-border p-3 transition hover:border-primary">
+                        <p className="text-sm font-semibold">{experience.title}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{experience.summary}</p>
+                        <p className="mt-2 text-xs">{experience.verified ? "Provider verified" : "Provider verification pending"} · {experience.price}</p>
+                        <span className="mt-2 inline-flex text-xs font-semibold text-primary underline">View experience →</span>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-3 rounded-lg bg-muted/40 p-3">
+                    <p className="text-sm">There are no currently listed experiences that directly match this ambition.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">We will not label an unrelated venue as progress toward your goal. You can still browse Explore independently, or continue with your self-directed journey.</p>
+                    <Link to="/explore" className="mt-2 inline-flex text-sm font-semibold text-primary underline">Browse all Explore experiences →</Link>
+                  </div>
+                );
+              })()}
+            </section>
             <div className="mt-4">
               <p className="text-sm font-semibold">Savings milestones</p>
               <p className="mt-1 text-xs text-muted-foreground">Savings are tracked separately from learning and preparation. The initial target is illustrative and should be reviewed against real costs.</p>

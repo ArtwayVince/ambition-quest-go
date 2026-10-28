@@ -2,24 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Shell, Card, Notice, meta } from "@/components/Shell";
 import { CATEGORIES, EXPERIENCES, type Category } from "@/lib/data";
-import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/explore")({
-  head: () => meta("Explore", "Curated real-world experiences from registered providers across four categories."),
+  head: () => meta("Explore", "Browse experiences and venues across interests, independently of your current ambition."),
   component: Explore,
 });
 
 function Explore() {
   const [cat, setCat] = useState<Category | "All">("All");
-  const { s } = useStore();
-  const activeGoal = s.goals[0];
-  const goalText = activeGoal?.title.toLowerCase() ?? "";
-  const suggestedCategory: Category | undefined =
-    /farm|agri|crop|livestock|agricultural/.test(goalText) ? "Grow & Achieve" :
-    /business|entrepreneur|company|enterprise/.test(goalText) ? "Grow & Achieve" :
-    /skill|learn|school|education|study|course/.test(goalText) ? "Learn & Discover" :
-    /soap|make|build|create|product/.test(goalText) ? "Create & Build" :
-    /jet|travel|resort|holiday|experience|enjoy/.test(goalText) ? "Experience & Enjoyment" : undefined;
   const list = EXPERIENCES.filter((e) => cat === "All" || e.category === cat);
 
   return (
@@ -31,22 +21,7 @@ function Explore() {
         <p className="text-sm">Gate, reception protocols, dress codes & facilities.</p>
       </Link>
 
-      {activeGoal && (
-        <Card className="mt-4 border-primary/40">
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary">Connect an experience to your ambition</p>
-          <p className="mt-1 font-bold">{activeGoal.title}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {suggestedCategory
-              ? `Start by exploring ${suggestedCategory.toLowerCase()} experiences that may support this journey.`
-              : "Choose an experience that helps you learn, test an idea, or take a practical step toward this ambition."}
-            {" "}Each listing is still subject to provider verification.
-          </p>
-          <button className="mt-2 text-sm font-semibold text-primary underline" onClick={() => setCat(suggestedCategory ?? "All")}>
-            {suggestedCategory ? `Show ${suggestedCategory}` : "Browse all experiences"}
-          </button>
-        </Card>
-      )}
-
+      <p className="mt-3 text-sm text-muted-foreground">Browse venues and experiences for recreation, curiosity or new interests. For experiences selected specifically to support an ambition, return to <Link to="/goals" className="font-semibold text-primary underline">Pursue a goal</Link>.</p>
       <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
         {(["All", ...CATEGORIES] as const).map((c) => (
           <button key={c} onClick={() => setCat(c)} className={`shrink-0 rounded-full border px-3 py-1 text-xs ${cat === c ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{c}</button>
