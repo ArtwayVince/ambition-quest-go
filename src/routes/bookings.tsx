@@ -19,6 +19,7 @@ function Bookings() {
           <p className="font-bold">{r.title}</p>
           <p className="text-xs text-muted-foreground">Preferred {r.date} · saved locally · provider not notified</p>
           {r.goalTitle && <p className="mt-1 text-sm"><b>Linked ambition:</b> {r.goalTitle}</p>}
+          {r.providerStatus && <div className="mt-2 rounded-lg border p-3"><p className="text-sm font-semibold">Prototype provider response: {r.providerStatus === "confirmed" ? "Confirmation recorded (not a real booking)" : r.providerStatus === "unavailable" ? "Marked unavailable in prototype" : "Response recorded in prototype"}</p>{r.providerResponse && <p className="mt-1 text-sm">{r.providerResponse}</p>}</div>}
           {r.note && <p className="mt-1 text-sm">{r.note}</p>}
           <div className="mt-2"><Btn variant="ghost" onClick={() => set((p) => ({ ...p, requests: p.requests.filter((x) => x.id !== r.id) }))}>Withdraw</Btn></div>
         </Card>
