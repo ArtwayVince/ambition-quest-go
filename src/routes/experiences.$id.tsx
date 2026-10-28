@@ -18,7 +18,9 @@ export const Route = createFileRoute("/experiences/$id")({
 
 function Detail() {
   const e = Route.useLoaderData();
-  const { set, gain } = useStore();
+  const { s, set, gain } = useStore();
+  const [goalId, setGoalId] = useState(s.goals[0]?.id ?? "");
+  const selectedGoal = s.goals.find((goal) => goal.id === goalId);
   const [date, setDate] = useState("");
   const [note, setNote] = useState("");
   return (
@@ -35,6 +37,7 @@ function Detail() {
       </Card>
       <Card className="mt-4">
         <h2 className="font-bold">Request verified details</h2>
+        {s.goals.length > 0 && <div className="mt-2"><label htmlFor="experience-goal" className="mb-1 block text-sm font-medium">Which ambition is this experience for?</label><select id="experience-goal" value={goalId} onChange={(x) => setGoalId(x.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-2"><option value="">Not linked to an ambition</option>{s.goals.map((goal) => <option key={goal.id} value={goal.id}>{goal.title}</option>)}</select><p className="mt-1 text-xs text-muted-foreground">This helps you keep the request connected to your journey. It does not send information to the provider.</p></div>}
         <div className="mt-2 space-y-2">
           <input type="date" min={localDateString()} value={date} onChange={(x) => setDate(x.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-2" />
           <textarea maxLength={500} placeholder="Questions for the provider (optional)" value={note} onChange={(x) => setNote(x.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-2" />
