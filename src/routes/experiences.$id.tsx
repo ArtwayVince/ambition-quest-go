@@ -40,7 +40,7 @@ function Detail() {
           <textarea maxLength={500} placeholder="Questions for the provider (optional)" value={note} onChange={(x) => setNote(x.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-2" />
           <Btn onClick={() => {
             if (!isValidPreferredDate(date)) { toast.error("Choose today or a future preferred date"); return; }
-            set((p) => ({ ...p, requests: [...p.requests, { id: crypto.randomUUID(), expId: e.id, title: e.title, date, note, at: new Date().toISOString() }] }));
+            set((p) => ({ ...p, requests: [...p.requests, { id: crypto.randomUUID(), expId: e.id, title: e.title, date, note, at: new Date().toISOString(), ...(selectedGoal ? { goalId: selectedGoal.id, goalTitle: selectedGoal.title } : {}) }] }));
             gain(10, { Network: 5 });
             toast.success("Request saved on this device. No provider has been notified.");
           }}>Send request</Btn>
