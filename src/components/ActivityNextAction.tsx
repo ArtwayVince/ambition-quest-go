@@ -72,7 +72,15 @@ export function ActivityNextAction({ goalId, activityId }: { goalId: string; act
       setActionResult("");
       toast.success("Next-step recommendation is ready. Review it before accepting.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Couldn't generate a recommendation. Your result is safe; try again.");
+      const message = error instanceof Error ? error.message : "";
+      if (message === "Failed to fetch" || error instanceof TypeError) {
+        toast.error(
+          "The AI request could not reach the app server. Your recorded result is safe. Refresh the app and try again; if it persists, the preview/server-function connection or server AI configuration needs attention.",
+          { duration: 8000 },
+        );
+      } else {
+        toast.error(message || "Couldn't generate a recommendation. Your result is safe; try again.");
+      }
     } finally {
       setBusy(false);
     }
