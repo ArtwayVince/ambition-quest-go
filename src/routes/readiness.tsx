@@ -2,7 +2,8 @@ import { createFileRoute, useLocation } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { Shell, Card, Btn, meta } from "@/components/Shell";
 import { useStore, shouldAwardReadinessXp, bestReadinessScore, type Goal } from "@/lib/store";
-import { readinessFor } from "@/lib/journeys";
+import { journeyFor, readinessFor } from "@/lib/journeys";
+import { naira } from "@/lib/data";
 
 export const Route = createFileRoute("/readiness")({
   head: () => meta("Readiness Practice", "Scenario-based practice for decisions relevant to your ambition."),
@@ -21,6 +22,17 @@ function Readiness() {
   const selectedGoal: Goal | undefined =
     s.goals.find((goal) => goal.id === (selectedGoalId || requestedGoalId)) ?? s.goals[0];
   const questions = readinessFor(selectedGoal?.id ?? "", selectedGoal?.title ?? "your ambition");
+  const journey = selectedGoal
+    ? (s.aiJourneys?.[selectedGoal.id] ?? journeyFor(selectedGoal.id, selectedGoal.title))
+    : null;
+  const activityRecords = selectedGoal ? (s.goalActivityRecords?.[selectedGoal.id] ?? {}) : {};
+  const completedActivities = journey?.activities.filter((activity) => Boolean(activityRecords[activity.id])).length ?? 0;
+  const totalActivities = journey?.activities.length ?? 0;
+  const savedPercent = selectedGoal && selectedGoal.target > 0
+    ? Math.min(100, Math.round((selectedGoal.saved / selectedGoal.target) * 100))
+    : 0;
+  const journeyProgress = selectedGoal ? (s.journeyProgressByGoal?.[selectedGoal.id] ?? { stage: 0, notes: [] }) : { stage: 0, notes: [] };
+  const bestPracticeScore = selectedGoal ? s.readinessByGoal?.[selectedGoal.id] : s.readiness;
   const done = i >= questions.length;
   const q = questions[Math.min(i, questions.length - 1)]!;
 
@@ -72,6 +84,55 @@ function Readiness() {
             The practice questions become more useful when they can refer to a real ambition. You can
             still practise general planning decisions below.
           </p>
+        </Card>
+      )}
+
+      {selectedGoal && (
+        <Card className="mt-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">Preparation snapshot</p>
+          <h2 className="mt-1 text-xl font-bold">{selectedGoal.title}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            A practical view of what you have recorded so far. This is not a certification or an automatic verdict that you are ready.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-border p-3">
+              <p className="text-xs text-muted-foreground">Journey activities recorded</p>
+              <p className="mt-1 text-lg font-bold">{completedActivities}/{totalActivities}</p>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-secondary">
+                <div className="h-full rounded-full bg-primary" style={{ width: `${totalActivities ? (completedActivities / totalActivities) * 100 : 0}%` }} />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">Based on results you have recorded for this ambition.</p>
+            </div>
+            <div className="rounded-xl border border-border p-3">
+              <p className="text-xs text-muted-foreground">Savings progress</p>
+              <p className="mt-1 text-lg font-bold">{savedPercent}%</p>
+              <p className="mt-1 text-sm">{naira(selectedGoal.saved)} of {naira(selectedGoal.target)}</p>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-secondary">
+                <div className="h-full rounded-full bg-primary" style={{ width: `${savedPercent}%` }} />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">Self-reported tracking only; this app does not hold or verify funds. Savings may not be relevant to every ambition.</p>
+            </div>
+            <div className="rounded-xl border border-border p-3">
+              <p className="text-xs text-muted-foreground">Journey reflections</p>
+              <p className="mt-1 text-lg font-bold">{journeyProgress.notes.length} recorded</p>
+              <p className="mt-1 text-xs text-muted-foreground">Reflections help capture what you did or learned, beyond quiz answers.</p>
+            </div>
+            <div className="rounded-xl border border-border p-3">
+              <p className="text-xs text-muted-foreground">Best practice score</p>
+              <p className="mt-1 text-lg font-bold">{bestPracticeScore === undefined ? "Not taken yet" : `${bestPracticeScore}/${questions.length}`}</p>
+              <p className="mt-1 text-xs text-muted-foreground">A learning indicator, not proof of affordability, skill, approval, booking, or completion.</p>
+            </div>
+          </div>
+          <div className="mt-4 rounded-xl bg-secondary/60 p-3">
+            <p className="text-sm font-semibold">What to do next</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {completedActivities < totalActivities
+                ? "Continue the next unrecorded activity and capture what happened. Use the result to decide your next practical move."
+                : journeyProgress.notes.length === 0
+                  ? "Your listed activities are recorded. Add a meaningful reflection about what you learned, then review any remaining real-world requirements."
+                  : "Review the evidence you have gathered, verify any outstanding requirements, and confirm costs or arrangements with appropriate sources before committing."}
+            </p>
+          </div>
         </Card>
       )}
 
