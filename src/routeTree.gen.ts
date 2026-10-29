@@ -25,6 +25,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TourRouteImport } from './routes/tour'
 import { Route as ExperiencesIdRouteImport } from './routes/experiences.$id'
 import { Route as ProviderApplyRouteImport } from './routes/provider.apply'
+import { Route as ProviderMediaRouteImport } from './routes/provider.media'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -106,6 +107,11 @@ const ProviderApplyRoute = ProviderApplyRouteImport.update({
   path: '/apply',
   getParentRoute: () => ProviderRoute,
 } as any)
+const ProviderMediaRoute = ProviderMediaRouteImport.update({
+  id: '/media',
+  path: '/media',
+  getParentRoute: () => ProviderRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/tour': typeof TourRoute
   '/experiences/$id': typeof ExperiencesIdRoute
   '/provider/apply': typeof ProviderApplyRoute
+  '/provider/media': typeof ProviderMediaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/tour': typeof TourRoute
   '/experiences/$id': typeof ExperiencesIdRoute
   '/provider/apply': typeof ProviderApplyRoute
+  '/provider/media': typeof ProviderMediaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -161,6 +169,7 @@ export interface FileRoutesById {
   '/tour': typeof TourRoute
   '/experiences/$id': typeof ExperiencesIdRoute
   '/provider/apply': typeof ProviderApplyRoute
+  '/provider/media': typeof ProviderMediaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/tour'
     | '/experiences/$id'
     | '/provider/apply'
+    | '/provider/media'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -351,15 +361,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProviderApplyRouteImport
       parentRoute: typeof ProviderRoute
     }
+    '/provider/media': {
+      id: '/provider/media'
+      path: '/media'
+      fullPath: '/provider/media'
+      preLoaderRoute: typeof ProviderMediaRouteImport
+      parentRoute: typeof ProviderRoute
+    }
   }
 }
 
 interface ProviderRouteChildren {
   ProviderApplyRoute: typeof ProviderApplyRoute
+  ProviderMediaRoute: typeof ProviderMediaRoute
 }
 
 const ProviderRouteChildren: ProviderRouteChildren = {
   ProviderApplyRoute: ProviderApplyRoute,
+  ProviderMediaRoute: ProviderMediaRoute,
 }
 
 const ProviderRouteWithChildren = ProviderRoute._addFileChildren(
