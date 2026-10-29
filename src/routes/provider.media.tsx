@@ -44,7 +44,12 @@ function VendorMedia() {
   const [stopId, setStopId] = useState("gate");
   const [caption, setCaption] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [items, setItems] = useState<MediaRow[]>([]);\n  const [customStops, setCustomStops] = useState<CustomStop[]>([]);\n  const [pointName, setPointName] = useState("");\n  const [pointInfo, setPointInfo] = useState("");\n  const [pointProtocol, setPointProtocol] = useState("");\n  const [editingPoint, setEditingPoint] = useState<string | null>(null);
+  const [items, setItems] = useState<MediaRow[]>([]);
+  const [customStops, setCustomStops] = useState<CustomStop[]>([]);
+  const [pointName, setPointName] = useState("");
+  const [pointInfo, setPointInfo] = useState("");
+  const [pointProtocol, setPointProtocol] = useState("");
+  const [editingPoint, setEditingPoint] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const field = "w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground";
@@ -468,7 +473,8 @@ function VendorMedia() {
                     {m.venue_name} · {[...TOUR_STOPS, ...customStops].find((s) => s.id === m.stop_id)?.name ?? m.stop_id}
                   </p>
                   <p className="text-sm text-muted-foreground">{m.caption}</p>
-                  <Btn variant="ghost" disabled={busy} onClick={() => void deleteMedia(m)}>Delete this media</Btn>\n                  <p className="text-xs font-bold uppercase">
+                  <Btn variant="ghost" disabled={busy} onClick={() => void deleteMedia(m)}>Delete this media</Btn>
+                  <p className="text-xs font-bold uppercase">
                     {m.status === "approved"
                       ? "Approved"
                       : m.status === "rejected"
