@@ -109,10 +109,10 @@ export function journeyStagesForGoal(goalId: string, goalTitle: string): Journey
 }
 
 export const TOUR_STOPS = [
-  { id: "gate", name: "Entrance Gate", x: 12, y: 80, info: "Approach slowly. Security may ask for your name, purpose of visit, and booking reference.", protocol: "Wait to be waved through. Do not photograph security posts." },
-  { id: "drive", name: "Driveway & Approach", x: 30, y: 62, info: "Follow directional signage. Speed limits apply on resort grounds.", protocol: "Pedestrians have priority." },
-  { id: "park", name: "Car Park", x: 22, y: 40, info: "Park in marked bays. Keep valuables out of sight.", protocol: "Note your bay for exit." },
-  { id: "reception", name: "Reception", x: 50, y: 48, info: "Every visitor checks in here first. Present ID, confirm services, and receive any wristband or pass.", protocol: "You may not enter facilities before reception check-in." },
+  { id: "gate", name: "Entrance & Security", x: 12, y: 80, info: "This walkthrough is a preparation aid, not a live navigation system. The Adamawa Gate is not the customer entrance; follow the venue’s current directions to the customer vehicle barrier.", protocol: "Stop for security checks and follow staff instructions. Entrance details must be confirmed with the venue before a real visit." },
+  { id: "drive", name: "Customer Vehicle Route", x: 30, y: 62, info: "After the customer vehicle barrier, the directions supplied for this pilot say to turn right toward parking, then follow the sign to reception.", protocol: "Do not use the exit-only gate as an entrance. Confirm current signage and access with the venue before travelling." },
+  { id: "park", name: "Parking Area", x: 22, y: 40, info: "The pilot directions place customer parking to the right after the customer vehicle barrier. Follow staff instructions and any current parking signs.", protocol: "After parking, follow the pedestrian route to reception. The exact layout remains subject to venue confirmation." },
+  { id: "reception", name: "Reception Check-in", x: 50, y: 48, info: "Follow the pedestrian path to reception and complete the required check-in before proceeding to the resort’s main facilities.", protocol: "Do not enter the main area before reception clearance. ID and any booking requirements must be confirmed with the venue." },
   { id: "pool", name: "Swimming Pool", x: 72, y: 30, info: "Shower before swimming. Lifeguard hours to be confirmed.", protocol: "Swimwear in pool area only." },
   { id: "stables", name: "Horse Riding", x: 82, y: 66, info: "Handler-led rides. Safety briefing required.", protocol: "Closed shoes required." },
   { id: "karaoke", name: "Karaoke Lounge", x: 60, y: 78, info: "Evening sessions, subject to availability.", protocol: "Respect queue order." },
