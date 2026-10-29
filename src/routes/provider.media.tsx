@@ -193,7 +193,7 @@ function VendorMedia() {
     if (!session || !window.confirm("Permanently delete this uploaded photo or video?")) return;
     setBusy(true);
     try {
-      await api(`/storage/v1/object/jetoff-venue-media/${item.public_url.split("/").map(encodeURIComponent).join("/")}`, { method: "DELETE" }, session.access_token);
+      await api(`/storage/v1/object/jetoff-venue-media/${(item.object_path ?? item.public_url).split("/").map(encodeURIComponent).join("/")}`, { method: "DELETE" }, session.access_token);
       await api(`/rest/v1/venue_media?id=eq.${encodeURIComponent(item.id)}&user_id=eq.${session.user.id}`, { method: "DELETE" }, session.access_token);
       setItems((old) => old.filter((m) => m.id !== item.id));
       toast.success("Media deleted");
