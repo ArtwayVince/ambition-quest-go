@@ -32,7 +32,7 @@ function Admin() {
     }
   }, []);
   useEffect(() => {
-    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "");
+    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim().replace(/\/+$/, "").replace(/\.supabase\.com(?=\/|$)/i, ".supabase.co");
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
     if (s.role !== "admin" || !base || !key || !token) return;
     fetch(
@@ -81,7 +81,7 @@ function Admin() {
       );
   }, [s.role, token]);
   async function moderateMedia(item: ReviewMedia, status: "approved" | "rejected") {
-    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "");
+    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim().replace(/\/+$/, "").replace(/\.supabase\.com(?=\/|$)/i, ".supabase.co");
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
     if (!base || !key || !token) {
       setMediaMessage(
