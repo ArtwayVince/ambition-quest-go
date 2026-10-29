@@ -26,9 +26,13 @@ function Detail() {
   return (
     <Shell>
       <Link to="/explore" className="text-sm text-muted-foreground">← Explore</Link>
-      <p className="mt-3 text-xs uppercase text-primary">{e.category}</p>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <p className="text-xs uppercase text-primary">{e.category}</p>
+        <span className="rounded-full border border-border px-2 py-1 text-xs font-semibold text-muted-foreground">{e.verified ? "Provider verified" : "Proposed listing · not verified"}</span>
+      </div>
       <h1 className="text-3xl font-extrabold">{e.title}</h1>
       <p className="text-sm text-muted-foreground">{e.provider} · {e.location}</p>
+      {!e.verified && <p className="mt-3 rounded-xl border border-border p-3 text-sm">This is a proposed experience. The provider, venue details, price and availability have not been confirmed. Treat the information below as preliminary.</p>}
       <Card className="mt-4 space-y-2 text-sm">
         <p>{e.summary}</p>
         <p><b>Price:</b> {e.price}</p>
@@ -36,7 +40,8 @@ function Detail() {
         <ul className="list-disc pl-5">{e.requirements.map((r) => <li key={r}>{r}</li>)}</ul>
       </Card>
       <Card className="mt-4">
-        <h2 className="font-bold">Request verified details</h2>
+        <h2 className="font-bold">Prepare an enquiry</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Choose a preferred date and add any questions you would want answered before deciding whether to visit.</p>
         {s.goals.length > 0 && <div className="mt-2"><label htmlFor="experience-goal" className="mb-1 block text-sm font-medium">Which ambition is this experience for?</label><select id="experience-goal" value={goalId} onChange={(x) => setGoalId(x.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-2"><option value="">Not linked to an ambition</option>{s.goals.map((goal) => <option key={goal.id} value={goal.id}>{goal.title}</option>)}</select><p className="mt-1 text-xs text-muted-foreground">This helps you keep the request connected to your journey. It does not send information to the provider.</p></div>}
         <div className="mt-2 space-y-2">
           <input type="date" min={localDateString()} value={date} onChange={(x) => setDate(x.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-2" />
@@ -45,10 +50,10 @@ function Detail() {
             if (!isValidPreferredDate(date)) { toast.error("Choose today or a future preferred date"); return; }
             set((p) => ({ ...p, requests: [...p.requests, { id: crypto.randomUUID(), expId: e.id, title: e.title, date, note, at: new Date().toISOString(), ...(selectedGoal ? { goalId: selectedGoal.id, goalTitle: selectedGoal.title } : {}) }] }));
             gain(10, { Network: 5 });
-            toast.success("Request saved on this device. No provider has been notified.");
+            toast.success("Enquiry draft saved on this device. It has not been sent to the provider.");
           }}>Send request</Btn>
         </div>
-        <div className="mt-3"><Notice>This request is saved only in this browser for the prototype. No provider is notified, no availability is confirmed, and no booking or payment is made.</Notice></div>
+        <div className="mt-3"><Notice>Prototype only: this enquiry is saved in this browser and is not sent to the provider. No availability is confirmed, and no booking or payment is made.</Notice></div>
       </Card>
     </Shell>
   );
