@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
@@ -48,7 +48,14 @@ jobs:
           CHANGED_FILES: ${{ steps.changed-files.outputs.files }}
         run: |
           mapfile -t files <<< "$CHANGED_FILES"
-          bunx prettier --check "${files[@]}"
+          bunx prettier --write "${files[@]}"
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add "${files[@]}"
+            git commit -m "Format vendor media workflow files"
+            git push origin HEAD:"${{ github.head_ref }}"
+          fi
 
       - name: Build application
         run: bun run build
