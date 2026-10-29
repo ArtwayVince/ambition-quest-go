@@ -65,11 +65,12 @@ function Admin() {
             );
             if (!response.ok) throw new Error(await response.text());
             const result = (await response.json()) as { signedURL: string };
+            const signedPath = result.signedURL.startsWith("/")
+              ? result.signedURL
+              : `/${result.signedURL}`;
             const url = result.signedURL.startsWith("http")
               ? result.signedURL
-              : base +
-                "/storage/v1" +
-                (result.signedURL.startsWith("/") ? result.signedURL : "/" + result.signedURL);
+              : `${base}/storage/v1${signedPath}`;
             return { ...row, public_url: url };
           }),
         );
