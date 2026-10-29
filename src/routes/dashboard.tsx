@@ -375,6 +375,28 @@ function Dashboard() {
       )}
 
       <Card className="mt-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Beyond the plan
+            </p>
+            <h2 className="mt-1 font-bold">Life experiences</h2>
+          </div>
+          <span className="text-xs text-muted-foreground">Explore freely</span>
+        </div>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Discover places, workshops and experiences because they interest you—not only because
+          they fit a goal. Keep this part of life separate from ambition progress: exploring an
+          experience does not automatically complete a milestone or prove readiness.
+        </p>
+        <div className="mt-3">
+          <Link to="/explore">
+            <Btn>Explore experiences →</Btn>
+          </Link>
+        </div>
+      </Card>
+
+      <Card className="mt-4">
         <div className="flex items-end justify-between">
           <div>
             <p className="text-xs text-muted-foreground">Level</p>
