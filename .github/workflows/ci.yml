@@ -28,14 +28,38 @@ jobs:
       - name: Install dependencies from lockfile
         run: bun install --frozen-lockfile
 
-      - name: Check formatting of Phase 1 files
-        run: bunx prettier --check src/routes/index.tsx src/routes/dashboard.tsx src/routes/auth.tsx src/components/Shell.tsx
+      - name: Identify changed TypeScript files
+        id: changed-files
+        shell: bash
+        run: |
+          git fetch origin "${{ github.base_ref }}" --depth=1
+          files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.ts' '*.tsx')
+          {
+            echo 'files<<EOF'
+            echo "$files"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check formatting of changed files
+        if: steps.changed-files.outputs.files != ''
+        shell: bash
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.files }}
+        run: |
+          mapfile -t files <<< "$CHANGED_FILES"
+          bunx prettier --check "${files[@]}"
 
       - name: Build application
         run: bun run build
 
-      - name: Lint Phase 1 files
-        run: bunx eslint src/routes/index.tsx src/routes/dashboard.tsx src/routes/auth.tsx src/components/Shell.tsx
+      - name: Lint changed files
+        if: steps.changed-files.outputs.files != ''
+        shell: bash
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.files }}
+        run: |
+          mapfile -t files <<< "$CHANGED_FILES"
+          bunx eslint "${files[@]}"
 
       - name: Run tests
         run: bun run test
