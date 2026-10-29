@@ -46,10 +46,7 @@ function Tour() {
       .then(async (rows: OnlineMediaRow[]) => {
         const signedRows = await Promise.all(
           rows.map(async (row) => {
-            const objectPath = row.public_url
-              .split("/")
-              .map(encodeURIComponent)
-              .join("/");
+            const objectPath = row.public_url.split("/").map(encodeURIComponent).join("/");
             const response = await fetch(
               base + "/storage/v1/object/sign/jetoff-venue-media/" + objectPath,
               {
