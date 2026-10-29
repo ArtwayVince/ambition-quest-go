@@ -9,12 +9,27 @@ export const Route = createFileRoute("/tour")({
   component: Tour,
 });
 
-type TourMedia = { type: "image" | "video"; url: string; caption: string };\ntype OnlineMediaRow = { stop_id: string; media_type: "image" | "video"; public_url: string; caption: string; sort_order: number };
+type TourMedia = { type: "image" | "video"; url: string; caption: string };
+type OnlineMediaRow = { stop_id: string; media_type: "image" | "video"; public_url: string; caption: string; sort_order: number };
 
 function Tour() {
   const { s, set, gain } = useStore();
   const [mode, setMode] = useState<"walk" | "map">("walk");
-  const [i, setI] = useState(0);\n  const [onlineMedia, setOnlineMedia] = useState<Record<string, TourMedia[]>>({});\n  const [mediaLoading, setMediaLoading] = useState(false);\n  useEffect(() => {\n    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\\/$/, "");\n    const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;\n    if (!base || !key) return;\n    let active = true; setMediaLoading(true);\n    fetch(base + "/rest/v1/venue_media?select=stop_id,media_type,public_url,caption,sort_order&venue_name=ilike.*Yuby*Resort*&status=eq.approved&order=sort_order.asc", { headers: { apikey: key } })\n      .then((r) => { if (!r.ok) throw new Error("Unable to load approved venue media"); return r.json(); })\n      .then((rows: OnlineMediaRow[]) => { if (!active) return; const grouped: Record<string, TourMedia[]> = {}; for (const row of rows) { if (!TOUR_STOPS.some((s) => s.id === row.stop_id)) continue; (grouped[row.stop_id] ??= []).push({ type: row.media_type, url: row.public_url, caption: row.caption }); } setOnlineMedia(grouped); })\n      .catch(() => { /* Keep the transparent empty gallery if the service is unavailable. */ })\n      .finally(() => { if (active) setMediaLoading(false); });\n    return () => { active = false; };\n  }, []);
+  const [i, setI] = useState(0);
+  const [onlineMedia, setOnlineMedia] = useState<Record<string, TourMedia[]>>({});
+  const [mediaLoading, setMediaLoading] = useState(false);
+  useEffect(() => {
+    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\\/$/, "");
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+    if (!base || !key) return;
+    let active = true; setMediaLoading(true);
+    fetch(base + "/rest/v1/venue_media?select=stop_id,media_type,public_url,caption,sort_order&venue_name=ilike.*Yuby*Resort*&status=eq.approved&order=sort_order.asc", { headers: { apikey: key } })
+      .then((r) => { if (!r.ok) throw new Error("Unable to load approved venue media"); return r.json(); })
+      .then((rows: OnlineMediaRow[]) => { if (!active) return; const grouped: Record<string, TourMedia[]> = {}; for (const row of rows) { if (!TOUR_STOPS.some((s) => s.id === row.stop_id)) continue; (grouped[row.stop_id] ??= []).push({ type: row.media_type, url: row.public_url, caption: row.caption }); } setOnlineMedia(grouped); })
+      .catch(() => { /* Keep the transparent empty gallery if the service is unavailable. */ })
+      .finally(() => { if (active) setMediaLoading(false); });
+    return () => { active = false; };
+  }, []);
   const stop = TOUR_STOPS[i] ?? TOUR_STOPS[0]!;
   const checkedIn = s.toured.includes("reception");
   const locked = (id: string) => !checkedIn && TOUR_STOPS.findIndex((t) => t.id === id) > 3;
@@ -98,7 +113,8 @@ function Tour() {
           </section>
         ) : (
           <div className="mt-3 rounded-xl border border-dashed border-border p-4">
-            <h3 className="font-bold">Photos & videos for {stop.name}</h3>\n            {mediaLoading && <p className="mt-1 text-sm text-muted-foreground">Checking approved venue media…</p>}
+            <h3 className="font-bold">Photos & videos for {stop.name}</h3>
+            {mediaLoading && <p className="mt-1 text-sm text-muted-foreground">Checking approved venue media…</p>}
             <p className="mt-1 text-sm text-muted-foreground">The gallery is ready, but venue-specific photos and video clips have not yet been added. We are leaving this clearly marked rather than showing unrelated stock media as if it were Yuby Resort.</p>
             <p className="mt-2 text-xs text-muted-foreground">Planned media: real photographs of this area and, where useful, short clips such as guests swimming at the pool.</p>
           </div>
