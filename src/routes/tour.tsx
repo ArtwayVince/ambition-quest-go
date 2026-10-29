@@ -43,10 +43,39 @@ function Tour() {
         if (!r.ok) throw new Error("Unable to load approved venue media");
         return r.json();
       })
-      .then((rows: OnlineMediaRow[]) => {
+      .then(async (rows: OnlineMediaRow[]) => {
+        const signedRows = await Promise.all(
+          rows.map(async (row) => {
+            const objectPath = row.public_url
+              .split("/")
+              .map(encodeURIComponent)
+              .join("/");
+            const response = await fetch(
+              base +
+                "/storage/v1/object/sign/jetoff-venue-media/" +
+                objectPath,
+              {
+                method: "POST",
+                headers: {
+                  apikey: key,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ expiresIn: 3600 }),
+              },
+            );
+            if (!response.ok) throw new Error("Unable to sign approved media");
+            const result = (await response.json()) as { signedURL: string };
+            const url = result.signedURL.startsWith("http")
+              ? result.signedURL
+              : base +
+                "/storage/v1" +
+                (result.signedURL.startsWith("/") ? result.signedURL : "/" + result.signedURL);
+            return { ...row, public_url: url };
+          }),
+        );
         if (!active) return;
         const grouped: Record<string, TourMedia[]> = {};
-        for (const row of rows) {
+        for (const row of signedRows) {
           if (!TOUR_STOPS.some((s) => s.id === row.stop_id)) continue;
           (grouped[row.stop_id] ??= []).push({
             type: row.media_type,
