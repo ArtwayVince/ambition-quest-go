@@ -9,8 +9,8 @@ import { journeyFor } from "@/lib/journeys";
 export const Route = createFileRoute("/")({
   head: () =>
     meta(
-      "Your dream. Your journey.",
-      "Turn an ambition into a journey with meaningful steps, practical learning, real experiences and progress you can see.",
+      "Participate in the life you imagined.",
+      "Turn ambition into practical action with game progress, real saving habits, personal development, participating businesses and real-world experiences.",
     ),
   component: Landing,
 });
@@ -18,21 +18,21 @@ export const Route = createFileRoute("/")({
 const SLIDES = [
   {
     tag: "Your ambition",
-    title: "Big dreams need a first step.",
-    body: "Name what matters to you, see where you stand, and find a practical next move.",
-    badge: "Start where you are",
+    title: "Imagine more. Begin where you are.",
+    body: "Choose a meaningful life ambition — a home, an education, a farm, a business or an extraordinary experience — and turn it into practical next steps.",
+    badge: "Your dream, your journey",
   },
   {
-    tag: "Your journey",
-    title: "Make progress you can see.",
-    body: "Build skills, tackle hurdles, record milestones and learn from each attempt.",
-    badge: "Progress with purpose",
+    tag: "Progress that matters",
+    title: "Play the game. Build real-life discipline.",
+    body: "Earn virtual XP as you learn and act, while tracking actual savings separately. Game rewards motivate your journey; they are not real money.",
+    badge: "Virtual progress. Real action",
   },
   {
-    tag: "The wider world",
-    title: "Learn from journeys beyond yours.",
-    body: "Explore real experiences and, as the community grows, learn from other people's paths.",
-    badge: "Possibilities ahead",
+    tag: "Participate in the life you imagined",
+    title: "Preparation can open the door to experience.",
+    body: "Explore places, experiences and participating businesses that may help you take the next step — when your circumstances permit.",
+    badge: "From preparation to participation",
   },
 ];
 
@@ -134,11 +134,13 @@ function Landing() {
         </div>
       </section>
       <section className="mx-auto max-w-3xl px-5 py-8">
-        <h2 className="text-2xl font-extrabold">A journey built around you</h2>
+        <h2 className="text-2xl font-extrabold">Participate in the life you imagined</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          JET OFF is more than a savings target or a score. It is a place to shape an ambition,
-          understand the gap between today and your goal, and work through meaningful steps at your
-          own pace.
+          JET OFF connects five parts of one journey: your ambition, a motivating game economy,
+          real financial discipline, personal development, and opportunities to engage with
+          participating businesses and real-world experiences. A private jet is only one possible
+          dream — home ownership, farming, education, entrepreneurship and other ambitions belong
+          here too.
         </p>
       </section>
       <section className="mx-auto grid max-w-3xl gap-4 px-5 pb-10 sm:grid-cols-3">
@@ -157,8 +159,8 @@ function Landing() {
               hash: meaningfulStepHash,
             },
             {
-              title: "Explore possibilities",
-              description: "Discover experiences that may help turn plans into reality.",
+              title: "Meet the wider world",
+              description: "Explore real experiences and businesses.",
               to: "/explore",
               hash: undefined,
             },
