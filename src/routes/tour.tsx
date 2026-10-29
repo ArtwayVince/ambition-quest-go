@@ -51,9 +51,7 @@ function Tour() {
               .map(encodeURIComponent)
               .join("/");
             const response = await fetch(
-              base +
-                "/storage/v1/object/sign/jetoff-venue-media/" +
-                objectPath,
+              base + "/storage/v1/object/sign/jetoff-venue-media/" + objectPath,
               {
                 method: "POST",
                 headers: {
@@ -65,11 +63,12 @@ function Tour() {
             );
             if (!response.ok) throw new Error("Unable to sign approved media");
             const result = (await response.json()) as { signedURL: string };
+            const signedPath = result.signedURL.startsWith("/")
+              ? result.signedURL
+              : `/${result.signedURL}`;
             const url = result.signedURL.startsWith("http")
               ? result.signedURL
-              : base +
-                "/storage/v1" +
-                (result.signedURL.startsWith("/") ? result.signedURL : "/" + result.signedURL);
+              : `${base}/storage/v1${signedPath}`;
             return { ...row, public_url: url };
           }),
         );
