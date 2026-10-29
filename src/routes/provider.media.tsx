@@ -20,6 +20,7 @@ type Session = {
   refresh_token?: string;
   user: { id: string; email?: string };
 };
+type CustomStop = { id: string; name: string; info: string; protocol: string; x: number; y: number; venue_name: string; user_id: string };
 type MediaRow = {
   id: string;
   venue_name: string;
@@ -43,7 +44,7 @@ function VendorMedia() {
   const [stopId, setStopId] = useState("gate");
   const [caption, setCaption] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [items, setItems] = useState<MediaRow[]>([]);
+  const [items, setItems] = useState<MediaRow[]>([]);\n  const [customStops, setCustomStops] = useState<CustomStop[]>([]);\n  const [pointName, setPointName] = useState("");\n  const [pointInfo, setPointInfo] = useState("");\n  const [pointProtocol, setPointProtocol] = useState("");\n  const [editingPoint, setEditingPoint] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const field = "w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground";
@@ -142,6 +143,58 @@ function VendorMedia() {
   useEffect(() => {
     if (session) void load(session);
   }, [session?.access_token]);
+
+  async function savePoint(e: React.FormEvent) {
+    e.preventDefault();
+    if (!session || !pointName.trim()) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      const payload = { name: pointName.trim(), info: pointInfo.trim(), protocol: pointProtocol.trim() };
+      if (editingPoint) {
+        await api(`/rest/v1/venue_tour_stops?id=eq.${encodeURIComponent(editingPoint)}&user_id=eq.${session.user.id}`, {
+          method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(payload),
+        }, session.access_token);
+        toast.success("Tour point updated");
+      } else {
+        await api("/rest/v1/venue_tour_stops", {
+          method: "POST", headers: { Prefer: "return=minimal" },
+          body: JSON.stringify({ ...payload, venue_name: venue.trim(), user_id: session.user.id }),
+        }, session.access_token);
+        toast.success("Tour point added");
+      }
+      setPointName(""); setPointInfo(""); setPointProtocol(""); setEditingPoint(null);
+      await load(session);
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Could not save tour point.");
+    } finally { setBusy(false); }
+  }
+
+  async function deletePoint(point: CustomStop) {
+    if (!session || !window.confirm(`Delete "${point.name}"? Media assigned to this point must be deleted or reassigned first.`)) return;
+    setBusy(true);
+    try {
+      const linked = items.filter((m) => m.stop_id === point.id);
+      if (linked.length) throw new Error("This point still has uploaded media. Delete or reassign those media items first.");
+      await api(`/rest/v1/venue_tour_stops?id=eq.${encodeURIComponent(point.id)}&user_id=eq.${session.user.id}`, { method: "DELETE" }, session.access_token);
+      setCustomStops((old) => old.filter((p) => p.id !== point.id));
+      if (stopId === point.id) setStopId("gate");
+      toast.success("Tour point deleted");
+    } catch (e) { setMessage(e instanceof Error ? e.message : "Could not delete point."); }
+    finally { setBusy(false); }
+  }
+
+  async function deleteMedia(item: MediaRow) {
+    if (!session || !window.confirm("Permanently delete this uploaded photo or video?")) return;
+    setBusy(true);
+    try {
+      await api(`/storage/v1/object/jetoff-venue-media/${item.public_url.split("/").map(encodeURIComponent).join("/")}`, { method: "DELETE" }, session.access_token);
+      await api(`/rest/v1/venue_media?id=eq.${encodeURIComponent(item.id)}&user_id=eq.${session.user.id}`, { method: "DELETE" }, session.access_token);
+      setItems((old) => old.filter((m) => m.id !== item.id));
+      toast.success("Media deleted");
+    } catch (e) { setMessage(e instanceof Error ? e.message : "Could not delete media."); }
+    finally { setBusy(false); }
+  }
 
   async function upload(e: React.FormEvent) {
     e.preventDefault();
@@ -337,14 +390,14 @@ function VendorMedia() {
                   value={stopId}
                   onChange={(e) => setStopId(e.target.value)}
                 >
-                  {TOUR_STOPS.map((s) => (
+                  {[...TOUR_STOPS, ...customStops].map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
                     </option>
                   ))}
                 </select>
                 <span className="text-xs text-muted-foreground">
-                  Selected location: <b>{TOUR_STOPS.find((s) => s.id === stopId)?.name}</b>
+                  Selected location: <b>{[...TOUR_STOPS, ...customStops].find((s) => s.id === stopId)?.name}</b>
                 </span>
               </label>
               <label className="block space-y-1 text-sm">
@@ -412,10 +465,10 @@ function VendorMedia() {
                     />
                   )}
                   <p className="font-semibold">
-                    {m.venue_name} · {TOUR_STOPS.find((s) => s.id === m.stop_id)?.name ?? m.stop_id}
+                    {m.venue_name} · {[...TOUR_STOPS, ...customStops].find((s) => s.id === m.stop_id)?.name ?? m.stop_id}
                   </p>
                   <p className="text-sm text-muted-foreground">{m.caption}</p>
-                  <p className="text-xs font-bold uppercase">
+                  <Btn variant="ghost" disabled={busy} onClick={() => void deleteMedia(m)}>Delete this media</Btn>\n                  <p className="text-xs font-bold uppercase">
                     {m.status === "approved"
                       ? "Approved"
                       : m.status === "rejected"
