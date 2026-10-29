@@ -149,6 +149,7 @@ export interface FileRoutesByTo {
   '/tour': typeof TourRoute
   '/experiences/$id': typeof ExperiencesIdRoute
   '/provider/apply': typeof ProviderApplyRoute
+  '/provider/media': typeof ProviderMediaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -168,6 +169,7 @@ export interface FileRoutesById {
   '/tour': typeof TourRoute
   '/experiences/$id': typeof ExperiencesIdRoute
   '/provider/apply': typeof ProviderApplyRoute
+  '/provider/media': typeof ProviderMediaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -376,6 +378,7 @@ interface ProviderRouteChildren {
 
 const ProviderRouteChildren: ProviderRouteChildren = {
   ProviderApplyRoute: ProviderApplyRoute,
+  ProviderMediaRoute: ProviderMediaRoute,
 }
 
 const ProviderRouteWithChildren = ProviderRoute._addFileChildren(
