@@ -23,7 +23,7 @@ type MediaRow = {
   status: string;
   created_at: string;
 };
-const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "");
+const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim().replace(/\/+$/, "").replace(/\.supabase\.com(?=\/|$)/i, ".supabase.co");
 const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 const configured = Boolean(base && anon);
 
