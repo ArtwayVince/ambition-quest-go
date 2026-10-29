@@ -3,6 +3,13 @@ import { useEffect, useState } from "react";
 import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
 import { useStore, type ProviderApp } from "@/lib/store";
 
+function normalizeSupabaseUrl(value: string | undefined) {
+  return value
+    ?.trim()
+    .replace(/\/+$/, "")
+    .replace(/\.supabase\.com(?=\/|$)/i, ".supabase.co");
+}
+
 export const Route = createFileRoute("/admin")({
   head: () => meta("Admin moderation", "Review provider applications and venue media."),
   component: Admin,
@@ -32,7 +39,7 @@ function Admin() {
     }
   }, []);
   useEffect(() => {
-    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "");
+    const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
     if (s.role !== "admin" || !base || !key || !token) return;
     fetch(
@@ -81,7 +88,7 @@ function Admin() {
       );
   }, [s.role, token]);
   async function moderateMedia(item: ReviewMedia, status: "approved" | "rejected") {
-    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "");
+    const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
     if (!base || !key || !token) {
       setMediaMessage(

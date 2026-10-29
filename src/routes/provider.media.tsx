@@ -4,6 +4,13 @@ import { toast } from "sonner";
 import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
 import { TOUR_STOPS } from "@/lib/data";
 
+function normalizeSupabaseUrl(value: string | undefined) {
+  return value
+    ?.trim()
+    .replace(/\/+$/, "")
+    .replace(/\.supabase\.com(?=\/|$)/i, ".supabase.co");
+}
+
 export const Route = createFileRoute("/provider/media")({
   head: () => meta("Venue media manager", "Upload venue photos and videos."),
   component: VendorMedia,
@@ -23,7 +30,7 @@ type MediaRow = {
   status: string;
   created_at: string;
 };
-const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "");
+const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
 const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 const configured = Boolean(base && anon);
 

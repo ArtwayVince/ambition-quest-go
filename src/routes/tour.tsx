@@ -4,6 +4,13 @@ import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
 import { TOUR_STOPS } from "@/lib/data";
 import { useStore } from "@/lib/store";
 
+function normalizeSupabaseUrl(value: string | undefined) {
+  return value
+    ?.trim()
+    .replace(/\/+$/, "")
+    .replace(/\.supabase\.com(?=\/|$)/i, ".supabase.co");
+}
+
 export const Route = createFileRoute("/tour")({
   head: () =>
     meta(
@@ -29,7 +36,7 @@ function Tour() {
   const [onlineMedia, setOnlineMedia] = useState<Record<string, TourMedia[]>>({});
   const [mediaLoading, setMediaLoading] = useState(false);
   useEffect(() => {
-    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "");
+    const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
     if (!base || !key) return;
     let active = true;
