@@ -166,7 +166,7 @@ function VendorMedia() {
       } else {
         await api("/rest/v1/venue_tour_stops", {
           method: "POST", headers: { Prefer: "return=minimal" },
-          body: JSON.stringify({ ...payload, venue_name: venue.trim(), user_id: session.user.id }),
+          body: JSON.stringify({ ...payload, venue_name: venue.trim(), user_id: session.user.id, x: 15 + ((customStops.length * 23) % 70), y: 15 + ((customStops.length * 31) % 70) }),
         }, session.access_token);
         toast.success("Tour point added");
       }
