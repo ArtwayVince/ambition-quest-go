@@ -27,6 +27,7 @@ type MediaRow = {
   stop_id: string;
   media_type: "image" | "video";
   public_url: string;
+  object_path?: string;
   caption: string;
   status: string;
   created_at: string;
@@ -137,6 +138,7 @@ function VendorMedia() {
       const withUrls = await Promise.all(
         (rows ?? []).map(async (row) => ({
           ...row,
+          object_path: row.public_url,
           public_url: await signedUrl(row.public_url, current.access_token),
         })),
       );
