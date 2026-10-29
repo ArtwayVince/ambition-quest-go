@@ -64,7 +64,7 @@ create policy "vendors upload own media objects" on storage.objects
 
 drop policy if exists "vendors read own media objects" on storage.objects;
 create policy "vendors read own media objects" on storage.objects
- for select to authenticated
+ for select to public
  using (
    bucket_id='jetoff-venue-media'
    and (
