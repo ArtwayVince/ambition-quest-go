@@ -19,7 +19,7 @@ function Tour() {
   const [onlineMedia, setOnlineMedia] = useState<Record<string, TourMedia[]>>({});
   const [mediaLoading, setMediaLoading] = useState(false);
   useEffect(() => {
-    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\\/$/, "");
+    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "");
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
     if (!base || !key) return;
     let active = true; setMediaLoading(true);
