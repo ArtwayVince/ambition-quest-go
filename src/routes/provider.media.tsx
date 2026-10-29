@@ -104,6 +104,16 @@ function VendorMedia() {
     }
   }
 
+  async function signedUrl(objectPath: string, token: string) {
+    const result = (await api(
+      `/storage/v1/object/sign/jetoff-venue-media/${objectPath.split("/").map(encodeURIComponent).join("/")}`,
+      { method: "POST", body: JSON.stringify({ expiresIn: 3600 }) },
+      token,
+    )) as { signedURL: string };
+    if (result.signedURL.startsWith("http")) return result.signedURL;
+    return `${base}/storage/v1${result.signedURL.startsWith("/") ? result.signedURL : "/" + result.signedURL}`;
+  }
+
   async function load(current: Session) {
     try {
       const rows = (await api(
@@ -111,7 +121,13 @@ function VendorMedia() {
         {},
         current.access_token,
       )) as MediaRow[];
-      setItems(rows ?? []);
+      const withUrls = await Promise.all(
+        (rows ?? []).map(async (row) => ({
+          ...row,
+          public_url: await signedUrl(row.public_url, current.access_token),
+        })),
+      );
+      setItems(withUrls);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Could not load uploads.");
     }
@@ -155,7 +171,8 @@ function VendorMedia() {
           },
           session.access_token,
         );
-        const publicUrl = `${base}/storage/v1/object/public/jetoff-venue-media/${path}`;
+        // Store the object path, not a public URL. The bucket is private.
+        const objectPath = object;
         await api(
           "/rest/v1/venue_media",
           {
@@ -166,7 +183,7 @@ function VendorMedia() {
               venue_name: venue.trim(),
               stop_id: stopId,
               media_type: video ? "video" : "image",
-              public_url: publicUrl,
+              public_url: objectPath,
               caption:
                 caption.trim() ||
                 `${TOUR_STOPS.find((s) => s.id === stopId)?.name ?? stopId} at ${venue.trim()}`,

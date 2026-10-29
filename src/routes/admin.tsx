@@ -44,7 +44,35 @@ function Admin() {
         if (!r.ok) throw new Error(await r.text());
         return r.json();
       })
-      .then((rows: ReviewMedia[]) => setMedia(rows))
+      .then(async (rows: ReviewMedia[]) => {
+        const signedRows = await Promise.all(
+          rows.map(async (row) => {
+            const objectPath = row.public_url.split("/").map(encodeURIComponent).join("/");
+            const response = await fetch(
+              base + "/storage/v1/object/sign/jetoff-venue-media/" + objectPath,
+              {
+                method: "POST",
+                headers: {
+                  apikey: key,
+                  Authorization: "Bearer " + token,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ expiresIn: 3600 }),
+              },
+            );
+            if (!response.ok) throw new Error(await response.text());
+            const result = (await response.json()) as { signedURL: string };
+            const signedPath = result.signedURL.startsWith("/")
+              ? result.signedURL
+              : `/${result.signedURL}`;
+            const url = result.signedURL.startsWith("http")
+              ? result.signedURL
+              : `${base}/storage/v1${signedPath}`;
+            return { ...row, public_url: url };
+          }),
+        );
+        setMedia(signedRows);
+      })
       .catch((e) =>
         setMediaMessage(
           "Could not load the online media queue. Check Supabase admin role and SQL policies. " +
