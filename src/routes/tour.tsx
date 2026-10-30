@@ -21,7 +21,14 @@ export const Route = createFileRoute("/tour")({
 });
 
 type TourMedia = { type: "image" | "video"; url: string; caption: string };
-type CustomTourStop = { id: string; name: string; info: string; protocol: string; x: number; y: number };
+type CustomTourStop = {
+  id: string;
+  name: string;
+  info: string;
+  protocol: string;
+  x: number;
+  y: number;
+};
 type OnlineMediaRow = {
   stop_id: string;
   media_type: "image" | "video";
@@ -82,7 +89,6 @@ function Tour() {
         if (!active) return;
         const grouped: Record<string, TourMedia[]> = {};
         for (const row of signedRows) {
-          
           (grouped[row.stop_id] ??= []).push({
             type: row.media_type,
             url: row.public_url,
@@ -106,14 +112,24 @@ function Tour() {
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
     if (!base || !key) return;
     let active = true;
-    fetch(base + "/rest/v1/venue_tour_stops?select=id,name,info,protocol,x,y&venue_name=ilike.*Yuby*Resort*&order=created_at.asc", { headers: { apikey: key } })
+    fetch(
+      base +
+        "/rest/v1/venue_tour_stops?select=id,name,info,protocol,x,y&venue_name=ilike.*Yuby*Resort*&order=created_at.asc",
+      { headers: { apikey: key } },
+    )
       .then((response) => {
         if (!response.ok) throw new Error("Unable to load custom tour points");
         return response.json();
       })
-      .then((rows: CustomTourStop[]) => { if (active) setCustomStops(rows ?? []); })
-      .catch(() => { /* Keep the built-in tour points available. */ });
-    return () => { active = false; };
+      .then((rows: CustomTourStop[]) => {
+        if (active) setCustomStops(rows ?? []);
+      })
+      .catch(() => {
+        /* Keep the built-in tour points available. */
+      });
+    return () => {
+      active = false;
+    };
   }, []);
   const stop = allStops[i] ?? allStops[0]!;
   const checkedIn = s.toured.includes("reception");
@@ -162,7 +178,8 @@ function Tour() {
             aria-hidden="true"
           >
             <polyline
-              points={allStops.slice(0, 4)
+              points={allStops
+                .slice(0, 4)
                 .map((t) => `${t.x},${t.y}`)
                 .join(" ")}
               fill="none"
