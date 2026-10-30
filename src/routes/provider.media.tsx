@@ -160,7 +160,7 @@ function VendorMedia() {
     if (!session) return;
     setBusy(true); setMessage("");
     try {
-      await api("/rest/v1/venue_tour_stops", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ id: "custom-" + crypto.randomUUID(), user_id: session.user.id, venue_name: venue.trim(), name: pointName.trim(), info: pointInfo.trim(), protocol: pointProtocol.trim(), status: "pending" }) }, session.access_token);
+      await api("/rest/v1/venue_tour_stops", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ id: crypto.randomUUID(), user_id: session.user.id, venue_name: venue.trim(), name: pointName.trim(), info: pointInfo.trim(), protocol: pointProtocol.trim(), status: "pending" }) }, session.access_token);
       setPointName(""); setPointInfo(""); setPointProtocol("");
       setMessage("Tour point submitted for review. It will appear in the visitor tour after approval.");
       await loadCustomStops(session);
