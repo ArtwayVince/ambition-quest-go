@@ -168,6 +168,22 @@ function VendorMedia() {
     finally { setBusy(false); }
   }
 
+  async function editTourPoint(point: {id:string;name:string;info:string;protocol:string}) {
+    if (!session) return;
+    const name = window.prompt("Tour point name", point.name);
+    if (name === null || !name.trim()) return;
+    const info = window.prompt("Description", point.info);
+    if (info === null || !info.trim()) return;
+    const protocol = window.prompt("Visitor guidance", point.protocol);
+    if (protocol === null) return;
+    setBusy(true);
+    try {
+      await api("/rest/v1/venue_tour_stops?id=eq." + encodeURIComponent(point.id), { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ name: name.trim(), info: info.trim(), protocol: protocol.trim(), status: "pending" }) }, session.access_token);
+      await loadCustomStops(session);
+      setMessage("Changes saved and submitted for review. The public tour will use the revised point after approval.");
+    } catch (e) { setMessage(e instanceof Error ? e.message : "Could not update tour point."); }
+    finally { setBusy(false); }
+  }
   async function deleteTourPoint(point: {id:string;name:string}) {
     if (!session || !window.confirm("Delete tour point " + point.name + "?")) return;
     if (items.some((item) => item.stop_id === point.id)) { setMessage("Delete this point’s media first."); return; }
@@ -441,7 +457,7 @@ function VendorMedia() {
               <label className="block space-y-1 text-sm">Visitor guidance<textarea className={field} maxLength={1000} rows={2} value={pointProtocol} onChange={(e) => setPointProtocol(e.target.value)} /></label>
               <Btn type="submit" disabled={busy || !pointName.trim() || !pointInfo.trim()}>{busy ? "Saving…" : "Add point for review"}</Btn>
             </form>
-            {customStops.map((point) => <div key={point.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"><div><p className="font-semibold">{point.name}</p><p className="text-xs text-muted-foreground capitalize">{point.status} review</p></div><Btn variant="ghost" disabled={busy} onClick={() => void deleteTourPoint(point)}>Delete</Btn></div>)}
+            {customStops.map((point) => <div key={point.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"><div><p className="font-semibold">{point.name}</p><p className="text-xs text-muted-foreground capitalize">{point.status} review</p></div><div className="flex gap-1"><Btn variant="ghost" disabled={busy} onClick={() => void editTourPoint(point)}>Edit</Btn><Btn variant="ghost" disabled={busy} onClick={() => void deleteTourPoint(point)}>Delete</Btn></div></div>)}
           </Card>
           <h2 className="mt-6 text-xl font-bold">Your submissions</h2>
           <p className="mt-1 text-sm text-muted-foreground">
