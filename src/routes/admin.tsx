@@ -14,6 +14,7 @@ export const Route = createFileRoute("/admin")({
   head: () => meta("Admin moderation", "Review provider applications and venue media."),
   component: Admin,
 });
+type ReviewPoint = { id: string; name: string; info: string; protocol: string; venue_name: string; status: string; };
 type ReviewMedia = {
   id: string;
   venue_name: string;
@@ -27,6 +28,7 @@ type ReviewMedia = {
 function Admin() {
   const { s, set } = useStore();
   const [media, setMedia] = useState<ReviewMedia[]>([]);
+  const [points, setPoints] = useState<ReviewPoint[]>([]);
   const [mediaMessage, setMediaMessage] = useState("");
   const [mediaBusy, setMediaBusy] = useState(false);
   const [token, setToken] = useState("");
@@ -42,6 +44,10 @@ function Admin() {
     const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
     if (s.role !== "admin" || !base || !key || !token) return;
+    fetch(base + "/rest/v1/venue_tour_stops?select=id,name,info,protocol,venue_name,status&status=eq.pending&order=created_at.asc", { headers: { apikey: key, Authorization: "Bearer " + token } })
+      .then(async (r) => { if (!r.ok) throw new Error(await r.text()); return r.json(); })
+      .then((rows: ReviewPoint[]) => setPoints(rows))
+      .catch((e) => setMediaMessage("Could not load pending tour points. " + (e instanceof Error ? e.message : "")));
     fetch(
       base +
         "/rest/v1/venue_media?select=id,venue_name,stop_id,media_type,public_url,caption,status&status=eq.pending&order=created_at.asc",
@@ -87,6 +93,23 @@ function Admin() {
         ),
       );
   }, [s.role, token]);
+  async function moderatePoint(item: ReviewPoint, status: "approved" | "rejected") {
+    const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+    if (!base || !key || !token) return;
+    setMediaBusy(true);
+    try {
+      const response = await fetch(base + "/rest/v1/venue_tour_stops?id=eq." + encodeURIComponent(item.id), {
+        method: "PATCH",
+        headers: { apikey: key, Authorization: "Bearer " + token, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      setPoints((old) => old.filter((point) => point.id !== item.id));
+      setMediaMessage("Tour point marked " + status + ".");
+    } catch (e) { setMediaMessage(e instanceof Error ? e.message : "Tour point review failed."); }
+    finally { setMediaBusy(false); }
+  }
   async function moderateMedia(item: ReviewMedia, status: "approved" | "rejected") {
     const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -157,6 +180,11 @@ function Admin() {
           </div>
         </Card>
       ))}
+      <section className="mt-8">
+        <h2 className="text-2xl font-bold">Tour point review</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Review new venue locations before they appear in the visitor tour.</p>
+        {points.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">No pending tour points.</p> : <div className="mt-3 grid gap-3 sm:grid-cols-2">{points.map((point) => <Card key={point.id} className="space-y-2"><p className="font-bold">{point.name} · {point.venue_name}</p><p className="text-sm">{point.info}</p>{point.protocol && <p className="text-xs text-muted-foreground">Visitor guidance: {point.protocol}</p>}<div className="flex gap-2"><Btn disabled={mediaBusy} onClick={() => void moderatePoint(point, "approved")}>Approve</Btn><Btn variant="ghost" disabled={mediaBusy} onClick={() => void moderatePoint(point, "rejected")}>Reject</Btn></div></Card>)}</div>}
+      </section>
       <section className="mt-8">
         <h2 className="text-2xl font-bold">Venue media review</h2>
         <p className="mt-1 text-sm text-muted-foreground">

@@ -29,6 +29,7 @@ type MediaRow = {
   caption: string;
   status: string;
   created_at: string;
+  object_path: string;
 };
 const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
 const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -44,6 +45,10 @@ function VendorMedia() {
   const [caption, setCaption] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [items, setItems] = useState<MediaRow[]>([]);
+  const [customStops, setCustomStops] = useState<Array<{id:string;name:string;info:string;protocol:string;status:string}>>([]);
+  const [pointName, setPointName] = useState("");
+  const [pointInfo, setPointInfo] = useState("");
+  const [pointProtocol, setPointProtocol] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const field = "w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground";
@@ -131,6 +136,7 @@ function VendorMedia() {
       const withUrls = await Promise.all(
         (rows ?? []).map(async (row) => ({
           ...row,
+          object_path: row.public_url,
           public_url: await signedUrl(row.public_url, current.access_token),
         })),
       );
@@ -139,9 +145,66 @@ function VendorMedia() {
       setMessage(e instanceof Error ? e.message : "Could not load uploads.");
     }
   }
+  async function loadCustomStops(current: Session) {
+    try {
+      const rows = (await api("/rest/v1/venue_tour_stops?select=id,name,info,protocol,status&user_id=eq." + current.user.id + "&order=created_at.desc", {}, current.access_token)) as Array<{id:string;name:string;info:string;protocol:string;status:string}>;
+      setCustomStops(rows ?? []);
+    } catch (e) { setMessage(e instanceof Error ? e.message : "Could not load tour points."); }
+  }
   useEffect(() => {
-    if (session) void load(session);
+    if (session) { void load(session); void loadCustomStops(session); }
   }, [session?.access_token]);
+
+  async function addTourPoint(e: React.FormEvent) {
+    e.preventDefault();
+    if (!session) return;
+    setBusy(true); setMessage("");
+    try {
+      await api("/rest/v1/venue_tour_stops", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ id: "custom-" + crypto.randomUUID(), user_id: session.user.id, venue_name: venue.trim(), name: pointName.trim(), info: pointInfo.trim(), protocol: pointProtocol.trim(), status: "pending" }) }, session.access_token);
+      setPointName(""); setPointInfo(""); setPointProtocol("");
+      setMessage("Tour point submitted for review. It will appear in the visitor tour after approval.");
+      await loadCustomStops(session);
+    } catch (e) { setMessage(e instanceof Error ? e.message : "Could not add tour point."); }
+    finally { setBusy(false); }
+  }
+
+  async function editTourPoint(point: {id:string;name:string;info:string;protocol:string}) {
+    if (!session) return;
+    const name = window.prompt("Tour point name", point.name);
+    if (name === null || !name.trim()) return;
+    const info = window.prompt("Description", point.info);
+    if (info === null || !info.trim()) return;
+    const protocol = window.prompt("Visitor guidance", point.protocol);
+    if (protocol === null) return;
+    setBusy(true);
+    try {
+      await api("/rest/v1/venue_tour_stops?id=eq." + encodeURIComponent(point.id), { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ name: name.trim(), info: info.trim(), protocol: protocol.trim(), status: "pending" }) }, session.access_token);
+      await loadCustomStops(session);
+      setMessage("Changes saved and submitted for review. The public tour will use the revised point after approval.");
+    } catch (e) { setMessage(e instanceof Error ? e.message : "Could not update tour point."); }
+    finally { setBusy(false); }
+  }
+  async function deleteTourPoint(point: {id:string;name:string}) {
+    if (!session || !window.confirm("Delete tour point " + point.name + "?")) return;
+    if (items.some((item) => item.stop_id === point.id)) { setMessage("Delete this point’s media first."); return; }
+    setBusy(true);
+    try {
+      await api("/rest/v1/venue_tour_stops?id=eq." + encodeURIComponent(point.id), { method: "DELETE" }, session.access_token);
+      setCustomStops((old) => old.filter((item) => item.id !== point.id)); setMessage("Tour point deleted.");
+    } catch (e) { setMessage(e instanceof Error ? e.message : "Could not delete tour point."); }
+    finally { setBusy(false); }
+  }
+
+  async function deleteMedia(item: MediaRow) {
+    if (!session || !window.confirm("Permanently delete this " + item.media_type + "?")) return;
+    setBusy(true); setMessage("");
+    try {
+      await api("/rest/v1/venue_media?id=eq." + encodeURIComponent(item.id), { method: "DELETE" }, session.access_token);
+      await api("/storage/v1/object/jetoff-venue-media/" + item.object_path.split("/").map(encodeURIComponent).join("/"), { method: "DELETE" }, session.access_token);
+      setItems((old) => old.filter((entry) => entry.id !== item.id)); setMessage("Media deleted.");
+    } catch (e) { setMessage(e instanceof Error ? e.message : "Could not delete media."); await load(session); }
+    finally { setBusy(false); }
+  }
 
   async function upload(e: React.FormEvent) {
     e.preventDefault();
@@ -337,7 +400,7 @@ function VendorMedia() {
                   value={stopId}
                   onChange={(e) => setStopId(e.target.value)}
                 >
-                  {TOUR_STOPS.map((s) => (
+                  {[...TOUR_STOPS, ...customStops].map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
                     </option>
@@ -385,6 +448,17 @@ function VendorMedia() {
               </Btn>
             </form>
           </Card>
+          <Card className="mt-5 space-y-3">
+            <h2 className="text-xl font-bold">Add a new tour point</h2>
+            <p className="text-sm text-muted-foreground">New points are reviewed before visitors can see them.</p>
+            <form className="space-y-3" onSubmit={(e) => void addTourPoint(e)}>
+              <label className="block space-y-1 text-sm">Point name<input className={field} required maxLength={100} value={pointName} onChange={(e) => setPointName(e.target.value)} /></label>
+              <label className="block space-y-1 text-sm">Description<textarea className={field} required maxLength={1000} rows={3} value={pointInfo} onChange={(e) => setPointInfo(e.target.value)} /></label>
+              <label className="block space-y-1 text-sm">Visitor guidance<textarea className={field} maxLength={1000} rows={2} value={pointProtocol} onChange={(e) => setPointProtocol(e.target.value)} /></label>
+              <Btn type="submit" disabled={busy || !pointName.trim() || !pointInfo.trim()}>{busy ? "Saving…" : "Add point for review"}</Btn>
+            </form>
+            {customStops.map((point) => <div key={point.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"><div><p className="font-semibold">{point.name}</p><p className="text-xs text-muted-foreground capitalize">{point.status} review</p></div><div className="flex gap-1"><Btn variant="ghost" disabled={busy} onClick={() => void editTourPoint(point)}>Edit</Btn><Btn variant="ghost" disabled={busy} onClick={() => void deleteTourPoint(point)}>Delete</Btn></div></div>)}
+          </Card>
           <h2 className="mt-6 text-xl font-bold">Your submissions</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Pending media is private to your account. Only approved media appears in the visitor
@@ -422,6 +496,7 @@ function VendorMedia() {
                         ? "Needs changes"
                         : "Pending review"}
                   </p>
+                  <Btn variant="ghost" disabled={busy} onClick={() => void deleteMedia(m)}>Delete this {m.media_type}</Btn>
                 </Card>
               ))}
             </div>
