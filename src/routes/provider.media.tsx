@@ -29,6 +29,7 @@ type MediaRow = {
   caption: string;
   status: string;
   created_at: string;
+  object_path: string;
 };
 const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
 const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -135,6 +136,7 @@ function VendorMedia() {
       const withUrls = await Promise.all(
         (rows ?? []).map(async (row) => ({
           ...row,
+          object_path: row.public_url,
           public_url: await signedUrl(row.public_url, current.access_token),
         })),
       );
@@ -182,7 +184,7 @@ function VendorMedia() {
     setBusy(true); setMessage("");
     try {
       await api("/rest/v1/venue_media?id=eq." + encodeURIComponent(item.id), { method: "DELETE" }, session.access_token);
-      await api("/storage/v1/object/jetoff-venue-media/" + item.public_url.split("/").map(encodeURIComponent).join("/"), { method: "DELETE" }, session.access_token);
+      await api("/storage/v1/object/jetoff-venue-media/" + item.object_path.split("/").map(encodeURIComponent).join("/"), { method: "DELETE" }, session.access_token);
       setItems((old) => old.filter((entry) => entry.id !== item.id)); setMessage("Media deleted.");
     } catch (e) { setMessage(e instanceof Error ? e.message : "Could not delete media."); await load(session); }
     finally { setBusy(false); }
