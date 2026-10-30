@@ -79,3 +79,35 @@ create policy "vendors read own media objects" on storage.objects
 
 drop policy if exists "public read venue media objects" on storage.objects;
 -- Do not grant public object reads. Approved visitors receive time-limited signed URLs only.
+
+-- Vendor-created tour points. They remain pending until an administrator approves them.
+create table if not exists public.venue_tour_stops (
+ id text primary key check (char_length(id) between 8 and 100),
+ user_id uuid not null references auth.users(id) on delete cascade,
+ venue_name text not null check (char_length(venue_name) between 2 and 120),
+ name text not null check (char_length(name) between 2 and 100),
+ info text not null check (char_length(info) between 2 and 1000),
+ protocol text not null default '',
+ status text not null default 'pending' check (status in ('pending','approved','rejected')),
+ created_at timestamptz not null default now()
+);
+alter table public.venue_tour_stops enable row level security;
+grant select, insert, update, delete on public.venue_tour_stops to authenticated;
+grant select on public.venue_tour_stops to anon;
+drop policy if exists "vendors read own tour points" on public.venue_tour_stops;
+create policy "vendors read own tour points" on public.venue_tour_stops for select to authenticated using (auth.uid() = user_id or status = 'approved' or (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+drop policy if exists "public read approved tour points" on public.venue_tour_stops;
+create policy "public read approved tour points" on public.venue_tour_stops for select to anon using (status = 'approved');
+drop policy if exists "vendors add own tour points" on public.venue_tour_stops;
+create policy "vendors add own tour points" on public.venue_tour_stops for insert to authenticated with check (auth.uid() = user_id and status = 'pending');
+drop policy if exists "vendors edit own pending tour points" on public.venue_tour_stops;
+create policy "vendors edit own pending tour points" on public.venue_tour_stops for update to authenticated using (auth.uid() = user_id and status = 'pending') with check (auth.uid() = user_id and status = 'pending');
+drop policy if exists "vendors delete own tour points" on public.venue_tour_stops;
+create policy "vendors delete own tour points" on public.venue_tour_stops for delete to authenticated using (auth.uid() = user_id);
+drop policy if exists "admins moderate tour points" on public.venue_tour_stops;
+create policy "admins moderate tour points" on public.venue_tour_stops for update to authenticated using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin') with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+
+drop policy if exists "vendors delete own media rows" on public.venue_media;
+create policy "vendors delete own media rows" on public.venue_media for delete to authenticated using (auth.uid() = user_id);
+drop policy if exists "vendors delete own media objects" on storage.objects;
+create policy "vendors delete own media objects" on storage.objects for delete to authenticated using (bucket_id='jetoff-venue-media' and (storage.foldername(name))[1]=auth.uid()::text);
