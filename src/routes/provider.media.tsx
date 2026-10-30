@@ -160,7 +160,7 @@ function VendorMedia() {
     if (!session) return;
     setBusy(true); setMessage("");
     try {
-      await api("/rest/v1/venue_tour_stops", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ id: "custom-" + crypto.randomUUID(), user_id: session.user.id, venue_name: venue.trim(), name: pointName.trim(), info: pointInfo.trim(), protocol: pointProtocol.trim(), status: "pending" }) }, session.access_token);
+      await api("/rest/v1/venue_tour_stops", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ id: crypto.randomUUID(), user_id: session.user.id, venue_name: venue.trim(), name: pointName.trim(), info: pointInfo.trim(), protocol: pointProtocol.trim(), status: "pending" }) }, session.access_token);
       setPointName(""); setPointInfo(""); setPointProtocol("");
       setMessage("Tour point submitted for review. It will appear in the visitor tour after approval.");
       await loadCustomStops(session);
@@ -486,7 +486,7 @@ function VendorMedia() {
                     />
                   )}
                   <p className="font-semibold">
-                    {m.venue_name} · {TOUR_STOPS.find((s) => s.id === m.stop_id)?.name ?? m.stop_id}
+                    {m.venue_name} · {TOUR_STOPS.find((s) => s.id === m.stop_id)?.name ?? customStops.find((s) => s.id === m.stop_id)?.name ?? "Additional venue point"}
                   </p>
                   <p className="text-sm text-muted-foreground">{m.caption}</p>
                   <p className="text-xs font-bold uppercase">
