@@ -101,7 +101,7 @@ create policy "public read approved tour points" on public.venue_tour_stops for 
 drop policy if exists "vendors add own tour points" on public.venue_tour_stops;
 create policy "vendors add own tour points" on public.venue_tour_stops for insert to authenticated with check (auth.uid() = user_id and status = 'pending');
 drop policy if exists "vendors edit own pending tour points" on public.venue_tour_stops;
-create policy "vendors edit own pending tour points" on public.venue_tour_stops for update to authenticated using (auth.uid() = user_id and status = 'pending') with check (auth.uid() = user_id and status = 'pending');
+create policy "vendors edit own pending tour points" on public.venue_tour_stops for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id and status = 'pending');
 drop policy if exists "vendors delete own tour points" on public.venue_tour_stops;
 create policy "vendors delete own tour points" on public.venue_tour_stops for delete to authenticated using (auth.uid() = user_id);
 drop policy if exists "admins moderate tour points" on public.venue_tour_stops;
