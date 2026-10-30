@@ -486,7 +486,7 @@ function VendorMedia() {
                     />
                   )}
                   <p className="font-semibold">
-                    {m.venue_name} · {TOUR_STOPS.find((s) => s.id === m.stop_id)?.name ?? m.stop_id}
+                    {m.venue_name} · {TOUR_STOPS.find((s) => s.id === m.stop_id)?.name ?? customStops.find((s) => s.id === m.stop_id)?.name ?? "Additional venue point"}
                   </p>
                   <p className="text-sm text-muted-foreground">{m.caption}</p>
                   <p className="text-xs font-bold uppercase">
