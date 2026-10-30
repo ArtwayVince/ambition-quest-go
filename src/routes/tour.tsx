@@ -21,6 +21,14 @@ export const Route = createFileRoute("/tour")({
 });
 
 type TourMedia = { type: "image" | "video"; url: string; caption: string };
+type CustomTourStop = {
+  id: string;
+  name: string;
+  info: string;
+  protocol: string;
+  x: number;
+  y: number;
+};
 type OnlineMediaRow = {
   stop_id: string;
   media_type: "image" | "video";
@@ -34,6 +42,8 @@ function Tour() {
   const [mode, setMode] = useState<"walk" | "map">("walk");
   const [i, setI] = useState(0);
   const [onlineMedia, setOnlineMedia] = useState<Record<string, TourMedia[]>>({});
+  const [customStops, setCustomStops] = useState<CustomTourStop[]>([]);
+  const allStops = [...TOUR_STOPS, ...customStops];
   const [mediaLoading, setMediaLoading] = useState(false);
   useEffect(() => {
     const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
@@ -79,7 +89,6 @@ function Tour() {
         if (!active) return;
         const grouped: Record<string, TourMedia[]> = {};
         for (const row of signedRows) {
-          if (!TOUR_STOPS.some((s) => s.id === row.stop_id)) continue;
           (grouped[row.stop_id] ??= []).push({
             type: row.media_type,
             url: row.public_url,
@@ -98,13 +107,37 @@ function Tour() {
       active = false;
     };
   }, []);
-  const stop = TOUR_STOPS[i] ?? TOUR_STOPS[0]!;
+  useEffect(() => {
+    const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+    if (!base || !key) return;
+    let active = true;
+    fetch(
+      base +
+        "/rest/v1/venue_tour_stops?select=id,name,info,protocol,x,y&venue_name=ilike.*Yuby*Resort*&order=created_at.asc",
+      { headers: { apikey: key } },
+    )
+      .then((response) => {
+        if (!response.ok) throw new Error("Unable to load custom tour points");
+        return response.json();
+      })
+      .then((rows: CustomTourStop[]) => {
+        if (active) setCustomStops(rows ?? []);
+      })
+      .catch(() => {
+        /* Keep the built-in tour points available. */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const stop = allStops[i] ?? allStops[0]!;
   const checkedIn = s.toured.includes("reception");
-  const locked = (id: string) => !checkedIn && TOUR_STOPS.findIndex((t) => t.id === id) > 3;
+  const locked = (id: string) => !checkedIn && allStops.findIndex((t) => t.id === id) > 3;
   const media = onlineMedia[stop.id] ?? (stop as typeof stop & { media?: TourMedia[] }).media ?? [];
 
   const visit = (k: number) => {
-    const t = TOUR_STOPS[k];
+    const t = allStops[k];
     if (!t || locked(t.id)) return;
     setI(k);
     if (!s.toured.includes(t.id)) {
@@ -145,7 +178,8 @@ function Tour() {
             aria-hidden="true"
           >
             <polyline
-              points={TOUR_STOPS.slice(0, 4)
+              points={allStops
+                .slice(0, 4)
                 .map((t) => `${t.x},${t.y}`)
                 .join(" ")}
               fill="none"
@@ -154,7 +188,7 @@ function Tour() {
               strokeDasharray="2 1"
             />
           </svg>
-          {TOUR_STOPS.map((t, k) => (
+          {allStops.map((t, k) => (
             <button
               key={t.id}
               onClick={() => visit(k)}
@@ -170,7 +204,7 @@ function Tour() {
       ) : (
         <div className="mt-4">
           <p className="text-sm text-muted-foreground">
-            Stop {i + 1} of {TOUR_STOPS.length}
+            Stop {i + 1} of {allStops.length}
           </p>
           <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
             {TOUR_STOPS.map((t, k) => (
@@ -267,7 +301,7 @@ function Tour() {
               Back
             </Btn>
             <Btn
-              disabled={i === TOUR_STOPS.length - 1 || locked(TOUR_STOPS[i + 1]?.id ?? "")}
+              disabled={i === allStops.length - 1 || locked(allStops[i + 1]?.id ?? "")}
               onClick={() => visit(i + 1)}
             >
               Next stop
@@ -276,7 +310,7 @@ function Tour() {
         )}
       </Card>
       <p className="mt-3 text-xs text-muted-foreground">
-        Explored {s.toured.length}/{TOUR_STOPS.length} stops
+        Explored {s.toured.length}/{allStops.length} stops
       </p>
     </Shell>
   );
