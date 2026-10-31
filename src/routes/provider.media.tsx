@@ -256,7 +256,7 @@ function VendorMedia() {
               public_url: objectPath,
               caption:
                 caption.trim() ||
-                `${TOUR_STOPS.find((s) => s.id === stopId)?.name ?? stopId} at ${venue.trim()}`,
+                `${TOUR_STOPS.find((s) => s.id === stopId)?.name ?? customStops.find((s) => s.id === stopId)?.name ?? "Additional venue point"} at ${venue.trim()}`,
               status: "pending",
             }),
           },
@@ -488,7 +488,7 @@ function VendorMedia() {
                   <p className="font-semibold">
                     {m.venue_name} · {TOUR_STOPS.find((s) => s.id === m.stop_id)?.name ?? customStops.find((s) => s.id === m.stop_id)?.name ?? "Additional venue point"}
                   </p>
-                  <p className="text-sm text-muted-foreground">{m.caption}</p>
+                  <p className="text-sm text-muted-foreground">{m.caption === `${m.stop_id} at ${m.venue_name}` ? `${TOUR_STOPS.find((s) => s.id === m.stop_id)?.name ?? customStops.find((s) => s.id === m.stop_id)?.name ?? "Additional venue point"} at ${m.venue_name}` : m.caption}</p>
                   <p className="text-xs font-bold uppercase">
                     {m.status === "approved"
                       ? "Approved"
