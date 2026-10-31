@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, Card, Btn, Notice, meta } from "@/components/Shell";
 import { TOUR_STOPS } from "@/lib/data";
-import { useStore } from "@/lib/store";
 
 function normalizeSupabaseUrl(value: string | undefined) {
   return value
@@ -31,7 +30,7 @@ type OnlineMediaRow = {
 };
 
 function Tour() {
-  const { s, set, gain } = useStore();
+  const [exploredStops, setExploredStops] = useState<string[]>([]);
   const [mode, setMode] = useState<"walk" | "map">("walk");
   const [i, setI] = useState(0);
   const [onlineMedia, setOnlineMedia] = useState<Record<string, TourMedia[]>>({});
@@ -105,26 +104,21 @@ function Tour() {
     };
   }, []);
   const stop = allStops[i] ?? allStops[0]!;
-  const checkedIn = s.toured.includes("reception");
-  const locked = (id: string) => !checkedIn && allStops.findIndex((t) => t.id === id) > 3;
   const media = onlineMedia[stop.id] ?? (stop as typeof stop & { media?: TourMedia[] }).media ?? [];
 
   const visit = (k: number) => {
     const t = allStops[k];
-    if (!t || locked(t.id)) return;
+    if (!t) return;
     setI(k);
-    if (!s.toured.includes(t.id)) {
-      set((p) => ({ ...p, toured: [...p.toured, t.id] }));
-      gain(5, { Presence: 3 });
-    }
+    setExploredStops((previous) => previous.includes(t.id) ? previous : [...previous, t.id]);
   };
 
   return (
     <Shell>
       <h1 className="text-3xl font-extrabold">Yuby Resort Tour</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Choose a point on the walkthrough or map to read about that place and view its photo/video
-        gallery when venue media is available.
+        Choose any point on the walkthrough or map to preview the place and view its photo/video
+        gallery when venue media is available. This is a virtual preview, not a recorded physical visit.
       </p>
       <div className="mt-3">
         <Notice>
@@ -166,9 +160,8 @@ function Tour() {
               onClick={() => visit(k)}
               style={{ left: `${t.x}%`, top: `${t.y}%` }}
               aria-label={`View ${t.name}`}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-background px-2 py-1 text-[10px] font-semibold shadow-sm ${locked(t.id) ? "bg-muted text-muted-foreground" : i === k ? "bg-foreground text-background ring-2 ring-primary" : s.toured.includes(t.id) ? "bg-success text-primary-foreground" : "bg-primary text-primary-foreground"}`}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-background px-2 py-1 text-[10px] font-semibold shadow-sm ${i === k ? "bg-foreground text-background ring-2 ring-primary" : exploredStops.includes(t.id) ? "bg-success text-primary-foreground" : "bg-primary text-primary-foreground"}`}
             >
-              {locked(t.id) ? "🔒 " : ""}
               {t.name}
             </button>
           ))}
@@ -179,12 +172,11 @@ function Tour() {
             Stop {i + 1} of {allStops.length}
           </p>
           <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {TOUR_STOPS.map((t, k) => (
+            {allStops.map((t, k) => (
               <button
                 key={t.id}
                 onClick={() => visit(k)}
-                disabled={locked(t.id)}
-                className={`rounded-xl border p-3 text-left text-sm ${i === k ? "border-primary bg-primary/10 font-semibold" : "border-border"} disabled:opacity-50`}
+                className={`rounded-xl border p-3 text-left text-sm ${i === k ? "border-primary bg-primary/10 font-semibold" : "border-border"}`}
               >
                 <span className="block text-xs text-muted-foreground">Stop {k + 1}</span>
                 {t.name}
@@ -204,9 +196,6 @@ function Tour() {
         <p className="text-xs text-muted-foreground">
           Verified facility price: pending verification
         </p>
-        {stop.id === "reception" && !checkedIn && (
-          <p className="text-sm text-primary">Visit reception to unlock the facilities.</p>
-        )}
         {media.length > 0 ? (
           <section className="pt-3" aria-label={`${stop.name} photos and videos`}>
             <h3 className="font-bold">Photos & videos</h3>
@@ -273,7 +262,7 @@ function Tour() {
               Back
             </Btn>
             <Btn
-              disabled={i === allStops.length - 1 || locked(allStops[i + 1]?.id ?? "")}
+              disabled={i === allStops.length - 1}
               onClick={() => visit(i + 1)}
             >
               Next stop
@@ -282,7 +271,7 @@ function Tour() {
         )}
       </Card>
       <p className="mt-3 text-xs text-muted-foreground">
-        Explored {s.toured.length}/{allStops.length} stops
+        Previewed {exploredStops.length}/{allStops.length} stops · preview activity earns no visit or attendance rewards
       </p>
     </Shell>
   );
