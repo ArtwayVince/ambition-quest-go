@@ -32,6 +32,7 @@ function Admin() {
   const [mediaMessage, setMediaMessage] = useState("");
   const [mediaBusy, setMediaBusy] = useState(false);
   const [token, setToken] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem("jetoff_vendor_session");
@@ -40,10 +41,51 @@ function Admin() {
       /* ignore invalid session */
     }
   }, []);
+
+  // Verify the saved Supabase session against Auth. The local Explorer/Provider
+  // selector is only a demo preference and must never grant administrator access.
   useEffect(() => {
     const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
-    if (s.role !== "admin" || !base || !key || !token) return;
+    if (!base || !key || !token) return;
+    let cancelled = false;
+    fetch(base + "/auth/v1/user", {
+      headers: { apikey: key, Authorization: "Bearer " + token },
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(await response.text());
+        return response.json();
+      })
+      .then((user: { app_metadata?: { role?: string }; email?: string }) => {
+        if (cancelled) return;
+        if (user.app_metadata?.role === "admin") {
+          setIsAdmin(true);
+          set((previous) => ({
+            ...previous,
+            role: "admin",
+            user: previous.user ?? {
+              name: user.email?.split("@")[0] ?? "Administrator",
+              email: user.email ?? "",
+            },
+          }));
+        } else {
+          setIsAdmin(false);
+          setMediaMessage("This signed-in account does not have app_metadata.role = admin.");
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setIsAdmin(false);
+          setMediaMessage("Could not verify the Supabase admin session. Sign out and sign in again. " +
+            (error instanceof Error ? error.message : ""));
+        }
+      });
+    return () => { cancelled = true; };
+  }, [token]);
+  useEffect(() => {
+    const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+    if (!isAdmin || !base || !key || !token) return;
     fetch(base + "/rest/v1/venue_tour_stops?select=id,name,info,protocol,venue_name,status&status=eq.pending&order=created_at.asc", { headers: { apikey: key, Authorization: "Bearer " + token } })
       .then(async (r) => { if (!r.ok) throw new Error(await r.text()); return r.json(); })
       .then((rows: ReviewPoint[]) => setPoints(rows))
@@ -92,7 +134,7 @@ function Admin() {
             (e instanceof Error ? e.message : ""),
         ),
       );
-  }, [s.role, token]);
+  }, [isAdmin, token]);
   async function moderatePoint(item: ReviewPoint, status: "approved" | "rejected") {
     const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -144,7 +186,7 @@ function Admin() {
       setMediaBusy(false);
     }
   }
-  if (s.role !== "admin")
+  if (!isAdmin)
     return (
       <Shell>
         <Notice>Switch to the Admin role in the header to moderate applications.</Notice>
