@@ -213,7 +213,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             Object.fromEntries(Object.keys(priorReadiness).map((goalId) => [goalId, true])),
         });
       }
-    } catch {}
+    } catch {
+      // Ignore malformed local data and continue with the safe initial state.
+    }
     setReady(true);
   }, []);
   useEffect(() => {
