@@ -64,7 +64,19 @@ describe("JET OFF rules", () => {
   });
 
   it("prevents duplicate self-reported participation records for one request", () => {
-    const records = [{ id: "record-1", requestId: "request-1", expId: "horse", title: "Horse riding", activity: "Supervised ride", attendedOn: "2026-10-27", reflection: "", recordedAt: "2026-10-27T10:00:00.000Z", status: "self_reported" as const }];
+    const records = [
+      {
+        id: "record-1",
+        requestId: "request-1",
+        expId: "horse",
+        title: "Horse riding",
+        activity: "Supervised ride",
+        attendedOn: "2026-10-27",
+        reflection: "",
+        recordedAt: "2026-10-27T10:00:00.000Z",
+        status: "self_reported" as const,
+      },
+    ];
     expect(hasParticipationRecordForRequest(records, "request-1")).toBe(true);
     expect(hasParticipationRecordForRequest(records, "request-2")).toBe(false);
   });

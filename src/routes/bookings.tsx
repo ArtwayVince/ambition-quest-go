@@ -66,8 +66,13 @@ function Bookings() {
       ...previous,
       participationRecords: [...previous.participationRecords, record],
     }));
-    toast.success("Your self-reported experience record has been saved on this device. No attendance verification or reward was issued.");
-    setDrafts((previous) => ({ ...previous, [request.id]: { activity: "", attendedOn: localDateString(), reflection: "" } }));
+    toast.success(
+      "Your self-reported experience record has been saved on this device. No attendance verification or reward was issued.",
+    );
+    setDrafts((previous) => ({
+      ...previous,
+      [request.id]: { activity: "", attendedOn: localDateString(), reflection: "" },
+    }));
   };
 
   return (
@@ -82,7 +87,10 @@ function Bookings() {
       <h2 className="mt-5 text-xl font-bold">Experience enquiries</h2>
       {s.requests.length === 0 && (
         <p className="mt-3 text-sm text-muted-foreground">
-          No requests yet. <Link to="/explore" className="text-primary">Explore experiences</Link>
+          No requests yet.{" "}
+          <Link to="/explore" className="text-primary">
+            Explore experiences
+          </Link>
         </p>
       )}
       {s.requests.map((request) => {
@@ -95,17 +103,24 @@ function Bookings() {
               <p className="text-xs text-muted-foreground">
                 Preferred {request.date} · saved locally · provider not notified
               </p>
-              {request.goalTitle && <p className="mt-1 text-sm"><b>Linked ambition:</b> {request.goalTitle}</p>}
+              {request.goalTitle && (
+                <p className="mt-1 text-sm">
+                  <b>Linked ambition:</b> {request.goalTitle}
+                </p>
+              )}
               {request.providerStatus && (
                 <div className="mt-2 rounded-lg border p-3">
                   <p className="text-sm font-semibold">
-                    Prototype provider response: {request.providerStatus === "confirmed"
+                    Prototype provider response:{" "}
+                    {request.providerStatus === "confirmed"
                       ? "Confirmation recorded (not a real booking)"
                       : request.providerStatus === "unavailable"
                         ? "Marked unavailable in prototype"
                         : "Response recorded in prototype"}
                   </p>
-                  {request.providerResponse && <p className="mt-1 text-sm">{request.providerResponse}</p>}
+                  {request.providerResponse && (
+                    <p className="mt-1 text-sm">{request.providerResponse}</p>
+                  )}
                 </div>
               )}
               {request.note && <p className="mt-1 text-sm">{request.note}</p>}
@@ -159,17 +174,21 @@ function Bookings() {
                     placeholder="Record a useful detail, outcome or reflection."
                   />
                 </label>
-                <Btn onClick={() => saveParticipationRecord(request)}>Save personal experience record</Btn>
+                <Btn onClick={() => saveParticipationRecord(request)}>
+                  Save personal experience record
+                </Btn>
               </div>
             )}
 
             <div>
               <Btn
                 variant="ghost"
-                onClick={() => set((previous) => ({
-                  ...previous,
-                  requests: previous.requests.filter((item) => item.id !== request.id),
-                }))}
+                onClick={() =>
+                  set((previous) => ({
+                    ...previous,
+                    requests: previous.requests.filter((item) => item.id !== request.id),
+                  }))
+                }
               >
                 Withdraw enquiry
               </Btn>
@@ -181,7 +200,8 @@ function Bookings() {
       <h2 className="mt-6 text-xl font-bold">My experience history</h2>
       {s.participationRecords.length === 0 ? (
         <p className="mt-2 text-sm text-muted-foreground">
-          Your personal experience history will appear here after you record an activity you attended.
+          Your personal experience history will appear here after you record an activity you
+          attended.
         </p>
       ) : (
         <div className="mt-3 space-y-2">

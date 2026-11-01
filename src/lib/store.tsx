@@ -3,14 +3,82 @@ import type { GoalJourney } from "@/lib/journeys";
 
 export type Role = "explorer" | "provider" | "admin";
 export type Attr = "Mindset" | "Presence" | "Discipline" | "Network";
-export type Goal = { id: string; title: string; target: number; saved: number; log: { amt: number; at: string }[] };
-export type JourneyProgress = { stage: number; notes: { stage: number; note: string; at: string }[] };
-export type GoalActivityRecord = { result: string; completedAt: string; reusedFromHistoryId?: string };
-export type GoalNextAction = { id: string; sourceActivityId: string; sourceActionId?: string; sourceActivityTitle: string; sourceResult: string; category: "progress" | "clarify" | "revise" | "help"; title: string; recommendation: string; rationale: string; followUpQuestion?: string; status: "proposed" | "accepted" | "completed"; createdAt: string; acceptedAt?: string; completedAt?: string; result?: string; archivedAt?: string };
-export type GoalActivityHistoryRecord = { id: string; planTitle: string; activityTitle: string; result: string; completedAt: string; archivedAt: string; reusedInActivityId?: string };
-export type Request = { id: string; expId: string; title: string; date: string; note: string; at: string; goalId?: string; goalTitle?: string; providerResponse?: string; providerStatus?: "responded" | "confirmed" | "unavailable"; providerRespondedAt?: string };
-export type ParticipationRecord = { id: string; requestId: string; expId: string; title: string; activity: string; attendedOn: string; reflection: string; recordedAt: string; status: "self_reported" };
-export type ProviderApp = { id: string; business: string; category: string; contact: string; description: string; status: "pending" | "approved" | "rejected"; at: string };
+export type Goal = {
+  id: string;
+  title: string;
+  target: number;
+  saved: number;
+  log: { amt: number; at: string }[];
+};
+export type JourneyProgress = {
+  stage: number;
+  notes: { stage: number; note: string; at: string }[];
+};
+export type GoalActivityRecord = {
+  result: string;
+  completedAt: string;
+  reusedFromHistoryId?: string;
+};
+export type GoalNextAction = {
+  id: string;
+  sourceActivityId: string;
+  sourceActionId?: string;
+  sourceActivityTitle: string;
+  sourceResult: string;
+  category: "progress" | "clarify" | "revise" | "help";
+  title: string;
+  recommendation: string;
+  rationale: string;
+  followUpQuestion?: string;
+  status: "proposed" | "accepted" | "completed";
+  createdAt: string;
+  acceptedAt?: string;
+  completedAt?: string;
+  result?: string;
+  archivedAt?: string;
+};
+export type GoalActivityHistoryRecord = {
+  id: string;
+  planTitle: string;
+  activityTitle: string;
+  result: string;
+  completedAt: string;
+  archivedAt: string;
+  reusedInActivityId?: string;
+};
+export type Request = {
+  id: string;
+  expId: string;
+  title: string;
+  date: string;
+  note: string;
+  at: string;
+  goalId?: string;
+  goalTitle?: string;
+  providerResponse?: string;
+  providerStatus?: "responded" | "confirmed" | "unavailable";
+  providerRespondedAt?: string;
+};
+export type ParticipationRecord = {
+  id: string;
+  requestId: string;
+  expId: string;
+  title: string;
+  activity: string;
+  attendedOn: string;
+  reflection: string;
+  recordedAt: string;
+  status: "self_reported";
+};
+export type ProviderApp = {
+  id: string;
+  business: string;
+  category: string;
+  contact: string;
+  description: string;
+  status: "pending" | "approved" | "rejected";
+  at: string;
+};
 
 export type State = {
   user: { name: string; email: string } | null;
@@ -33,7 +101,15 @@ export type State = {
   /** User-entered experience reflections; never treated as verified attendance or reward evidence. */
   participationRecords: ParticipationRecord[];
   apps: ProviderApp[];
-  missions: { m1: boolean; m2: boolean; m3: boolean; m3Option?: "A" | "B"; aspiration?: string; reflection?: string; photo?: string };
+  missions: {
+    m1: boolean;
+    m2: boolean;
+    m3: boolean;
+    m3Option?: "A" | "B";
+    aspiration?: string;
+    reflection?: string;
+    photo?: string;
+  };
   /** Journey stages and reflections tracked independently for each ambition. */
   journeyProgressByGoal: Record<string, JourneyProgress>;
   /** Legacy global journey fields retained for migration compatibility. */
@@ -54,11 +130,33 @@ export type State = {
 };
 
 const initial: State = {
-  user: null, role: "explorer", xp: 0,
+  user: null,
+  role: "explorer",
+  xp: 0,
   attrs: { Mindset: 0, Presence: 0, Discipline: 0, Network: 0 },
-  wallet: 100000, budgetCompleted: [], goals: [], goalSteps: {}, goalActivityRecords: {}, goalActivityHistory: {}, goalNextActions: {}, schemaVersion: 5, requests: [], participationRecords: [], apps: [],
+  wallet: 100000,
+  budgetCompleted: [],
+  goals: [],
+  goalSteps: {},
+  goalActivityRecords: {},
+  goalActivityHistory: {},
+  goalNextActions: {},
+  schemaVersion: 5,
+  requests: [],
+  participationRecords: [],
+  apps: [],
   missions: { m1: false, m2: false, m3: false },
-  stage: 0, stageNotes: [], journeyProgressByGoal: {}, streak: 0, dailyDone: [], toured: [], readiness: 0, readinessByGoal: {}, readinessRewardedByGoal: {}, aiJourneys: {}, badges: [],
+  stage: 0,
+  stageNotes: [],
+  journeyProgressByGoal: {},
+  streak: 0,
+  dailyDone: [],
+  toured: [],
+  readiness: 0,
+  readinessByGoal: {},
+  readinessRewardedByGoal: {},
+  aiJourneys: {},
+  badges: [],
 };
 
 export const XP_PER_LEVEL = 100;
@@ -72,8 +170,7 @@ export const bestReadinessScore = (previous: number | undefined, current: number
   previous === undefined ? current : Math.max(previous, current);
 export const hasCompletedDailyChallenge = (dailyDone: string[], date: string) =>
   dailyDone.some((entry) => entry.startsWith(`${date}|`));
-export const isMeaningfulReflection = (note: string) =>
-  note.trim().length >= STAGE_NOTE_MIN_LENGTH;
+export const isMeaningfulReflection = (note: string) => note.trim().length >= STAGE_NOTE_MIN_LENGTH;
 export const levelOf = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1;
 
 type Ctx = {
@@ -96,11 +193,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(raw) as Partial<State>;
         const priorReadiness = parsed.readinessByGoal ?? {};
         const legacyJourney = { stage: parsed.stage ?? 0, notes: parsed.stageNotes ?? [] };
-        const journeyProgressByGoal = parsed.journeyProgressByGoal ?? (
-          parsed.goals?.length && (legacyJourney.stage > 0 || legacyJourney.notes.length > 0)
+        const journeyProgressByGoal =
+          parsed.journeyProgressByGoal ??
+          (parsed.goals?.length && (legacyJourney.stage > 0 || legacyJourney.notes.length > 0)
             ? { [parsed.goals[0].id]: legacyJourney }
-            : {}
-        );
+            : {});
         setS({
           ...initial,
           ...parsed,
@@ -111,25 +208,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           goalActivityHistory: parsed.goalActivityHistory ?? {},
           goalNextActions: parsed.goalNextActions ?? {},
           aiJourneys: parsed.aiJourneys ?? {},
-          readinessRewardedByGoal: parsed.readinessRewardedByGoal ?? Object.fromEntries(
-            Object.keys(priorReadiness).map((goalId) => [goalId, true]),
-          ),
+          readinessRewardedByGoal:
+            parsed.readinessRewardedByGoal ??
+            Object.fromEntries(Object.keys(priorReadiness).map((goalId) => [goalId, true])),
         });
       }
     } catch {}
     setReady(true);
   }, []);
-  useEffect(() => { if (ready) localStorage.setItem(KEY, JSON.stringify(s)); }, [s, ready]);
+  useEffect(() => {
+    if (ready) localStorage.setItem(KEY, JSON.stringify(s));
+  }, [s, ready]);
 
   const set = (fn: (s: State) => State) => setS(fn);
-  const badge = (b: string) => setS((p) => (p.badges.includes(b) ? p : { ...p, badges: [...p.badges, b] }));
+  const badge = (b: string) =>
+    setS((p) => (p.badges.includes(b) ? p : { ...p, badges: [...p.badges, b] }));
   const gain = (xp: number, attrs: Partial<Record<Attr, number>> = {}) =>
     setS((p) => {
       const a = { ...p.attrs };
       (Object.keys(attrs) as Attr[]).forEach((k) => (a[k] += attrs[k] ?? 0));
       const nx = p.xp + xp;
       const leveled = levelOf(nx) > levelOf(p.xp);
-      const badges = leveled && !p.badges.includes(`Level ${levelOf(nx)}`) ? [...p.badges, `Level ${levelOf(nx)}`] : p.badges;
+      const badges =
+        leveled && !p.badges.includes(`Level ${levelOf(nx)}`)
+          ? [...p.badges, `Level ${levelOf(nx)}`]
+          : p.badges;
       return { ...p, xp: nx, attrs: a, badges };
     });
   const reset = () => setS(initial);
@@ -161,14 +264,17 @@ export const isValidParticipationDate = (date: string, todayDate = localDateStri
   Boolean(date) && date <= todayDate;
 
 /** A request can have only one self-reported participation entry in this prototype. */
-export const hasParticipationRecordForRequest = (records: ParticipationRecord[], requestId: string) =>
-  records.some((record) => record.requestId === requestId);
+export const hasParticipationRecordForRequest = (
+  records: ParticipationRecord[],
+  requestId: string,
+) => records.some((record) => record.requestId === requestId);
 
 /** Encouraging, non-punitive coaching for a saving entry. */
 export function coach(saved: number, target: number, amt: number) {
   const pct = target ? (saved / target) * 100 : 0;
   if (amt <= 0) return "Every journey has pauses. Come back whenever you're ready.";
-  if (saved <= 1000) return `₦${amt.toLocaleString()} is a genuine first step. Starting is the hardest part — you did it.`;
+  if (saved <= 1000)
+    return `₦${amt.toLocaleString()} is a genuine first step. Starting is the hardest part — you did it.`;
   if (pct < 10) return "Small, steady steps build the habit. Keep showing up.";
   if (pct < 50) return "Real progress. You're building discipline that lasts.";
   return "You're more than halfway on your record. Stay steady — and keep it realistic.";
