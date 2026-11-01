@@ -85,6 +85,7 @@ The current repository is a useful interactive prototype, but many flows are sti
 - The budget simulator now records which scenarios have already awarded XP; repeat practice remains available, but repeating a scenario does not farm another XP reward.
 - The readiness quiz produces a useful practice score, but that score is not prominent on the dashboard and should never be framed as proof of real-world readiness.
 - Experience requests are stored locally and display an awaiting-provider status, but no provider notification or response workflow exists.
+- Personal experience history is a self-report journal only; it does not confirm attendance or earn XP. Provider verification and reward eligibility require server-backed authorization.
 - Provider applications do not yet collect sufficient evidence for actual business verification or safety review.
 - Experience listings and tour details are illustrative placeholders until confirmed by providers.
 - Existing automated tests are very small; expand coverage as each behavior is deepened.
