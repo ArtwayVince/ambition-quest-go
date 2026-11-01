@@ -9,6 +9,7 @@ export type GoalActivityRecord = { result: string; completedAt: string; reusedFr
 export type GoalNextAction = { id: string; sourceActivityId: string; sourceActionId?: string; sourceActivityTitle: string; sourceResult: string; category: "progress" | "clarify" | "revise" | "help"; title: string; recommendation: string; rationale: string; followUpQuestion?: string; status: "proposed" | "accepted" | "completed"; createdAt: string; acceptedAt?: string; completedAt?: string; result?: string; archivedAt?: string };
 export type GoalActivityHistoryRecord = { id: string; planTitle: string; activityTitle: string; result: string; completedAt: string; archivedAt: string; reusedInActivityId?: string };
 export type Request = { id: string; expId: string; title: string; date: string; note: string; at: string; goalId?: string; goalTitle?: string; providerResponse?: string; providerStatus?: "responded" | "confirmed" | "unavailable"; providerRespondedAt?: string };
+export type ParticipationRecord = { id: string; requestId: string; expId: string; title: string; activity: string; attendedOn: string; reflection: string; recordedAt: string; status: "self_reported" };
 export type ProviderApp = { id: string; business: string; category: string; contact: string; description: string; status: "pending" | "approved" | "rejected"; at: string };
 
 export type State = {
@@ -29,6 +30,8 @@ export type State = {
   goalNextActions: Record<string, GoalNextAction[]>;
   schemaVersion: number;
   requests: Request[];
+  /** User-entered experience reflections; never treated as verified attendance or reward evidence. */
+  participationRecords: ParticipationRecord[];
   apps: ProviderApp[];
   missions: { m1: boolean; m2: boolean; m3: boolean; m3Option?: "A" | "B"; aspiration?: string; reflection?: string; photo?: string };
   /** Journey stages and reflections tracked independently for each ambition. */
@@ -53,7 +56,7 @@ export type State = {
 const initial: State = {
   user: null, role: "explorer", xp: 0,
   attrs: { Mindset: 0, Presence: 0, Discipline: 0, Network: 0 },
-  wallet: 100000, budgetCompleted: [], goals: [], goalSteps: {}, goalActivityRecords: {}, goalActivityHistory: {}, goalNextActions: {}, schemaVersion: 4, requests: [], apps: [],
+  wallet: 100000, budgetCompleted: [], goals: [], goalSteps: {}, goalActivityRecords: {}, goalActivityHistory: {}, goalNextActions: {}, schemaVersion: 5, requests: [], participationRecords: [], apps: [],
   missions: { m1: false, m2: false, m3: false },
   stage: 0, stageNotes: [], journeyProgressByGoal: {}, streak: 0, dailyDone: [], toured: [], readiness: 0, readinessByGoal: {}, readinessRewardedByGoal: {}, aiJourneys: {}, badges: [],
 };
@@ -101,7 +104,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setS({
           ...initial,
           ...parsed,
-          schemaVersion: 4,
+          schemaVersion: 5,
+          participationRecords: parsed.participationRecords ?? [],
           journeyProgressByGoal,
           goalActivityRecords: parsed.goalActivityRecords ?? {},
           goalActivityHistory: parsed.goalActivityHistory ?? {},
@@ -151,6 +155,14 @@ export const localDateString = (date = new Date()) => {
 /** Preferred experience dates must be today or later, using the local calendar. */
 export const isValidPreferredDate = (date: string, todayDate = localDateString()) =>
   Boolean(date) && date >= todayDate;
+
+/** Participation dates must be today or earlier; future plans are not completed experiences. */
+export const isValidParticipationDate = (date: string, todayDate = localDateString()) =>
+  Boolean(date) && date <= todayDate;
+
+/** A request can have only one self-reported participation entry in this prototype. */
+export const hasParticipationRecordForRequest = (records: ParticipationRecord[], requestId: string) =>
+  records.some((record) => record.requestId === requestId);
 
 /** Encouraging, non-punitive coaching for a saving entry. */
 export function coach(saved: number, target: number, amt: number) {
