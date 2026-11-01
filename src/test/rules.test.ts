@@ -9,6 +9,8 @@ import {
   bestReadinessScore,
   hasCompletedDailyChallenge,
   isValidPreferredDate,
+  isValidParticipationDate,
+  hasParticipationRecordForRequest,
   localDateString,
 } from "@/lib/store";
 
@@ -52,6 +54,19 @@ describe("JET OFF rules", () => {
     expect(isValidPreferredDate("2026-10-28", "2026-10-27")).toBe(true);
     expect(isValidPreferredDate("2026-10-26", "2026-10-27")).toBe(false);
     expect(isValidPreferredDate("", "2026-10-27")).toBe(false);
+  });
+
+  it("accepts only today or past dates for self-reported participation", () => {
+    expect(isValidParticipationDate("2026-10-27", "2026-10-27")).toBe(true);
+    expect(isValidParticipationDate("2026-10-26", "2026-10-27")).toBe(true);
+    expect(isValidParticipationDate("2026-10-28", "2026-10-27")).toBe(false);
+    expect(isValidParticipationDate("", "2026-10-27")).toBe(false);
+  });
+
+  it("prevents duplicate self-reported participation records for one request", () => {
+    const records = [{ id: "record-1", requestId: "request-1", expId: "horse", title: "Horse riding", activity: "Supervised ride", attendedOn: "2026-10-27", reflection: "", recordedAt: "2026-10-27T10:00:00.000Z", status: "self_reported" as const }];
+    expect(hasParticipationRecordForRequest(records, "request-1")).toBe(true);
+    expect(hasParticipationRecordForRequest(records, "request-2")).toBe(false);
   });
 
   it("formats date-input values using the local calendar", () => {
