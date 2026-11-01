@@ -50,7 +50,8 @@ The experience should help someone who previously assumed an opportunity was bey
 - Build provider application review with the information needed for verification and safety.
 - Develop the pilot experience around actual provider-approved route details, including the correct entrance, security clearance, parking, reception, and facility access.
 - Treat all venue-specific photos, routes, prices, hours and policies as placeholders until confirmed by the provider.
-- Create a feedback/participation record without claiming that an unverified self-report proves attendance.
+- Let users keep a personal, self-reported record of an experience they actually attended; clearly distinguish it from verified attendance.
+- Do not award XP, badges or rewards from a self-reported entry. Add provider verification and server-side reward eligibility only with secure, server-backed authorization.
 
 **Acceptance:** every listing explains its verification status; request is not presented as a booking; no unverified provider or venue information is represented as fact; pilot instructions match the real provider's approved procedures.
 
