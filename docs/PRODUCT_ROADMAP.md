@@ -50,7 +50,8 @@ The experience should help someone who previously assumed an opportunity was bey
 - Build provider application review with the information needed for verification and safety.
 - Develop the pilot experience around actual provider-approved route details, including the correct entrance, security clearance, parking, reception, and facility access.
 - Treat all venue-specific photos, routes, prices, hours and policies as placeholders until confirmed by the provider.
-- Create a feedback/participation record without claiming that an unverified self-report proves attendance.
+- Let users keep a personal, self-reported record of an experience they actually attended; clearly distinguish it from verified attendance.
+- Do not award XP, badges or rewards from a self-reported entry. Add provider verification and server-side reward eligibility only with secure, server-backed authorization.
 
 **Acceptance:** every listing explains its verification status; request is not presented as a booking; no unverified provider or venue information is represented as fact; pilot instructions match the real provider's approved procedures.
 
@@ -84,6 +85,7 @@ The current repository is a useful interactive prototype, but many flows are sti
 - The budget simulator now records which scenarios have already awarded XP; repeat practice remains available, but repeating a scenario does not farm another XP reward.
 - The readiness quiz produces a useful practice score, but that score is not prominent on the dashboard and should never be framed as proof of real-world readiness.
 - Experience requests are stored locally and display an awaiting-provider status, but no provider notification or response workflow exists.
+- Personal experience history is a self-report journal only; it does not confirm attendance or earn XP. Provider verification and reward eligibility require server-backed authorization.
 - Provider applications do not yet collect sufficient evidence for actual business verification or safety review.
 - Experience listings and tour details are illustrative placeholders until confirmed by providers.
 - Existing automated tests are very small; expand coverage as each behavior is deepened.
