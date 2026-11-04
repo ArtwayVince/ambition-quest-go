@@ -24,6 +24,7 @@ import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TourRouteImport } from './routes/tour'
 import { Route as ExperiencesIdRouteImport } from './routes/experiences.$id'
+import { Route as VenuesYubyResortRouteImport } from './routes/venues.yuby-resort'
 import { Route as ProviderApplyRouteImport } from './routes/provider.apply'
 import { Route as ProviderMediaRouteImport } from './routes/provider.media'
 
@@ -97,6 +98,11 @@ const TourRoute = TourRouteImport.update({
   path: '/tour',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VenuesYubyResortRoute = VenuesYubyResortRouteImport.update({
+  id: '/venues/yuby-resort',
+  path: '/venues/yuby-resort',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExperiencesIdRoute = ExperiencesIdRouteImport.update({
   id: '/experiences/$id',
   path: '/experiences/$id',
@@ -114,6 +120,7 @@ const ProviderMediaRoute = ProviderMediaRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/venues/yuby-resort': typeof VenuesYubyResortRoute
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/provider/media': typeof ProviderMediaRoute
 }
 export interface FileRoutesByTo {
+  '/venues/yuby-resort': typeof VenuesYubyResortRoute
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
@@ -152,6 +160,7 @@ export interface FileRoutesByTo {
   '/provider/media': typeof ProviderMediaRoute
 }
 export interface FileRoutesById {
+  '/venues/yuby-resort': typeof VenuesYubyResortRoute
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/tour'
     | '/experiences/$id'
+    | '/venues/yuby-resort'
     | '/provider/apply'
     | '/provider/media'
   fileRoutesByTo: FileRoutesByTo
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/tour'
     | '/experiences/$id'
+    | '/venues/yuby-resort'
     | '/provider/apply'
   id:
     | '__root__'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/tour'
     | '/experiences/$id'
+    | '/venues/yuby-resort'
     | '/provider/apply'
   fileRoutesById: FileRoutesById
 }
@@ -245,6 +257,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TourRoute: typeof TourRoute
   ExperiencesIdRoute: typeof ExperiencesIdRoute
+  VenuesYubyResortRoute: typeof VenuesYubyResortRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -347,6 +360,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TourRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/venues/yuby-resort': {
+      id: '/venues/yuby-resort'
+      path: '/venues/yuby-resort'
+      fullPath: '/venues/yuby-resort'
+      preLoaderRoute: typeof VenuesYubyResortRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/experiences/$id': {
       id: '/experiences/$id'
       path: '/experiences/$id'
@@ -401,6 +421,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TourRoute: TourRoute,
   ExperiencesIdRoute: ExperiencesIdRoute,
+  VenuesYubyResortRoute: VenuesYubyResortRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
