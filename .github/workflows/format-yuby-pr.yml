@@ -1,0 +1,30 @@
+name: One-time Yuby PR formatting
+
+on:
+  push:
+    branches:
+      - feat/yuby-resort-experience-details
+    paths:
+      - .github/workflows/format-yuby-pr.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/yuby-resort-experience-details
+      - uses: oven-sh/setup-bun@v2
+      - name: Format changed application files
+        run: bunx prettier --write src/lib/data.ts src/routeTree.gen.ts src/routes/explore.tsx src/routes/venues.yuby-resort.tsx
+      - name: Commit formatted files and remove temporary formatter
+        run: |
+          rm .github/workflows/format-yuby-pr.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Format Yuby Resort experience details"
+          git push origin HEAD:feat/yuby-resort-experience-details
