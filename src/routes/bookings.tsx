@@ -183,14 +183,19 @@ function Bookings() {
             <div>
               <Btn
                 variant="ghost"
-                onClick={() =>
+                onClick={() => {
+                  const confirmed = window.confirm(
+                    "Delete this saved request from this device? Any separate personal experience record will remain in your experience history.",
+                  );
+                  if (!confirmed) return;
                   set((previous) => ({
                     ...previous,
                     requests: previous.requests.filter((item) => item.id !== request.id),
-                  }))
-                }
+                  }));
+                  toast.success("Saved request deleted. Your experience history was kept.");
+                }}
               >
-                Withdraw enquiry
+                Delete saved request
               </Btn>
             </div>
           </Card>
