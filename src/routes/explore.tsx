@@ -97,12 +97,7 @@ function Explore() {
       {list.length > 0 ? (
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           {list.map((e) => (
-            <Link
-              key={e.id}
-              to="/experiences/$id"
-              params={{ id: e.id }}
-              className="block"
-            >
+            <Link key={e.id} to="/experiences/$id" params={{ id: e.id }} className="block">
               <Card className="h-full transition hover:border-primary">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
@@ -123,9 +118,7 @@ function Explore() {
                     <b className="text-foreground">Price:</b> {e.price}
                   </p>
                 </div>
-                <p className="mt-3 text-sm font-semibold text-primary">
-                  View experience details →
-                </p>
+                <p className="mt-3 text-sm font-semibold text-primary">View experience details →</p>
               </Card>
             </Link>
           ))}
