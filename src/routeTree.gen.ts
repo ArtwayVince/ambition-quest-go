@@ -218,6 +218,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/tour'
     | '/experiences/$id'
+    | '/venues/yuby-resort'
     | '/provider/apply'
   id:
     | '__root__'
@@ -236,6 +237,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/tour'
     | '/experiences/$id'
+    | '/venues/yuby-resort'
     | '/provider/apply'
   fileRoutesById: FileRoutesById
 }
