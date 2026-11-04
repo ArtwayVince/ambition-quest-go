@@ -46,6 +46,7 @@ The experience should help someone who previously assumed an opportunity was bey
 ### Phase 3 — Real-world experiences and provider workflows
 
 - Improve experience detail pages with useful requirements, preparation guidance, location/status clarity and accessible request forms.
+- Give venue listings a distinct overview page that separates venue information and individual activities from any virtual tour or preview.
 - Keep proposed, pending verification, verified, requested, provider-confirmed and completed states distinct.
 - Build provider application review with the information needed for verification and safety.
 - Develop the pilot experience around actual provider-approved route details, including the correct entrance, security clearance, parking, reception, and facility access.
