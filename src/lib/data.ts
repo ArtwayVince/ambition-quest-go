@@ -56,8 +56,12 @@ export const EXPERIENCES: Experience[] = [
     location: "Yuby Resort — exact facility details to be confirmed",
     price: "Pending verification",
     verified: false,
-    summary: "A resort swimming experience. Pool access, session arrangements, safety rules and fees must be confirmed with the venue.",
-    requirements: ["Follow venue pool rules and lifeguard instructions", "Age limits, supervision and swimming facilities to be confirmed"],
+    summary:
+      "A resort swimming experience. Pool access, session arrangements, safety rules and fees must be confirmed with the venue.",
+    requirements: [
+      "Follow venue pool rules and lifeguard instructions",
+      "Age limits, supervision and swimming facilities to be confirmed",
+    ],
   },
   {
     id: "yuby-karaoke",
@@ -67,8 +71,11 @@ export const EXPERIENCES: Experience[] = [
     location: "Yuby Resort — exact facility details to be confirmed",
     price: "Pending verification",
     verified: false,
-    summary: "A karaoke session at the resort. Session times, equipment, group size and any fees must be confirmed with the venue.",
-    requirements: ["Confirm session availability and whether advance arrangements are needed"],
+    summary:
+      "A karaoke session at the resort. Session times, equipment, group size and any fees must be confirmed with the venue.",
+    requirements: [
+      "Confirm session availability and whether advance arrangements are needed",
+    ],
   },
   {
     id: "yuby-barbecue",
@@ -78,41 +85,11 @@ export const EXPERIENCES: Experience[] = [
     location: "Yuby Resort — exact facility details to be confirmed",
     price: "Pending verification",
     verified: false,
-    summary: "A barbecue experience at the resort. Menu, food arrangements, space, group size and pricing remain subject to venue confirmation.",
-    requirements: ["Confirm food options, group arrangements and any outside-food policy"],
-  },
-  {
-    id: "yuby-swimming",
-    title: "Swimming",
-    provider: "Yuby Resort (proposed pilot)",
-    category: "Experience & Enjoyment",
-    location: "Yuby Resort — exact facility details to be confirmed",
-    price: "Pending verification",
-    verified: false,
-    summary: "A resort swimming experience. Pool access, session arrangements, safety rules and fees must be confirmed with the venue.",
-    requirements: ["Follow venue pool rules and lifeguard instructions", "Age limits, supervision and swimming facilities to be confirmed"],
-  },
-  {
-    id: "yuby-karaoke",
-    title: "Karaoke",
-    provider: "Yuby Resort (proposed pilot)",
-    category: "Experience & Enjoyment",
-    location: "Yuby Resort — exact facility details to be confirmed",
-    price: "Pending verification",
-    verified: false,
-    summary: "A karaoke session at the resort. Session times, equipment, group size and any fees must be confirmed with the venue.",
-    requirements: ["Confirm session availability and whether advance arrangements are needed"],
-  },
-  {
-    id: "yuby-barbecue",
-    title: "Barbecue",
-    provider: "Yuby Resort (proposed pilot)",
-    category: "Experience & Enjoyment",
-    location: "Yuby Resort — exact facility details to be confirmed",
-    price: "Pending verification",
-    verified: false,
-    summary: "A barbecue experience at the resort. Menu, food arrangements, space, group size and pricing remain subject to venue confirmation.",
-    requirements: ["Confirm food options, group arrangements and any outside-food policy"],
+    summary:
+      "A barbecue experience at the resort. Menu, food arrangements, space, group size and pricing remain subject to venue confirmation.",
+    requirements: [
+      "Confirm food options, group arrangements and any outside-food policy",
+    ],
   },
   {
     id: "kefiano-limo",
