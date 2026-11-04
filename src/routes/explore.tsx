@@ -26,11 +26,15 @@ function Explore() {
       <h1 className="text-3xl font-extrabold">Explore</h1>
       <p className="mt-2 text-sm text-muted-foreground">Discover places to visit and things to try, whether or not they are connected to one of your ambitions. Browse first; check the details before making plans.</p>
 
-      <Link to="/tour" className="mt-4 block rounded-2xl bg-sunset p-5 text-primary-foreground">
-        <p className="text-xs font-bold uppercase">Featured venue</p>
-        <p className="font-display text-2xl font-extrabold">Yuby Resort Tour →</p>
-        <p className="text-sm">Preview a proposed visit, including the gate, reception and facilities.</p>
-      </Link>
+      <section className="mt-4 rounded-2xl border border-border bg-card p-5">
+        <p className="text-xs font-bold uppercase tracking-wide text-primary">Featured venue · proposed pilot</p>
+        <h2 className="mt-1 font-display text-2xl font-extrabold">Yuby Resort</h2>
+        <p className="mt-2 text-sm">Explore the resort, compare its listed activities and understand what to ask before planning a visit.</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link to="/venues/yuby-resort" className="rounded-xl bg-sunset px-4 py-2 text-sm font-semibold text-primary-foreground">View venue and experiences</Link>
+          <Link to="/tour" className="rounded-xl border border-border px-4 py-2 text-sm font-semibold">Take virtual tour</Link>
+        </div>
+      </section>
 
       <div className="mt-5">
         <label htmlFor="explore-search" className="mb-1 block text-sm font-semibold">Find an experience or interest</label>
