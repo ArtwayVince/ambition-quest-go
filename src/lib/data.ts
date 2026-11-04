@@ -56,8 +56,7 @@ export const EXPERIENCES: Experience[] = [
     location: "Yuby Resort — exact facility details to be confirmed",
     price: "Pending verification",
     verified: false,
-    summary:
-      "A resort swimming experience. Pool access, session arrangements, safety rules and fees must be confirmed with the venue.",
+    summary: "A resort swimming experience. Pool access, session arrangements, safety rules and fees must be confirmed with the venue.",
     requirements: [
       "Follow venue pool rules and lifeguard instructions",
       "Age limits, supervision and swimming facilities to be confirmed",
@@ -71,8 +70,7 @@ export const EXPERIENCES: Experience[] = [
     location: "Yuby Resort — exact facility details to be confirmed",
     price: "Pending verification",
     verified: false,
-    summary:
-      "A karaoke session at the resort. Session times, equipment, group size and any fees must be confirmed with the venue.",
+    summary: "A karaoke session at the resort. Session times, equipment, group size and any fees must be confirmed with the venue.",
     requirements: [
       "Confirm session availability and whether advance arrangements are needed",
     ],
@@ -85,8 +83,7 @@ export const EXPERIENCES: Experience[] = [
     location: "Yuby Resort — exact facility details to be confirmed",
     price: "Pending verification",
     verified: false,
-    summary:
-      "A barbecue experience at the resort. Menu, food arrangements, space, group size and pricing remain subject to venue confirmation.",
+    summary: "A barbecue experience at the resort. Menu, food arrangements, space, group size and pricing remain subject to venue confirmation.",
     requirements: [
       "Confirm food options, group arrangements and any outside-food policy",
     ],
