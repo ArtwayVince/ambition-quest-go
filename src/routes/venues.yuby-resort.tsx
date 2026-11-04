@@ -33,7 +33,8 @@ function YubyResort() {
         </p>
         <p className="text-sm">
           Use the virtual tour to preview the proposed arrival route, reception and facility stops.
-          The tour is a visual walkthrough, not an attendance record or a booking.
+          The tour is a visual walkthrough, not an attendance record or a booking. Activity listings
+          remain provisional until the resort confirms the details.
         </p>
         <Link
           to="/tour"
