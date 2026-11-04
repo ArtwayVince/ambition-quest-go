@@ -25,6 +25,7 @@ type ParticipationDraft = {
 function Bookings() {
   const { s, set } = useStore();
   const [drafts, setDrafts] = useState<Record<string, ParticipationDraft>>({});
+  const [requestPendingDelete, setRequestPendingDelete] = useState<Request | null>(null);
 
   const draftFor = (requestId: string): ParticipationDraft =>
     drafts[requestId] ?? { activity: "", attendedOn: localDateString(), reflection: "" };
@@ -181,26 +182,61 @@ function Bookings() {
             )}
 
             <div>
-              <Btn
-                variant="ghost"
-                onClick={() => {
-                  const confirmed = window.confirm(
-                    "Delete this saved request from this device? Any separate personal experience record will remain in your experience history.",
-                  );
-                  if (!confirmed) return;
-                  set((previous) => ({
-                    ...previous,
-                    requests: previous.requests.filter((item) => item.id !== request.id),
-                  }));
-                  toast.success("Saved request deleted. Your experience history was kept.");
-                }}
-              >
+              <Btn variant="ghost" onClick={() => setRequestPendingDelete(request)}>
                 Delete saved request
               </Btn>
             </div>
           </Card>
         );
       })}
+
+      {requestPendingDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setRequestPendingDelete(null);
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-request-title"
+            aria-describedby="delete-request-description"
+            className="w-full max-w-md space-y-4 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xl"
+          >
+            <div>
+              <h2 id="delete-request-title" className="text-lg font-bold">
+                Delete this request?
+              </h2>
+              <p id="delete-request-description" className="mt-2 text-sm text-muted-foreground">
+                Are you sure you want to delete “{requestPendingDelete.title}” from this device?
+                Any separate personal experience record will remain in your experience history.
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-end gap-2">
+              <Btn variant="ghost" onClick={() => setRequestPendingDelete(null)}>
+                Cancel
+              </Btn>
+              <Btn
+                onClick={() => {
+                  const requestId = requestPendingDelete.id;
+                  set((previous) => ({
+                    ...previous,
+                    requests: previous.requests.filter((item) => item.id !== requestId),
+                  }));
+                  setRequestPendingDelete(null);
+                  toast.success("Saved request deleted. Your experience history was kept.");
+                }}
+              >
+                Yes, delete request
+              </Btn>
+            </div>
+          </section>
+        </div>
+      )}
 
       <h2 className="mt-6 text-xl font-bold">My experience history</h2>
       {s.participationRecords.length === 0 ? (
