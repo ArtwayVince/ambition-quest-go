@@ -27,7 +27,7 @@ function Explore() {
       <p className="mt-2 text-sm text-muted-foreground">Discover places to visit and things to try, whether or not they are connected to one of your ambitions. Browse first; check the details before making plans.</p>
 
       <Link to="/tour" className="mt-4 block rounded-2xl bg-sunset p-5 text-primary-foreground">
-        <p className="text-xs font-bold uppercase">Interactive pilot demonstration</p>
+        <p className="text-xs font-bold uppercase">Featured venue</p>
         <p className="font-display text-2xl font-extrabold">Yuby Resort Tour →</p>
         <p className="text-sm">Preview a proposed visit, including the gate, reception and facilities.</p>
       </Link>
