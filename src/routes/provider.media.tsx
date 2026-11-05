@@ -295,6 +295,7 @@ function VendorMedia() {
             headers: { Prefer: "return=minimal" },
             body: JSON.stringify({
               user_id: session.user.id,
+              venue_id: venueId,
               venue_name: venue.trim(),
               stop_id: stopId,
               media_type: video ? "video" : "image",
