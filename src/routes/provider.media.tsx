@@ -572,6 +572,20 @@ function VendorMedia() {
             </form>
             {customStops.map((point) => <div key={point.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"><div><p className="font-semibold">{point.name}</p><p className="text-xs text-muted-foreground capitalize">{point.status} review</p></div><div className="flex gap-1"><Btn variant="ghost" disabled={busy} onClick={() => void editTourPoint(point)}>Edit</Btn><Btn variant="ghost" disabled={busy} onClick={() => void deleteTourPoint(point)}>Delete</Btn></div></div>)}
           </Card>
+          <Card className="mt-5 space-y-3">
+            <h2 className="text-xl font-bold">Add an experience</h2>
+            <p className="text-sm text-muted-foreground">Experiences belong to the selected venue. A venue can offer several activities; each submission is reviewed before publication.</p>
+            <form className="space-y-3" onSubmit={(e) => void addExperience(e)}>
+              <label className="block space-y-1 text-sm">Experience name<input className={field} required maxLength={120} value={experienceTitle} onChange={(e) => setExperienceTitle(e.target.value)} /></label>
+              <label className="block space-y-1 text-sm">Description<textarea className={field} required rows={3} maxLength={1000} value={experienceSummary} onChange={(e) => setExperienceSummary(e.target.value)} /></label>
+              <label className="block space-y-1 text-sm">Category<select className={field} value={experienceCategory} onChange={(e) => setExperienceCategory(e.target.value)}><option>Experience & Enjoyment</option><option>Learn & Discover</option><option>Create & Build</option><option>Grow & Achieve</option></select></label>
+              <label className="block space-y-1 text-sm">Location within venue (optional)<input className={field} maxLength={180} value={experienceLocation} onChange={(e) => setExperienceLocation(e.target.value)} /></label>
+              <label className="block space-y-1 text-sm">Price / fee<input className={field} maxLength={120} value={experiencePrice} onChange={(e) => setExperiencePrice(e.target.value)} /></label>
+              <label className="block space-y-1 text-sm">Requirements (one per line)<textarea className={field} rows={2} value={experienceRequirements} onChange={(e) => setExperienceRequirements(e.target.value)} /></label>
+              <Btn type="submit" disabled={busy || !venueId || !experienceTitle.trim() || !experienceSummary.trim()}>{busy ? "Submitting…" : "Submit experience for review"}</Btn>
+            </form>
+            {venueExperiences.map((item) => <p key={item.id} className="rounded-lg border border-border p-2 text-sm">{item.title} · <span className="text-xs capitalize text-muted-foreground">{item.status}</span></p>)}
+          </Card>
           <h2 className="mt-6 text-xl font-bold">Your submissions</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Pending media is private to your account. Only approved media appears in the visitor
