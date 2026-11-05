@@ -253,7 +253,7 @@ function VendorMedia() {
 
   async function upload(e: React.FormEvent) {
     e.preventDefault();
-    if (!session || !venueId || !files.length) return;
+    if (!session || !venueId || !stopId || !files.length) return;
     if (files.length > 10) {
       setMessage("Choose no more than 10 files at a time.");
       return;
@@ -501,7 +501,7 @@ function VendorMedia() {
                   ))}
                 </ul>
               )}
-              <Btn type="submit" disabled={busy || !venueId || !files.length}>
+              <Btn type="submit" disabled={busy || !venueId || !stopId || !files.length}>
                 {busy ? "Uploading…" : "Upload and submit for review"}
               </Btn>
             </form>
