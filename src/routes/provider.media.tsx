@@ -181,7 +181,7 @@ function VendorMedia() {
     try {
       const rows = (await api("/rest/v1/venues?select=id,slug,name,status&owner_user_id=eq." + current.user.id + "&order=name.asc", {}, current.access_token)) as VenueRow[];
       setVenues(rows ?? []);
-      if (!venueId && rows?.[0]) { setVenueId(rows[0].id); setVenue(rows[0].name); await loadCustomStops(current, rows[0].id); await loadExperiences(current, rows[0].id); }
+      if (!venueId && rows?.[0]) { setVenueId(rows[0].id); setVenue(rows[0].name); await loadCustomStops(current, rows[0].id); await loadExperiences(current, rows[0].id); await load(current, rows[0].id); }
       return rows ?? [];
     } catch (e) { setMessage(e instanceof Error ? e.message : "Could not load your venue profiles."); return []; }
   }
@@ -500,7 +500,7 @@ function VendorMedia() {
                 <select className={field} required value={venueId} onChange={(e) => {
                   const selected = venues.find((item) => item.id === e.target.value);
                   setVenueId(e.target.value); setVenue(selected?.name ?? ""); setStopId("");
-                  if (session) { void loadCustomStops(session, e.target.value); void loadExperiences(session, e.target.value); }
+                  if (session) { void loadCustomStops(session, e.target.value); void loadExperiences(session, e.target.value); void load(session, e.target.value); }
                 }}>
                   <option value="">Choose one of your venues</option>
                   {venues.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.status}</option>)}
