@@ -148,28 +148,68 @@ create policy "venue owners submit experiences" on public.venue_experiences
 drop policy if exists "venue owners update own pending experiences" on public.venue_experiences;
 create policy "venue owners update own pending experiences" on public.venue_experiences
   for update to authenticated
-  using (
-    created_by = auth.uid()
-    or exists (select 1 from public.venues v where v.id = venue_id and v.owner_user_id = auth.uid())
-  )
+  using (exists (
+    select 1 from public.venues v where v.id = venue_id and v.owner_user_id = auth.uid()
+  ))
   with check (
     status = 'pending'
-    and (created_by = auth.uid()
-      or exists (select 1 from public.venues v where v.id = venue_id and v.owner_user_id = auth.uid()))
+    and exists (select 1 from public.venues v where v.id = venue_id and v.owner_user_id = auth.uid())
   );
 
 drop policy if exists "venue owners delete own experiences" on public.venue_experiences;
 create policy "venue owners delete own experiences" on public.venue_experiences
   for delete to authenticated
-  using (
-    created_by = auth.uid()
-    or exists (select 1 from public.venues v where v.id = venue_id and v.owner_user_id = auth.uid())
-  );
+  using (exists (
+    select 1 from public.venues v where v.id = venue_id and v.owner_user_id = auth.uid()
+  ));
 
 drop policy if exists "admins moderate venue experiences" on public.venue_experiences;
 create policy "admins moderate venue experiences" on public.venue_experiences
   for update to authenticated
   using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
   with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+
+
+-- New media and tour-point submissions must belong to a venue owned by the submitting account.
+-- Null venue_id remains permitted only for older legacy records during migration.
+drop policy if exists "vendors submit own media" on public.venue_media;
+create policy "vendors submit own media" on public.venue_media
+  for insert to authenticated with check (
+    auth.uid() = user_id and status = 'pending'
+    and (venue_id is null or exists (
+      select 1 from public.venues v where v.id = venue_id and v.owner_user_id = auth.uid()
+    ))
+  );
+
+drop policy if exists "vendors update own pending media" on public.venue_media;
+create policy "vendors update own pending media" on public.venue_media
+  for update to authenticated
+  using (auth.uid() = user_id and status = 'pending')
+  with check (
+    auth.uid() = user_id and status = 'pending'
+    and (venue_id is null or exists (
+      select 1 from public.venues v where v.id = venue_id and v.owner_user_id = auth.uid()
+    ))
+  );
+
+drop policy if exists "vendors add own tour points" on public.venue_tour_stops;
+create policy "vendors add own tour points" on public.venue_tour_stops
+  for insert to authenticated with check (
+    auth.uid() = user_id and status = 'pending'
+    and (venue_id is null or exists (
+      select 1 from public.venues v where v.id = venue_id and v.owner_user_id = auth.uid()
+    ))
+  );
+
+drop policy if exists "vendors edit own pending tour points" on public.venue_tour_stops;
+create policy "vendors edit own pending tour points" on public.venue_tour_stops
+  for update to authenticated
+  using (auth.uid() = user_id)
+  with check (
+    auth.uid() = user_id and status = 'pending'
+    and (venue_id is null or exists (
+      select 1 from public.venues v where v.id = venue_id and v.owner_user_id = auth.uid()
+    ))
+  );
 
 -- Keep the legacy venue_name columns during the transition; new app code should use venue_id.
