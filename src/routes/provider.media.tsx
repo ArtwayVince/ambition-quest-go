@@ -167,6 +167,16 @@ function VendorMedia() {
       setCustomStops(rows ?? []);
     } catch (e) { setMessage(e instanceof Error ? e.message : "Could not load tour points."); }
   }
+  async function loadExperiences(current: Session, selectedVenueId = venueId) {
+    if (!selectedVenueId) { setVenueExperiences([]); return; }
+    try {
+      const rows = (await api("/rest/v1/venue_experiences?select=id,title,status&venue_id=eq." + encodeURIComponent(selectedVenueId) + "&order=sort_order.asc", {}, current.access_token)) as VenueExperienceRow[];
+      setVenueExperiences(rows ?? []);
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Could not load venue experiences.");
+    }
+  }
+
   async function loadVenues(current: Session): Promise<VenueRow[]> {
     try {
       const rows = (await api("/rest/v1/venues?select=id,slug,name,status&owner_user_id=eq." + current.user.id + "&order=name.asc", {}, current.access_token)) as VenueRow[];
