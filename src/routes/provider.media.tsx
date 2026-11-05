@@ -210,7 +210,8 @@ function VendorMedia() {
       if (!venueRecord) throw new Error("Venue profile was not returned. Please try again.");
       const rows = await loadVenues(session);
       setVenues(rows);
-      setVenueId(venueRecord.id); setVenue(venueRecord.name); setStopId("");\n      await loadExperiences(session, venueRecord.id);
+      setVenueId(venueRecord.id); setVenue(venueRecord.name); setStopId("");
+      await loadExperiences(session, venueRecord.id);
       setCustomStops([]);
       setNewVenueName(""); setNewVenueDescription(""); setNewVenueLocation(""); setNewVenueAddress("");
       setMessage("Venue profile submitted for review. Add tour stops and media while it is pending; visitors will see it after approval.");
