@@ -15,6 +15,7 @@ export const Route = createFileRoute("/admin")({
   component: Admin,
 });
 type ReviewPoint = { id: string; name: string; info: string; protocol: string; venue_name: string; status: string; };
+type VenueApplication = { id: string; slug: string; name: string; description: string; location: string; address: string | null; owner_user_id: string; status: string; created_at: string; };
 type ReviewMedia = {
   id: string;
   venue_name: string;
@@ -29,6 +30,7 @@ function Admin() {
   const { s, set } = useStore();
   const [media, setMedia] = useState<ReviewMedia[]>([]);
   const [points, setPoints] = useState<ReviewPoint[]>([]);
+  const [venueApplications, setVenueApplications] = useState<VenueApplication[]>([]);
   const [mediaMessage, setMediaMessage] = useState("");
   const [mediaBusy, setMediaBusy] = useState(false);
   const [token, setToken] = useState("");
@@ -86,6 +88,10 @@ function Admin() {
     const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
     if (!isAdmin || !base || !key || !token) return;
+    fetch(base + "/rest/v1/venues?select=id,slug,name,description,location,address,owner_user_id,status,created_at&status=eq.pending&order=created_at.asc", { headers: { apikey: key, Authorization: "Bearer " + token } })
+      .then(async (r) => { if (!r.ok) throw new Error(await r.text()); return r.json(); })
+      .then((rows: VenueApplication[]) => setVenueApplications(rows))
+      .catch((e) => setMediaMessage("Could not load pending provider applications. " + (e instanceof Error ? e.message : "")));
     fetch(base + "/rest/v1/venue_tour_stops?select=id,name,info,protocol,venue_name,status&status=eq.pending&order=created_at.asc", { headers: { apikey: key, Authorization: "Bearer " + token } })
       .then(async (r) => { if (!r.ok) throw new Error(await r.text()); return r.json(); })
       .then((rows: ReviewPoint[]) => setPoints(rows))
@@ -135,6 +141,32 @@ function Admin() {
         ),
       );
   }, [isAdmin, token]);
+  async function moderateVenue(item: VenueApplication, status: "approved" | "rejected") {
+    const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+    if (!base || !key || !token) {
+      setMediaMessage("Sign in through Venue Media Manager with an authorised admin account first.");
+      return;
+    }
+    setMediaBusy(true);
+    setMediaMessage("");
+    try {
+      const response = await fetch(base + "/rest/v1/venues?id=eq." + encodeURIComponent(item.id) + "&status=eq.pending", {
+        method: "PATCH",
+        headers: { apikey: key, Authorization: "Bearer " + token, "Content-Type": "application/json", Prefer: "return=representation" },
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      const updated = await response.json() as VenueApplication[];
+      if (!updated.length) throw new Error("No pending venue was changed. It may already have been reviewed, or the admin database policy may be missing.");
+      setVenueApplications((old) => old.filter((venue) => venue.id !== item.id));
+      setMediaMessage(item.name + " application " + status + ".");
+    } catch (e) {
+      setMediaMessage(e instanceof Error ? e.message : "Provider application review failed.");
+    } finally {
+      setMediaBusy(false);
+    }
+  }
   async function moderatePoint(item: ReviewPoint, status: "approved" | "rejected") {
     const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -198,7 +230,7 @@ function Admin() {
     <Shell>
       <h1 className="text-3xl font-extrabold">Moderation</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Provider applications below are prototype records stored in this browser. Online media
+        Legacy prototype applications below are stored only in this browser and are not real provider submissions. Online media
         moderation uses the configured Supabase project.
       </p>
       {s.apps.length === 0 && (
@@ -222,6 +254,31 @@ function Admin() {
           </div>
         </Card>
       ))}
+      <section className="mt-8">
+        <h2 className="text-2xl font-bold">Provider / venue applications</h2>
+        <p className="mt-1 text-sm text-muted-foreground">These are real applications submitted through the Venue Media Manager. Approving a venue makes its profile eligible for public Explore listings; experiences and media remain subject to their own review.</p>
+        {venueApplications.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No pending provider applications.</p>
+        ) : (
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {venueApplications.map((venue) => (
+              <Card key={venue.id} className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-bold">{venue.name}</p>
+                  <span className="rounded-full bg-secondary px-2 py-1 text-xs capitalize">{venue.status}</span>
+                </div>
+                <p className="text-sm">{venue.description || "No description supplied."}</p>
+                <p className="text-xs text-muted-foreground">{venue.location}{venue.address ? " · " + venue.address : ""}</p>
+                <p className="text-xs text-muted-foreground">Submitted {new Date(venue.created_at).toLocaleString()}</p>
+                <div className="flex gap-2">
+                  <Btn disabled={mediaBusy} onClick={() => void moderateVenue(venue, "approved")}>Approve</Btn>
+                  <Btn disabled={mediaBusy} variant="ghost" onClick={() => void moderateVenue(venue, "rejected")}>Reject</Btn>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
       <section className="mt-8">
         <h2 className="text-2xl font-bold">Tour point review</h2>
         <p className="mt-1 text-sm text-muted-foreground">Review new venue locations before they appear in the visitor tour.</p>
