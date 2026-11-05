@@ -36,7 +36,7 @@ function Explore() {
         ambitions. Browse first; check the details before making plans.
       </p>
 
-      <section className="relative isolate mt-4 rounded-2xl border border-sunset bg-sunset/20 p-5">
+      <section className="relative isolate mt-4 rounded-2xl border-2 border-accent/70 bg-accent/15 p-5">
         <Link
           to="/venues/yuby-resort"
           aria-label="Open Yuby Resort venue and experiences"
