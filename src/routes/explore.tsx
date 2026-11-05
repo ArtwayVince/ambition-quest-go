@@ -20,7 +20,7 @@ function Explore() {
   const [venues, setVenues] = useState<VenuePreview[]>([]);
 
   useEffect(() => {
-    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim().replace(/\\/+$/, "").replace(/\\.supabase\\.com(?=\\/|$)/i, ".supabase.co");
+    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim().replace(/\/+$/, "").replace(/\.supabase\.com(?=\/|$)/i, ".supabase.co");
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
     if (!base || !key) return;
     let active = true;
