@@ -160,9 +160,8 @@ function Tour() {
       </p>
       <div className="mt-3">
         <Notice>
-          Demonstrator: Yuby Resort is a proposed pilot. The route diagram is illustrative, not a
-          measured site plan. Facility details and media must be confirmed or approved by the venue
-          before being presented as an accurate preview.
+          This route diagram is illustrative, not a measured site plan. Venue details and media must
+          be confirmed or approved by the venue before being presented as an accurate preview.
         </Notice>
       </div>
       <div className="mt-4 flex gap-2">
