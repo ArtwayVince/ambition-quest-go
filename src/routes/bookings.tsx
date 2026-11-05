@@ -209,9 +209,10 @@ function Bookings() {
                 Delete this request?
               </h2>
               <p id="delete-request-description" className="mt-2 text-sm text-muted-foreground">
-                Are you sure you want to delete “{requestPendingDelete.title}” from this
-                device? Any separate personal experience record will remain in your experience
-                history.
+                {"Are you sure you want to delete "}
+                {`“${requestPendingDelete.title}”`}
+                {" from this device? Any separate personal experience record "}
+                {"will remain in your experience history."}
               </p>
               <p className="mt-2 text-xs text-muted-foreground">
                 This action cannot be undone.
