@@ -24,6 +24,7 @@ type VenueRow = { id: string; slug: string; name: string; status: string };
 type VenueExperienceRow = { id: string; title: string; status: string };
 type MediaRow = {
   id: string;
+  venue_id: string | null;
   venue_name: string;
   stop_id: string;
   media_type: "image" | "video";
@@ -141,10 +142,11 @@ function VendorMedia() {
     return `${base}/storage/v1${result.signedURL.startsWith("/") ? result.signedURL : "/" + result.signedURL}`;
   }
 
-  async function load(current: Session) {
+  async function load(current: Session, selectedVenueId = venueId) {
     try {
+      const venueFilter = selectedVenueId ? `&venue_id=eq.${encodeURIComponent(selectedVenueId)}` : "";
       const rows = (await api(
-        `/rest/v1/venue_media?select=id,venue_name,stop_id,media_type,public_url,caption,status,created_at&user_id=eq.${current.user.id}&order=created_at.desc`,
+        `/rest/v1/venue_media?select=id,venue_id,venue_name,stop_id,media_type,public_url,caption,status,created_at&user_id=eq.${current.user.id}${venueFilter}&order=created_at.desc`,
         {},
         current.access_token,
       )) as MediaRow[];
@@ -181,7 +183,7 @@ function VendorMedia() {
     try {
       const rows = (await api("/rest/v1/venues?select=id,slug,name,status&owner_user_id=eq." + current.user.id + "&order=name.asc", {}, current.access_token)) as VenueRow[];
       setVenues(rows ?? []);
-      if (!venueId && rows?.[0]) { setVenueId(rows[0].id); setVenue(rows[0].name); await loadCustomStops(current, rows[0].id); await loadExperiences(current, rows[0].id); await load(current, rows[0].id); }
+      if (!venueId && rows?.[0]) { setVenueId(rows[0].id); setVenue(rows[0].name); await loadCustomStops(current, rows[0].id); await loadExperiences(current, rows[0].id); await load(current, rows[0].id); await load(current, rows[0].id); }
       return rows ?? [];
     } catch (e) { setMessage(e instanceof Error ? e.message : "Could not load your venue profiles."); return []; }
   }
