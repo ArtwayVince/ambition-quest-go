@@ -210,12 +210,48 @@ function VendorMedia() {
       if (!venueRecord) throw new Error("Venue profile was not returned. Please try again.");
       const rows = await loadVenues(session);
       setVenues(rows);
-      setVenueId(venueRecord.id); setVenue(venueRecord.name); setStopId("");
+      setVenueId(venueRecord.id); setVenue(venueRecord.name); setStopId("");\n      await loadExperiences(session, venueRecord.id);
       setCustomStops([]);
       setNewVenueName(""); setNewVenueDescription(""); setNewVenueLocation(""); setNewVenueAddress("");
       setMessage("Venue profile submitted for review. Add tour stops and media while it is pending; visitors will see it after approval.");
     } catch (e) { setMessage(e instanceof Error ? e.message : "Could not create venue profile."); }
     finally { setBusy(false); }
+  }
+
+  async function addExperience(e: React.FormEvent) {
+    e.preventDefault();
+    if (!session || !venueId) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      const requirements = experienceRequirements.split(String.fromCharCode(10)).map((item) => item.trim()).filter(Boolean);
+      await api("/rest/v1/venue_experiences", {
+        method: "POST",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({
+          venue_id: venueId,
+          created_by: session.user.id,
+          title: experienceTitle.trim(),
+          summary: experienceSummary.trim(),
+          category: experienceCategory,
+          location_details: experienceLocation.trim(),
+          price_label: experiencePrice.trim() || "Pending verification",
+          requirements,
+          status: "pending",
+        }),
+      }, session.access_token);
+      setExperienceTitle("");
+      setExperienceSummary("");
+      setExperienceLocation("");
+      setExperiencePrice("Pending verification");
+      setExperienceRequirements("");
+      await loadExperiences(session, venueId);
+      setMessage("Experience submitted for review. It will appear on the public venue page after approval.");
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Could not submit experience.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function addTourPoint(e: React.FormEvent) {
