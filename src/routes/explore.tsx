@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Shell, Card, Notice, meta } from "@/components/Shell";
 import { CATEGORIES, EXPERIENCES, type Category } from "@/lib/data";
 
@@ -12,9 +12,24 @@ export const Route = createFileRoute("/explore")({
   component: Explore,
 });
 
+type VenuePreview = { id: string; slug: string; name: string; description: string; location: string };
+
 function Explore() {
   const [cat, setCat] = useState<Category | "All">("All");
   const [query, setQuery] = useState("");
+  const [venues, setVenues] = useState<VenuePreview[]>([]);
+
+  useEffect(() => {
+    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim().replace(/\/+$/, "").replace(/\.supabase\.com(?=\/|$)/i, ".supabase.co");
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+    if (!base || !key) return;
+    let active = true;
+    fetch(base + "/rest/v1/venues?select=id,slug,name,description,location&status=eq.approved&order=name.asc", { headers: { apikey: key } })
+      .then((response) => { if (!response.ok) throw new Error("Venue listings unavailable"); return response.json(); })
+      .then((rows: VenuePreview[]) => { if (active) setVenues((rows ?? []).filter((venue) => venue.slug !== "yuby-resort")); })
+      .catch(() => { /* Keep the existing Explore listings usable when venue data is unavailable. */ });
+    return () => { active = false; };
+  }, []);
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
     return EXPERIENCES.filter((e) => {
@@ -67,6 +82,25 @@ function Explore() {
           </div>
         </div>
       </section>
+
+      {venues.length > 0 && (
+        <section className="mt-5">
+          <h2 className="text-xl font-bold">More places to explore</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Venues are published here after review.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {venues.map((venue) => (
+              <a key={venue.id} href={"/venues/" + encodeURIComponent(venue.slug)} className="block">
+                <Card className="h-full transition hover:border-primary">
+                  <p className="font-bold">{venue.name}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{venue.location || "Location to be confirmed"}</p>
+                  <p className="mt-2 text-sm">{venue.description || "Explore venue details and experiences."}</p>
+                  <p className="mt-3 text-sm font-semibold text-primary">View venue and experiences →</p>
+                </Card>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="mt-5">
         <label htmlFor="explore-search" className="mb-1 block text-sm font-semibold">

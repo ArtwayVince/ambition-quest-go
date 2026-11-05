@@ -11,10 +11,13 @@ function normalizeSupabaseUrl(value: string | undefined) {
 }
 
 export const Route = createFileRoute("/tour")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    venue: typeof search.venue === "string" ? search.venue : "yuby-resort",
+  }),
   head: () =>
     meta(
-      "Yuby Resort Tour",
-      "Interactive visual walkthrough of the proposed pilot resort, with facility galleries and media.",
+      "Venue Tour",
+      "Interactive visual walkthrough of a venue, with facility galleries and approved media.",
     ),
   component: Tour,
 });
@@ -30,12 +33,15 @@ type OnlineMediaRow = {
 };
 
 function Tour() {
+  const { venue: venueSlug } = Route.useSearch();
+  const [venueName, setVenueName] = useState(venueSlug === "yuby-resort" ? "Yuby Resort" : "Venue");
+  const [venueNotFound, setVenueNotFound] = useState(false);
   const [exploredStops, setExploredStops] = useState<string[]>([]);
   const [mode, setMode] = useState<"walk" | "map">("walk");
   const [i, setI] = useState(0);
   const [onlineMedia, setOnlineMedia] = useState<Record<string, TourMedia[]>>({});
   const [dynamicStops, setDynamicStops] = useState<DynamicStop[]>([]);
-  const allStops = [...TOUR_STOPS, ...dynamicStops];
+  const allStops = venueSlug === "yuby-resort" ? [...TOUR_STOPS, ...dynamicStops] : dynamicStops;
   const [mediaLoading, setMediaLoading] = useState(false);
   useEffect(() => {
     const base = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
@@ -43,45 +49,71 @@ function Tour() {
     if (!base || !key) return;
     let active = true;
     setMediaLoading(true);
-    fetch(base + "/rest/v1/venue_tour_stops?select=id,name,info,protocol&venue_name=ilike.*Yuby*Resort*&status=eq.approved&order=created_at.asc", { headers: { apikey: key } })
-      .then((r) => { if (!r.ok) throw new Error("Unable to load approved tour points"); return r.json(); })
-      .then((rows: Array<{id:string;name:string;info:string;protocol:string}>) => { if (active) setDynamicStops(rows.map((row, index) => ({ ...row, x: 10 + ((index * 23) % 80), y: 15 + ((index * 31) % 70) }))); })
-      .catch(() => { /* Static stops remain available if the service is unavailable. */ });
-    fetch(
-      base +
-        "/rest/v1/venue_media?select=stop_id,media_type,public_url,caption,sort_order&venue_name=ilike.*Yuby*Resort*&status=eq.approved&order=sort_order.asc",
-      { headers: { apikey: key } },
-    )
-      .then((r) => {
-        if (!r.ok) throw new Error("Unable to load approved venue media");
-        return r.json();
-      })
-      .then(async (rows: OnlineMediaRow[]) => {
-        const signedRows = await Promise.all(
-          rows.map(async (row) => {
-            const objectPath = row.public_url.split("/").map(encodeURIComponent).join("/");
-            const response = await fetch(
-              base + "/storage/v1/object/sign/jetoff-venue-media/" + objectPath,
-              {
-                method: "POST",
-                headers: {
-                  apikey: key,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ expiresIn: 3600 }),
-              },
-            );
-            if (!response.ok) throw new Error("Unable to sign approved media");
-            const result = (await response.json()) as { signedURL: string };
-            const signedPath = result.signedURL.startsWith("/")
-              ? result.signedURL
-              : `/${result.signedURL}`;
-            const url = result.signedURL.startsWith("http")
-              ? result.signedURL
-              : `${base}/storage/v1${signedPath}`;
-            return { ...row, public_url: url };
-          }),
+    setVenueNotFound(false);
+    setDynamicStops([]);
+    setOnlineMedia({});
+
+    async function loadVenueTour() {
+      let venueId: string | null = null;
+      let resolvedName = venueSlug === "yuby-resort" ? "Yuby Resort" : "Venue";
+      try {
+        const venueResponse = await fetch(
+          base + "/rest/v1/venues?select=id,name,slug&slug=eq." +
+            encodeURIComponent(venueSlug) + "&status=eq.approved&limit=1",
+          { headers: { apikey: key! } },
         );
+        if (venueResponse.ok) {
+          const venues = (await venueResponse.json()) as Array<{id:string;name:string;slug:string}>;
+          if (venues[0]) {
+            venueId = venues[0].id;
+            resolvedName = venues[0].name;
+          } else if (venueSlug !== "yuby-resort") {
+            if (active) setVenueNotFound(true);
+            return;
+          }
+        } else if (venueSlug !== "yuby-resort") {
+          if (active) setVenueNotFound(true);
+          return;
+        }
+
+        if (active) setVenueName(resolvedName);
+        const stopQuery = venueId
+          ? "/rest/v1/venue_tour_stops?select=id,name,info,protocol&venue_id=eq." +
+            encodeURIComponent(venueId) + "&status=eq.approved&order=created_at.asc"
+          : "/rest/v1/venue_tour_stops?select=id,name,info,protocol&venue_name=ilike.*Yuby*Resort*&status=eq.approved&order=created_at.asc";
+        const stopResponse = await fetch(base + stopQuery, { headers: { apikey: key! } });
+        if (stopResponse.ok) {
+          const rows = (await stopResponse.json()) as Array<{id:string;name:string;info:string;protocol:string}>;
+          if (active) setDynamicStops(rows.map((row, index) => ({
+            ...row,
+            x: 10 + ((index * 23) % 80),
+            y: 15 + ((index * 31) % 70),
+          })));
+        }
+
+        const mediaQuery = venueId
+          ? "/rest/v1/venue_media?select=stop_id,media_type,public_url,caption,sort_order&venue_id=eq." +
+            encodeURIComponent(venueId) + "&status=eq.approved&order=sort_order.asc"
+          : "/rest/v1/venue_media?select=stop_id,media_type,public_url,caption,sort_order&venue_name=ilike.*Yuby*Resort*&status=eq.approved&order=sort_order.asc";
+        const mediaResponse = await fetch(base + mediaQuery, { headers: { apikey: key! } });
+        if (!mediaResponse.ok) throw new Error("Unable to load approved venue media");
+        const rows = (await mediaResponse.json()) as OnlineMediaRow[];
+        const signedRows = await Promise.all(rows.map(async (row) => {
+          const objectPath = row.public_url.split("/").map(encodeURIComponent).join("/");
+          const response = await fetch(
+            base + "/storage/v1/object/sign/jetoff-venue-media/" + objectPath,
+            {
+              method: "POST",
+              headers: { apikey: key!, "Content-Type": "application/json" },
+              body: JSON.stringify({ expiresIn: 3600 }),
+            },
+          );
+          if (!response.ok) throw new Error("Unable to sign approved media");
+          const result = (await response.json()) as { signedURL: string };
+          const signedPath = result.signedURL.startsWith("/") ? result.signedURL : `/${result.signedURL}`;
+          const url = result.signedURL.startsWith("http") ? result.signedURL : `${base}/storage/v1${signedPath}`;
+          return { ...row, public_url: url };
+        }));
         if (!active) return;
         const grouped: Record<string, TourMedia[]> = {};
         for (const row of signedRows) {
@@ -92,19 +124,18 @@ function Tour() {
           });
         }
         setOnlineMedia(grouped);
-      })
-      .catch(() => {
-        /* Keep the transparent empty gallery if the service is unavailable. */
-      })
-      .finally(() => {
+      } catch {
+        // Keep the static Yuby pilot tour available if the service is unavailable.
+      } finally {
         if (active) setMediaLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+      }
+    }
+
+    void loadVenueTour();
+    return () => { active = false; };
+  }, [venueSlug]);
   const stop = allStops[i] ?? allStops[0]!;
-  const media = onlineMedia[stop.id] ?? (stop as typeof stop & { media?: TourMedia[] }).media ?? [];
+  const media = stop ? onlineMedia[stop.id] ?? (stop as typeof stop & { media?: TourMedia[] }).media ?? [] : [];
 
   const visit = (k: number) => {
     const t = allStops[k];
@@ -113,18 +144,24 @@ function Tour() {
     setExploredStops((previous) => previous.includes(t.id) ? previous : [...previous, t.id]);
   };
 
+  if (venueNotFound) {
+    return <Shell><h1 className="text-2xl font-bold">Venue not available</h1><p className="mt-2 text-sm text-muted-foreground">This venue is not published yet, or its listing could not be found.</p></Shell>;
+  }
+  if (!stop) {
+    return <Shell><h1 className="text-3xl font-extrabold">{venueName} Tour</h1><p className="mt-2 text-sm text-muted-foreground">This venue does not have any approved tour stops yet. Its provider can add stops and submit them for review.</p>{mediaLoading && <p className="mt-2 text-sm">Loading venue tour…</p>}</Shell>;
+  }
+
   return (
     <Shell>
-      <h1 className="text-3xl font-extrabold">Yuby Resort Tour</h1>
+      <h1 className="text-3xl font-extrabold">{venueName} Tour</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Choose any point on the walkthrough or map to preview the place and view its photo/video
         gallery when venue media is available. This is a virtual preview, not a recorded physical visit.
       </p>
       <div className="mt-3">
         <Notice>
-          Demonstrator: Yuby Resort is a proposed pilot. The route diagram is illustrative, not a
-          measured site plan. Facility details and media must be confirmed or approved by the venue
-          before being presented as an accurate preview.
+          This route diagram is illustrative, not a measured site plan. Venue details and media must
+          be confirmed or approved by the venue before being presented as an accurate preview.
         </Notice>
       </div>
       <div className="mt-4 flex gap-2">
@@ -248,11 +285,10 @@ function Tour() {
             <p className="mt-1 text-sm text-muted-foreground">
               The gallery is ready, but venue-specific photos and video clips have not yet been
               added. We are leaving this clearly marked rather than showing unrelated stock media as
-              if it were Yuby Resort.
+              if it belonged to this venue.
             </p>
             <p className="mt-2 text-xs text-muted-foreground">
-              Planned media: real photographs of this area and, where useful, short clips such as
-              guests swimming at the pool.
+              Planned media: real photographs of this area and short clips that accurately show the venue.
             </p>
           </div>
         )}

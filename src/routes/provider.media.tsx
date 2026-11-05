@@ -20,8 +20,11 @@ type Session = {
   refresh_token?: string;
   user: { id: string; email?: string };
 };
+type VenueRow = { id: string; slug: string; name: string; status: string };
+type VenueExperienceRow = { id: string; title: string; status: string };
 type MediaRow = {
   id: string;
+  venue_id: string | null;
   venue_name: string;
   stop_id: string;
   media_type: "image" | "video";
@@ -40,7 +43,20 @@ function VendorMedia() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authMode, setAuthMode] = useState<"signup" | "signin">("signup");
-  const [venue, setVenue] = useState("Yuby Resort");
+  const [venue, setVenue] = useState("");
+  const [venueId, setVenueId] = useState("");
+  const [venues, setVenues] = useState<VenueRow[]>([]);
+  const [newVenueName, setNewVenueName] = useState("");
+  const [newVenueDescription, setNewVenueDescription] = useState("");
+  const [newVenueLocation, setNewVenueLocation] = useState("");
+  const [newVenueAddress, setNewVenueAddress] = useState("");
+  const [experienceTitle, setExperienceTitle] = useState("");
+  const [experienceSummary, setExperienceSummary] = useState("");
+  const [experienceCategory, setExperienceCategory] = useState("Experience & Enjoyment");
+  const [experienceLocation, setExperienceLocation] = useState("");
+  const [experiencePrice, setExperiencePrice] = useState("Pending verification");
+  const [experienceRequirements, setExperienceRequirements] = useState("");
+  const [venueExperiences, setVenueExperiences] = useState<VenueExperienceRow[]>([]);
   const [stopId, setStopId] = useState("gate");
   const [caption, setCaption] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -126,10 +142,11 @@ function VendorMedia() {
     return `${base}/storage/v1${result.signedURL.startsWith("/") ? result.signedURL : "/" + result.signedURL}`;
   }
 
-  async function load(current: Session) {
+  async function load(current: Session, selectedVenueId = venueId) {
     try {
+      const venueFilter = selectedVenueId ? `&venue_id=eq.${encodeURIComponent(selectedVenueId)}` : "";
       const rows = (await api(
-        `/rest/v1/venue_media?select=id,venue_name,stop_id,media_type,public_url,caption,status,created_at&user_id=eq.${current.user.id}&order=created_at.desc`,
+        `/rest/v1/venue_media?select=id,venue_id,venue_name,stop_id,media_type,public_url,caption,status,created_at&user_id=eq.${current.user.id}${venueFilter}&order=created_at.desc`,
         {},
         current.access_token,
       )) as MediaRow[];
@@ -145,22 +162,107 @@ function VendorMedia() {
       setMessage(e instanceof Error ? e.message : "Could not load uploads.");
     }
   }
-  async function loadCustomStops(current: Session) {
+  async function loadCustomStops(current: Session, selectedVenueId = venueId) {
     try {
-      const rows = (await api("/rest/v1/venue_tour_stops?select=id,name,info,protocol,status&user_id=eq." + current.user.id + "&order=created_at.desc", {}, current.access_token)) as Array<{id:string;name:string;info:string;protocol:string;status:string}>;
+      const venueFilter = selectedVenueId ? "&venue_id=eq." + encodeURIComponent(selectedVenueId) : "";
+      const rows = (await api("/rest/v1/venue_tour_stops?select=id,name,info,protocol,status&user_id=eq." + current.user.id + venueFilter + "&order=created_at.desc", {}, current.access_token)) as Array<{id:string;name:string;info:string;protocol:string;status:string}>;
       setCustomStops(rows ?? []);
     } catch (e) { setMessage(e instanceof Error ? e.message : "Could not load tour points."); }
   }
+  async function loadExperiences(current: Session, selectedVenueId = venueId) {
+    if (!selectedVenueId) { setVenueExperiences([]); return; }
+    try {
+      const rows = (await api("/rest/v1/venue_experiences?select=id,title,status&venue_id=eq." + encodeURIComponent(selectedVenueId) + "&order=sort_order.asc", {}, current.access_token)) as VenueExperienceRow[];
+      setVenueExperiences(rows ?? []);
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Could not load venue experiences.");
+    }
+  }
+
+  async function loadVenues(current: Session): Promise<VenueRow[]> {
+    try {
+      const rows = (await api("/rest/v1/venues?select=id,slug,name,status&owner_user_id=eq." + current.user.id + "&order=name.asc", {}, current.access_token)) as VenueRow[];
+      setVenues(rows ?? []);
+      if (!venueId && rows?.[0]) { setVenueId(rows[0].id); setVenue(rows[0].name); await loadCustomStops(current, rows[0].id); await loadExperiences(current, rows[0].id); await load(current, rows[0].id); await load(current, rows[0].id); }
+      return rows ?? [];
+    } catch (e) { setMessage(e instanceof Error ? e.message : "Could not load your venue profiles."); return []; }
+  }
   useEffect(() => {
-    if (session) { void load(session); void loadCustomStops(session); }
+    if (session) { void load(session); void loadCustomStops(session); void loadVenues(session); }
   }, [session?.access_token]);
+
+  async function createVenue(e: React.FormEvent) {
+    e.preventDefault();
+    if (!session) return;
+    const name = newVenueName.trim();
+    const slug = name.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+    if (!slug) { setMessage("Enter a valid venue name."); return; }
+    setBusy(true); setMessage("");
+    try {
+      const created = (await api("/rest/v1/venues?select=id,slug,name,status", {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          slug, name, description: newVenueDescription.trim(),
+          location: newVenueLocation.trim() || "Location to be confirmed",
+          address: newVenueAddress.trim(), owner_user_id: session.user.id, status: "pending",
+        }),
+      }, session.access_token)) as VenueRow[];
+      const venueRecord = created?.[0];
+      if (!venueRecord) throw new Error("Venue profile was not returned. Please try again.");
+      const rows = await loadVenues(session);
+      setVenues(rows);
+      setVenueId(venueRecord.id); setVenue(venueRecord.name); setStopId("");
+      await loadExperiences(session, venueRecord.id);
+      setCustomStops([]);
+      setNewVenueName(""); setNewVenueDescription(""); setNewVenueLocation(""); setNewVenueAddress("");
+      setMessage("Venue profile submitted for review. Add tour stops and media while it is pending; visitors will see it after approval.");
+    } catch (e) { setMessage(e instanceof Error ? e.message : "Could not create venue profile."); }
+    finally { setBusy(false); }
+  }
+
+  async function addExperience(e: React.FormEvent) {
+    e.preventDefault();
+    if (!session || !venueId) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      const requirements = experienceRequirements.split(String.fromCharCode(10)).map((item) => item.trim()).filter(Boolean);
+      await api("/rest/v1/venue_experiences", {
+        method: "POST",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({
+          venue_id: venueId,
+          created_by: session.user.id,
+          title: experienceTitle.trim(),
+          summary: experienceSummary.trim(),
+          category: experienceCategory,
+          location_details: experienceLocation.trim(),
+          price_label: experiencePrice.trim() || "Pending verification",
+          requirements,
+          status: "pending",
+        }),
+      }, session.access_token);
+      setExperienceTitle("");
+      setExperienceSummary("");
+      setExperienceLocation("");
+      setExperiencePrice("Pending verification");
+      setExperienceRequirements("");
+      await loadExperiences(session, venueId);
+      setMessage("Experience submitted for review. It will appear on the public venue page after approval.");
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Could not submit experience.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function addTourPoint(e: React.FormEvent) {
     e.preventDefault();
-    if (!session) return;
+    if (!session || !venueId) return;
     setBusy(true); setMessage("");
     try {
-      await api("/rest/v1/venue_tour_stops", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ id: crypto.randomUUID(), user_id: session.user.id, venue_name: venue.trim(), name: pointName.trim(), info: pointInfo.trim(), protocol: pointProtocol.trim(), status: "pending" }) }, session.access_token);
+      await api("/rest/v1/venue_tour_stops", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ id: crypto.randomUUID(), venue_id: venueId, user_id: session.user.id, venue_name: venue.trim(), name: pointName.trim(), info: pointInfo.trim(), protocol: pointProtocol.trim(), status: "pending" }) }, session.access_token);
       setPointName(""); setPointInfo(""); setPointProtocol("");
       setMessage("Tour point submitted for review. It will appear in the visitor tour after approval.");
       await loadCustomStops(session);
@@ -208,7 +310,7 @@ function VendorMedia() {
 
   async function upload(e: React.FormEvent) {
     e.preventDefault();
-    if (!session || !files.length) return;
+    if (!session || !venueId || !stopId || !files.length) return;
     if (files.length > 10) {
       setMessage("Choose no more than 10 files at a time.");
       return;
@@ -250,6 +352,7 @@ function VendorMedia() {
             headers: { Prefer: "return=minimal" },
             body: JSON.stringify({
               user_id: session.user.id,
+              venue_id: venueId,
               venue_name: venue.trim(),
               stop_id: stopId,
               media_type: video ? "video" : "image",
@@ -377,6 +480,17 @@ function VendorMedia() {
       ) : (
         <>
           <Card className="mt-5 space-y-3">
+            <h2 className="text-xl font-bold">Create a venue profile</h2>
+            <p className="text-sm text-muted-foreground">One provider account can manage multiple venues. Each venue gets its own profile, tour stops, media galleries and experiences.</p>
+            <form className="space-y-3" onSubmit={(e) => void createVenue(e)}>
+              <label className="block space-y-1 text-sm">Venue name<input className={field} required maxLength={120} value={newVenueName} onChange={(e) => setNewVenueName(e.target.value)} placeholder="e.g. Debbie’s" /></label>
+              <label className="block space-y-1 text-sm">Description<textarea className={field} rows={2} maxLength={1000} value={newVenueDescription} onChange={(e) => setNewVenueDescription(e.target.value)} /></label>
+              <label className="block space-y-1 text-sm">Area / location<input className={field} maxLength={180} value={newVenueLocation} onChange={(e) => setNewVenueLocation(e.target.value)} placeholder="Town, area or city" /></label>
+              <label className="block space-y-1 text-sm">Street address (optional)<input className={field} maxLength={240} value={newVenueAddress} onChange={(e) => setNewVenueAddress(e.target.value)} /></label>
+              <Btn type="submit" disabled={busy || !newVenueName.trim()}>{busy ? "Submitting…" : "Create venue profile"}</Btn>
+            </form>
+          </Card>
+          <Card className="mt-5 space-y-3">
             <h2 className="text-xl font-bold">Upload photos or videos</h2>
             <p className="text-sm text-muted-foreground">
               Signed in as {session.user.email ?? "vendor"}. All selected files are assigned to the
@@ -384,14 +498,16 @@ function VendorMedia() {
             </p>
             <form className="space-y-4" onSubmit={(e) => void upload(e)}>
               <label className="block space-y-1 text-sm">
-                Venue name
-                <input
-                  className={field}
-                  required
-                  maxLength={120}
-                  value={venue}
-                  onChange={(e) => setVenue(e.target.value)}
-                />
+                Venue
+                <select className={field} required value={venueId} onChange={(e) => {
+                  const selected = venues.find((item) => item.id === e.target.value);
+                  setVenueId(e.target.value); setVenue(selected?.name ?? ""); setStopId("");
+                  if (session) { void loadCustomStops(session, e.target.value); void loadExperiences(session, e.target.value); void load(session, e.target.value); }
+                }}>
+                  <option value="">Choose one of your venues</option>
+                  {venues.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.status}</option>)}
+                </select>
+                {venues.length === 0 && <span className="text-xs text-muted-foreground">Create a venue profile above first.</span>}
               </label>
               <label className="block space-y-1 text-sm">
                 Which location does this show?
@@ -400,14 +516,14 @@ function VendorMedia() {
                   value={stopId}
                   onChange={(e) => setStopId(e.target.value)}
                 >
-                  {[...TOUR_STOPS, ...customStops].map((s) => (
+                  {[...(venues.find((item) => item.id === venueId)?.slug === "yuby-resort" ? TOUR_STOPS : []), ...customStops].map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
                     </option>
                   ))}
                 </select>
                 <span className="text-xs text-muted-foreground">
-                  Selected location: <b>{TOUR_STOPS.find((s) => s.id === stopId)?.name}</b>
+                  Selected location: <b>{TOUR_STOPS.find((s) => s.id === stopId)?.name ?? customStops.find((s) => s.id === stopId)?.name ?? "Choose a tour point"}</b>
                 </span>
               </label>
               <label className="block space-y-1 text-sm">
@@ -443,7 +559,7 @@ function VendorMedia() {
                   ))}
                 </ul>
               )}
-              <Btn type="submit" disabled={busy || !files.length}>
+              <Btn type="submit" disabled={busy || !venueId || !stopId || !files.length}>
                 {busy ? "Uploading…" : "Upload and submit for review"}
               </Btn>
             </form>
@@ -455,9 +571,23 @@ function VendorMedia() {
               <label className="block space-y-1 text-sm">Point name<input className={field} required maxLength={100} value={pointName} onChange={(e) => setPointName(e.target.value)} /></label>
               <label className="block space-y-1 text-sm">Description<textarea className={field} required maxLength={1000} rows={3} value={pointInfo} onChange={(e) => setPointInfo(e.target.value)} /></label>
               <label className="block space-y-1 text-sm">Visitor guidance<textarea className={field} maxLength={1000} rows={2} value={pointProtocol} onChange={(e) => setPointProtocol(e.target.value)} /></label>
-              <Btn type="submit" disabled={busy || !pointName.trim() || !pointInfo.trim()}>{busy ? "Saving…" : "Add point for review"}</Btn>
+              <Btn type="submit" disabled={busy || !venueId || !pointName.trim() || !pointInfo.trim()}>{busy ? "Saving…" : "Add point for review"}</Btn>
             </form>
             {customStops.map((point) => <div key={point.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"><div><p className="font-semibold">{point.name}</p><p className="text-xs text-muted-foreground capitalize">{point.status} review</p></div><div className="flex gap-1"><Btn variant="ghost" disabled={busy} onClick={() => void editTourPoint(point)}>Edit</Btn><Btn variant="ghost" disabled={busy} onClick={() => void deleteTourPoint(point)}>Delete</Btn></div></div>)}
+          </Card>
+          <Card className="mt-5 space-y-3">
+            <h2 className="text-xl font-bold">Add an experience</h2>
+            <p className="text-sm text-muted-foreground">Experiences belong to the selected venue. A venue can offer several activities; each submission is reviewed before publication.</p>
+            <form className="space-y-3" onSubmit={(e) => void addExperience(e)}>
+              <label className="block space-y-1 text-sm">Experience name<input className={field} required maxLength={120} value={experienceTitle} onChange={(e) => setExperienceTitle(e.target.value)} /></label>
+              <label className="block space-y-1 text-sm">Description<textarea className={field} required rows={3} maxLength={1000} value={experienceSummary} onChange={(e) => setExperienceSummary(e.target.value)} /></label>
+              <label className="block space-y-1 text-sm">Category<select className={field} value={experienceCategory} onChange={(e) => setExperienceCategory(e.target.value)}><option>Experience & Enjoyment</option><option>Learn & Discover</option><option>Create & Build</option><option>Grow & Achieve</option></select></label>
+              <label className="block space-y-1 text-sm">Location within venue (optional)<input className={field} maxLength={180} value={experienceLocation} onChange={(e) => setExperienceLocation(e.target.value)} /></label>
+              <label className="block space-y-1 text-sm">Price / fee<input className={field} maxLength={120} value={experiencePrice} onChange={(e) => setExperiencePrice(e.target.value)} /></label>
+              <label className="block space-y-1 text-sm">Requirements (one per line)<textarea className={field} rows={2} value={experienceRequirements} onChange={(e) => setExperienceRequirements(e.target.value)} /></label>
+              <Btn type="submit" disabled={busy || !venueId || !experienceTitle.trim() || !experienceSummary.trim()}>{busy ? "Submitting…" : "Submit experience for review"}</Btn>
+            </form>
+            {venueExperiences.map((item) => <p key={item.id} className="rounded-lg border border-border p-2 text-sm">{item.title} · <span className="text-xs capitalize text-muted-foreground">{item.status}</span></p>)}
           </Card>
           <h2 className="mt-6 text-xl font-bold">Your submissions</h2>
           <p className="mt-1 text-sm text-muted-foreground">
