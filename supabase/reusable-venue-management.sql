@@ -198,9 +198,10 @@ drop policy if exists "vendors add own tour points" on public.venue_tour_stops;
 create policy "vendors add own tour points" on public.venue_tour_stops
   for insert to authenticated with check (
     auth.uid() = user_id and status = 'pending'
-    and (venue_id is null or exists (
+    and venue_id is not null
+    and exists (
       select 1 from public.venues v where v.id = venue_id and v.owner_user_id = auth.uid()
-    ))
+    )
   );
 
 drop policy if exists "vendors edit own pending tour points" on public.venue_tour_stops;
