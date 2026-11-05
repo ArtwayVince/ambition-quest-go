@@ -21,6 +21,7 @@ type Session = {
   user: { id: string; email?: string };
 };
 type VenueRow = { id: string; slug: string; name: string; status: string };
+type VenueExperienceRow = { id: string; title: string; status: string };
 type MediaRow = {
   id: string;
   venue_name: string;
@@ -48,6 +49,13 @@ function VendorMedia() {
   const [newVenueDescription, setNewVenueDescription] = useState("");
   const [newVenueLocation, setNewVenueLocation] = useState("");
   const [newVenueAddress, setNewVenueAddress] = useState("");
+  const [experienceTitle, setExperienceTitle] = useState("");
+  const [experienceSummary, setExperienceSummary] = useState("");
+  const [experienceCategory, setExperienceCategory] = useState("Experience & Enjoyment");
+  const [experienceLocation, setExperienceLocation] = useState("");
+  const [experiencePrice, setExperiencePrice] = useState("Pending verification");
+  const [experienceRequirements, setExperienceRequirements] = useState("");
+  const [venueExperiences, setVenueExperiences] = useState<VenueExperienceRow[]>([]);
   const [stopId, setStopId] = useState("gate");
   const [caption, setCaption] = useState("");
   const [files, setFiles] = useState<File[]>([]);
